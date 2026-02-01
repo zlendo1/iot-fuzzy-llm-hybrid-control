@@ -1,41 +1,44 @@
 # Architecture Design Document
 
+## Fuzzy-LLM Hybrid IoT Management System
+
 ______________________________________________________________________
 
 ## 1. Introduction
 
 ### 1.1 Purpose
 
-This document describes the software architecture for the Fuzzy-LLM Hybrid IoT
-Management System. The architecture supports natural language rule processing
-for IoT device control through integration of fuzzy logic and large language
-models. This document serves as the authoritative reference for system design
-decisions, component interactions, and implementation guidance.
+This document defines the software architecture for the Fuzzy-LLM Hybrid IoT
+Management System. It establishes the system's structural organization,
+component responsibilities, communication patterns, and deployment model. This
+document serves as the primary reference for all implementation and integration
+activities.
 
 ### 1.2 Scope
 
 The architecture covers all software components required for offline IoT device
-management through natural language rules. The system operates on edge devices
-and includes fuzzy logic processing, LLM inference, rule interpretation, device
-communication, and configuration management. Hardware-specific device drivers
-and physical IoT devices fall outside this architecture scope.
+management through natural language rules. Core responsibilities include fuzzy
+logic processing of sensor data, LLM-based rule reasoning via Ollama, MQTT-based
+device communication, and JSON-driven configuration management. Physical IoT
+hardware and device-level firmware fall outside this scope.
 
 ### 1.3 Intended Audience
 
-This document addresses software developers implementing the system, system
-architects reviewing design decisions, and technical reviewers validating
-architectural soundness. Readers should possess knowledge of software
-architecture patterns, Python programming, and basic understanding of fuzzy
-logic and language models.
+Software developers implementing the system, architects reviewing design
+decisions, and technical reviewers validating architectural soundness. Readers
+are expected to have familiarity with software architecture patterns, Python,
+fuzzy logic fundamentals, and basic knowledge of language models.
 
-### 1.4 Document Organization
+### 1.4 Definitions
 
-Section 2 presents the architectural overview and design principles. Section 3
-details the system architecture with component descriptions. Section 4 specifies
-component interfaces and interactions. Section 5 describes data architecture and
-persistence. Section 6 addresses deployment considerations. Section 7 covers
-security architecture. Section 8 discusses performance and scalability. Section
-9 documents design decisions and rationale.
+| Term                | Definition                                                                                                                                   |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Membership Function | A mathematical function defining the degree to which a numerical value belongs to a fuzzy linguistic set, returning a value between 0 and 1. |
+| Linguistic Variable | A variable whose values are expressed as words or phrases in natural language (e.g., "temperature is hot").                                  |
+| Ollama              | An open-source platform for running large language models locally on-device without cloud dependencies.                                      |
+| MQTT                | Message Queuing Telemetry Transport — a lightweight publish-subscribe protocol widely adopted for IoT communication.                         |
+| Edge Device         | A computing device deployed at the network periphery, close to IoT data sources, with limited computational resources.                       |
+| Actuator            | A physical device that performs a control action (e.g., turning on an HVAC unit) in response to a command.                                   |
 
 ______________________________________________________________________
 
@@ -43,723 +46,281 @@ ______________________________________________________________________
 
 ### 2.1 Architectural Style
 
-The system employs a layered architecture with clear separation between data
-acquisition, processing, reasoning, and control execution. The architecture
-follows these principles:
+The system adopts a strict layered architecture. Each layer owns a clearly
+defined set of responsibilities, and communication flows exclusively between
+adjacent layers through well-defined interfaces. No layer may bypass an adjacent
+layer to communicate with a non-neighboring layer. Within each layer, internal
+components communicate only through a layer coordinator — never directly with
+components in other layers.
 
-1. **Separation of Concerns:** Each layer addresses distinct functional
-   responsibilities without overlap
-2. **Modularity:** Components interact through well-defined interfaces enabling
-   independent development and testing
-3. **Offline Operation:** No external network dependencies for core
-   functionality
-4. **Configurability:** JSON-based configuration enables customization without
-   code modification
-5. **Extensibility:** Plugin architecture supports additional membership
-   functions, device protocols, and LLM backends
+### 2.2 Design Principles
 
-### 2.2 High-Level Architecture
-
-The system consists of five primary layers:
-
-**Layer 1 - Device Interface Layer:** Handles communication with physical
-sensors and actuators through protocol adapters.
-
-**Layer 2 - Data Processing Layer:** Transforms raw sensor data into linguistic
-descriptions using fuzzy logic.
-
-**Layer 3 - Reasoning Layer:** Processes linguistic descriptions and natural
-language rules using an offline LLM to generate control decisions.
-
-**Layer 4 - Control Layer:** Translates LLM decisions into device-specific
-commands and manages execution.
-
-**Layer 5 - Configuration and Management Layer:** Provides configuration
-loading, validation, rule storage, and system monitoring.
+| Principle           | Description                                                                                                                     |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Privacy by Design   | All sensor data, rules, and processing remain on-device. No data is transmitted to external services.                           |
+| Fail-Safe Operation | The system defaults to safe device states upon component failure. All commands are validated before execution.                  |
+| Transparency        | Fuzzy logic mappings are explicit and inspectable. All processing steps are logged for traceability.                            |
+| Resource Efficiency | The system is optimized for edge constraints via caching, lazy loading, and efficient data structures.                          |
+| Configurability     | System behavior is driven by JSON configuration. Membership functions and device definitions require no code changes to modify. |
 
 ### 2.3 Architectural Constraints
 
-The architecture operates under these constraints:
-
-1. Python 3.9 or later as implementation language
-2. Maximum 8GB RAM footprint including loaded models
-3. No internet connectivity for core operations
-4. JSON format for all persistent configuration
-5. Support for x86-64 and ARM64 processor architectures
-6. Linux operating system as deployment target
-
-### 2.4 Design Principles
-
-**Principle 1 - Privacy by Design:** No sensor data, rules, or commands
-transmitted to external services.
-
-**Principle 2 - Fail-Safe Operation:** System defaults to safe states on
-component failures.
-
-**Principle 3 - Transparency:** All processing steps logged for debugging and
-user understanding.
-
-**Principle 4 - Resource Efficiency:** Optimized for edge device constraints
-through lazy loading and caching.
-
-**Principle 5 - User-Centric Design:** Natural language interfaces prioritized
-over technical configuration.
+| Constraint           | Detail                                                         |
+| -------------------- | -------------------------------------------------------------- |
+| Language             | Python 3.9 or later                                            |
+| LLM Runtime          | Ollama (local service, max 7B parameter models)                |
+| Device Protocol      | MQTT via Eclipse Mosquitto broker                              |
+| Configuration Format | JSON for all configuration and membership function definitions |
+| Network              | No internet connectivity required for core operation           |
+| Target Platform      | Linux on x86-64 or ARM64 hardware                              |
+| Memory               | 8 GB maximum total footprint including Ollama                  |
 
 ______________________________________________________________________
 
 ## 3. System Architecture
 
-### 3.1 Component Diagram
+### 3.1 Layer Overview
+
+The system is organized into five layers. Each layer contains a coordinator
+component (shown in bold in the diagram) that serves as the single point of
+contact for adjacent layers, and one or more internal components that perform
+specialized work within the layer.
+
+| Layer                      | Coordinator                | Responsibility                                                                                     |
+| -------------------------- | -------------------------- | -------------------------------------------------------------------------------------------------- |
+| User Interface             | —                          | Exposes CLI, optional Web UI, and optional REST API for user interaction.                          |
+| Configuration & Management | System Orchestrator        | Manages system lifecycle, configuration loading, rule persistence, and centralized logging.        |
+| Control & Reasoning        | Rule Processing Pipeline   | Evaluates natural language rules against sensor state using the LLM and generates device commands. |
+| Data Processing            | Fuzzy Processing Pipeline  | Transforms raw numerical sensor data into linguistic descriptions via fuzzy logic.                 |
+| Device Interface           | MQTT Communication Manager | Manages all device communication through the MQTT broker.                                          |
+
+### 3.2 Component Diagram
+
+The following diagram illustrates the layered structure. Bold-bordered boxes
+represent layer coordinators. Standard boxes represent internal components.
+Arrows between layers indicate the direction of the primary data flow. The MQTT
+Broker and Ollama Service are external processes managed independently of the
+main application.
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    USER INTERFACE LAYER                         │
-│                                                                 │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐           │
-│  │     CLI      │  │   Web UI     │  │  REST API    │           │
-│  │  Interface   │  │  (Optional)  │  │  (Optional)  │           │
-│  └──────────────┘  └──────────────┘  └──────────────┘           │
-│                                                                 │
-└────────────────────────────┬────────────────────────────────────┘
-                             │
-                             │ User commands, queries
-                             │
-┌────────────────────────────┼────────────────────────────────────┐
-│   CONFIGURATION AND MANAGEMENT LAYER                            │
-│                            │                                    │
-│                            ▼                                    │
-│    ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓     │
-│    ┃          SYSTEM ORCHESTRATOR / CONTROLLER            ┃     │
-│    ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛     │
-│                            │                                    │
-│         ┌──────────────────┼─────────────────┐                  │
-│         │                  │                 │                  │
-│  ┌──────▼───────┐  ┌───────▼──────┐  ┌───────▼──────┐           │
-│  │Configuration │  │     Rule     │  │   Logging    │           │
-│  │   Manager    │  │   Manager    │  │   Manager    │           │
-│  └──────────────┘  └──────────────┘  └──────────────┘           │
-│                                                                 │
-└────────────────────────────┬────────────────────────────────────┘
-                             │
-                             │ System state, configurations
-                             │
-┌────────────────────────────┼────────────────────────────────────┐
-│       CONTROL AND REASONING LAYER                               │
-│                            │                                    │
-│                            ▼                                    │
-│         ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓       │
-│         ┃           RULE PROCESSING PIPELINE            ┃       │
-│         ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛       │
-│                            │                                    │
-│         ┌──────────────────┼─────────────────┐                  │
-│         │                  │                 │                  │
-│  ┌──────▼───────┐  ┌───────▼──────┐  ┌───────▼──────┐           │
-│  │     Rule     │  │     LLM      │  │   Command    │           │
-│  │ Interpreter  │  │   Engine     │  │  Generator   │           │
-│  └──────────────┘  └──────────────┘  └──────────────┘           │
-│                                                                 │
-└────────────────────────────┬────────────────────────────────────┘
-                             │
-                             │ Linguistic descriptions, commands
-                             │
-┌────────────────────────────┼────────────────────────────────────┐
-│          DATA PROCESSING LAYER                                  │
-│                            │                                    │
-│                            ▼                                    │
-│         ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓       │
-│         ┃         FUZZY PROCESSING PIPELINE             ┃       │
-│         ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛       │
-│                            │                                    │
-│         ┌──────────────────┼─────────────────┐                  │
-│         │                  │                 │                  │
-│  ┌──────▼───────┐  ┌───────▼──────┐  ┌───────▼──────┐           │
-│  │    Fuzzy     │  │  Membership  │  │  Linguistic  │           │
-│  │    Engine    │  │   Function   │  │  Descriptor  │           │
-│  │              │  │   Library    │  │   Builder    │           │
-│  └──────────────┘  └──────────────┘  └──────────────┘           │
-│                                                                 │
-└────────────────────────────┬────────────────────────────────────┘
-                             │
-                             │ Sensor readings, device commands
-                             │
-┌────────────────────────────┼────────────────────────────────────┐
-│          DEVICE INTERFACE LAYER                                 │
-│                            │                                    │
-│                            ▼                                    │
-│         ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓       │
-│         ┃       DEVICE COMMUNICATION MANAGER            ┃       │
-│         ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛       │
-│                            │                                    │
-│         ┌──────────────────┼──────────────────┐                 │
-│         │                  │                  │                 │
-│  ┌──────▼───────┐  ┌───────▼──────┐   ┌───────▼──────┐          │
-│  │   Device     │  │   Protocol   │   │   Device     │          │
-│  │   Registry   │  │   Adapters   │   │   Monitor    │          │
-│  └──────────────┘  └──────────────┘   └──────────────┘          │
-│                                                                 │
-└────────────────────────────┬────────────────────────────────────┘
-                             │
-                             │ Hardware communication
-                             │
-                    ┌────────┴────────┐
-                    │                 │    
-              ┌─────▼─────┐     ┌─────▼─────┐
-              │  Sensors  │     │ Actuators │
-              │           │     │           │
-              └───────────┘     └───────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                      USER INTERFACE LAYER                           │
+│                                                                     │
+│   CLI Interface  |  Web UI (Optional)  |  REST API (Optional)       │
+└───────────────────────────────┬─────────────────────────────────────┘
+                                │ User commands and queries
+┌───────────────────────────────┼─────────────────────────────────────┐
+│          CONFIGURATION & MANAGEMENT LAYER                           │
+│                               │                                     │
+│              ┌────────────────▼────────────────┐                    │
+│              │   SYSTEM ORCHESTRATOR           │  ← Coordinator     │
+│              └────────────────┬────────────────┘                    │
+│                               │                                     │
+│   Configuration Manager  |  Rule Manager  |  Logging Manager        │
+└───────────────────────────────┼─────────────────────────────────────┘
+                                │ System state, configurations
+┌───────────────────────────────┼─────────────────────────────────────┐
+│              CONTROL & REASONING LAYER                              │
+│                               │                                     │
+│              ┌────────────────▼────────────────┐                    │
+│              │   RULE PROCESSING PIPELINE      │  ← Coordinator     │
+│              └────────────────┬────────────────┘                    │
+│                               │                          ┌────────────────┐
+│   Rule Interpreter  |  Ollama Client  |  Command Gen.    │ Ollama Service │
+│                                                          │ (External)     │
+└───────────────────────────────┼──────────────────────────└────────────────┘
+                                │ Linguistic descriptions, commands
+┌───────────────────────────────┼─────────────────────────────────────┐
+│              DATA PROCESSING LAYER                                  │
+│                               │                                     │
+│              ┌────────────────▼────────────────┐                    │
+│              │   FUZZY PROCESSING PIPELINE     │  ← Coordinator     │
+│              └────────────────┬────────────────┘                    │
+│                               │                                     │
+│  Fuzzy Engine  |  Membership Function Library  |  Descriptor Builder│
+└───────────────────────────────┼─────────────────────────────────────┘
+                                │ Sensor readings, device commands
+┌───────────────────────────────┼─────────────────────────────────────┐
+│              DEVICE INTERFACE LAYER                                 │
+│                               │                                     │
+│              ┌────────────────▼────────────────┐                    │
+│              │   MQTT COMMUNICATION MANAGER    │  ← Coordinator     │
+│              └────────────────┬────────────────┘                    │
+│                               │                                     │
+│   Device Registry  |  MQTT Client  |  Device Monitor                │
+└───────────────────────────────┼─────────────────────────────────────┘
+                                │ MQTT messages
+                    ┌───────────▼───────────┐
+                    │   MQTT Broker         │
+                    │   (Eclipse Mosquitto) │  ← External
+                    └───────────┬───────────┘
+                                │ Device communication
+                    ┌───────────▼───────────┐
+                    │   Sensors | Actuators │  ← Physical Devices
+                    └───────────────────────┘
 ```
 
-### 3.2 Component Descriptions
-
-#### 3.2.1 Device Interface Layer Components
-
-**Device Registry**
-
-Maintains inventory of all connected sensors and actuators with their
-capabilities and communication parameters.
-
-**Responsibilities:**
-
-- Register and deregister devices dynamically
-- Store device metadata including type, capabilities, and protocol
-- Provide device lookup by identifier
-- Validate device availability
-
-**Key Interfaces:**
-
-- register_device(device_config) → device_id
-- get_device(device_id) → device_info
-- list_devices(filter_criteria) → device_list
-- remove_device(device_id) → success
-
-**Protocol Adapters**
-
-Implement communication protocols for sensor data acquisition and actuator
-control.
-
-**Responsibilities:**
-
-- Abstract protocol-specific communication details
-- Handle connection management and error recovery
-- Translate between internal data formats and protocol messages
-- Support MQTT, HTTP REST, and serial communication
-
-**Key Interfaces:**
-
-- read_sensor(device_id) → sensor_reading
-- write_actuator(device_id, command) → execution_result
-- subscribe_events(device_id, callback) → subscription_handle
-- unsubscribe_events(subscription_handle) → success
-
-**Device Monitor**
-
-Tracks device health and communication status.
-
-**Responsibilities:**
-
-- Monitor device connectivity
-- Detect communication failures
-- Trigger reconnection attempts
-- Report device status to logging system
-
-**Key Interfaces:**
-
-- get_device_status(device_id) → status_info
-- check_all_devices() → status_summary
-- set_monitoring_interval(interval) → success
-
-#### 3.2.2 Data Processing Layer Components
-
-**Fuzzy Engine**
-
-Core fuzzy logic processing component that fuzzifies numerical sensor values.
-
-**Responsibilities:**
-
-- Apply membership functions to sensor values
-- Compute membership degrees for all linguistic terms
-- Cache computation results for repeated queries
-- Support multiple concurrent fuzzification requests
-
-**Key Interfaces:**
-
-- fuzzify(sensor_value, sensor_type) → linguistic_terms
-- batch_fuzzify(sensor_readings) → linguistic_descriptions
-- clear_cache() → success
-
-**Membership Function Library**
-
-Provides implementations of standard membership function types.
-
-**Responsibilities:**
-
-- Implement triangular membership functions
-- Implement trapezoidal membership functions
-- Implement Gaussian membership functions
-- Implement sigmoid membership functions
-- Support custom membership function plugins
-
-**Key Interfaces:**
-
-- triangular(x, a, b, c) → membership_degree
-- trapezoidal(x, a, b, c, d) → membership_degree
-- gaussian(x, mean, sigma) → membership_degree
-- sigmoid(x, a, c) → membership_degree
-- register_custom_function(name, function) → success
-
-**Linguistic Descriptor Builder**
-
-Formats fuzzy logic outputs into structured linguistic descriptions.
-
-**Responsibilities:**
-
-- Combine sensor type, linguistic terms, and membership degrees
-- Generate natural language phrases for LLM consumption
-- Apply linguistic templates for consistent formatting
-- Filter low-confidence terms based on threshold
-
-**Key Interfaces:**
-
-- build_description(sensor_id, linguistic_terms) → description_text
-- build_system_state(all_sensor_states) → state_description
-- set_confidence_threshold(threshold) → success
-
-#### 3.2.3 Control and Reasoning Layer Components
-
-**Rule Interpreter**
-
-Manages natural language rules and determines which rules apply to current
-system state.
-
-**Responsibilities:**
-
-- Store and retrieve natural language rules
-- Match current sensor states against rule conditions
-- Resolve conflicts between multiple applicable rules
-- Track rule execution history
-
-**Key Interfaces:**
-
-- add_rule(rule_text, priority) → rule_id
-- remove_rule(rule_id) → success
-- get_applicable_rules(current_state) → rule_list
-- get_rule_history(rule_id) → execution_history
-
-**LLM Engine**
-
-Executes large language model inference for natural language processing and
-decision generation.
-
-**Responsibilities:**
-
-- Load and initialize offline LLM models
-- Generate prompts from linguistic descriptions and rules
-- Execute model inference with timeout protection
-- Parse LLM outputs to extract structured decisions
-- Manage model context across interactions
-
-**Key Interfaces:**
-
-- load_model(model_path, config) → success
-- generate_decision(prompt_text, timeout) → llm_response
-- parse_response(llm_response) → structured_actions
-- reset_context() → success
-
-**Command Generator**
-
-Translates LLM decisions into device-specific control commands.
-
-**Responsibilities:**
-
-- Map abstract actions to concrete device commands
-- Validate commands against device capabilities
-- Handle multi-device coordination
-- Apply safety constraints to command parameters
-
-**Key Interfaces:**
-
-- generate_command(action, device_id) → device_command
-- validate_command(device_command) → validation_result
-- generate_batch_commands(action_list) → command_list
-
-#### 3.2.4 Configuration and Management Layer Components
-
-**Configuration Manager**
-
-Handles loading, validation, and management of JSON configuration files.
-
-**Responsibilities:**
-
-- Load membership function definitions from JSON
-- Validate configuration file syntax and semantics
-- Provide configuration access to other components
-- Support runtime configuration updates
-- Export current configuration for backup
-
-**Key Interfaces:**
-
-- load_config(config_path) → config_data
-- validate_config(config_data) → validation_result
-- get_config(config_key) → config_value
-- update_config(config_key, config_value) → success
-- export_config(output_path) → success
-
-**Rule Manager**
-
-Persists and manages natural language rules with metadata.
-
-**Responsibilities:**
-
-- Store rules in persistent storage
-- Support CRUD operations on rules
-- Maintain rule metadata including priority and timestamps
-- Enable bulk rule import and export
-
-**Key Interfaces:**
-
-- save_rule(rule) → success
-- load_rules() → rule_list
-- update_rule(rule_id, rule_data) → success
-- delete_rule(rule_id) → success
-- export_rules(output_path) → success
-
-**Logging Manager**
-
-Centralized logging infrastructure for system events and debugging.
-
-**Responsibilities:**
-
-- Log sensor readings and device commands
-- Record rule evaluations and LLM decisions
-- Track system errors and warnings
-- Support configurable log levels
-- Implement log rotation and archival
-
-**Key Interfaces:**
-
-- log_event(level, message, context) → success
-- log_sensor_reading(reading) → success
-- log_command_execution(command, result) → success
-- set_log_level(level) → success
-- rotate_logs() → success
-
-#### 3.2.5 User Interface Layer Components
-
-**CLI Interface**
-
-Command-line interface for system administration and rule management.
-
-**Responsibilities:**
-
-- Accept user commands for system control
-- Display system status and sensor readings
-- Support interactive rule definition
-- Provide configuration management interface
-
-**Key Interfaces:**
-
-- start_cli() → interactive_session
-- execute_command(command_string) → command_output
-
-**Web UI (Optional)**
-
-Browser-based interface for visual rule management.
-
-**Responsibilities:**
-
-- Render visual rule editor
-- Display real-time sensor status
-- Show rule execution history
-- Provide configuration forms
-
-**REST API (Optional)**
-
-HTTP API for programmatic system access.
-
-**Responsibilities:**
-
-- Expose rule management endpoints
-- Provide sensor and device status queries
-- Accept control commands
-- Support authentication and authorization
+### 3.3 Component Descriptions
+
+#### 3.3.1 Device Interface Layer
+
+MQTT Communication Manager coordinates all device I/O and is the sole interface
+between the Device Interface Layer and the Data Processing Layer above it.
+
+- **Device Registry** — Maintains the inventory of all configured sensors and
+  actuators, including their MQTT topics, capabilities, and metadata.
+- **MQTT Client** — Manages the connection to the Mosquitto broker, handles
+  topic subscriptions for sensor data, publishes commands to actuator topics,
+  and implements reconnection logic.
+- **Device Monitor** — Tracks device availability using MQTT Last Will and
+  Testament messages and periodic heartbeats. Reports device failures to the
+  logging system.
+
+#### 3.3.2 Data Processing Layer
+
+Fuzzy Processing Pipeline transforms raw sensor readings into linguistic
+descriptions and is the sole interface between the Device Interface Layer and
+the Control & Reasoning Layer.
+
+- **Fuzzy Engine** — Applies membership functions to numerical sensor values and
+  computes membership degrees for all configured linguistic terms.
+- **Membership Function Library** — Provides implementations of triangular,
+  trapezoidal, Gaussian, and sigmoid membership functions. Supports registration
+  of custom function types.
+- **Linguistic Descriptor Builder** — Formats the output of the Fuzzy Engine
+  into structured natural language descriptions suitable for LLM consumption
+  (e.g., "temperature is hot (0.85)").
+
+#### 3.3.3 Control & Reasoning Layer
+
+Rule Processing Pipeline orchestrates the full rule evaluation workflow and is
+the sole interface between the Data Processing Layer and the Configuration &
+Management Layer.
+
+- **Rule Interpreter** — Matches current linguistic sensor states against stored
+  rules to identify candidates for evaluation. Implements conflict resolution
+  when multiple rules generate commands for the same device.
+- **Ollama Client** — Communicates with the Ollama service via its REST API.
+  Constructs prompts from sensor states and rule text, submits them for
+  inference, and parses the LLM response to extract structured control actions.
+- **Command Generator** — Translates abstract actions from the LLM into concrete
+  device commands. Validates each command against device capabilities and
+  configured safety constraints before passing it for execution.
+
+#### 3.3.4 Configuration & Management Layer
+
+System Orchestrator manages the full system lifecycle and coordinates
+initialization, runtime, and shutdown across all layers.
+
+- **Configuration Manager** — Loads and validates all JSON configuration files.
+  Provides configuration data to other components. Supports runtime
+  configuration updates with automatic backup.
+- **Rule Manager** — Provides persistent storage for natural language rules with
+  full CRUD support, metadata tracking, and import/export capabilities.
+- **Logging Manager** — Centralized structured logging for all system events
+  including sensor readings, rule evaluations, device commands, and errors.
+
+#### 3.3.5 User Interface Layer
+
+- **CLI Interface** — Primary interaction tool for system administration, rule
+  management, and status monitoring.
+- **Web UI (Optional)** — Browser-based interface providing visual rule editing,
+  real-time sensor status, and execution history.
+- **REST API (Optional)** — HTTP API for programmatic system access and
+  third-party integration.
 
 ______________________________________________________________________
 
 ## 4. Component Interactions
 
-### 4.1 Primary Interaction Flows
+### 4.1 Sensor Data Processing Flow
 
-#### 4.1.1 Sensor Data Processing Flow
+This flow begins when the MQTT Client receives a sensor reading and ends when a
+linguistic description is cached and available for rule evaluation.
 
-```
-Sequence: Sensor Reading → Linguistic Description
+| Step | Action                                                                                                          | From → To                                                        |
+| ---- | --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| 1    | MQTT Client receives sensor value on subscribed topic.                                                          | MQTT Broker → MQTT Client                                        |
+| 2    | MQTT Communication Manager routes the reading to the layer above.                                               | MQTT Comm. Manager → Fuzzy Processing Pipeline                   |
+| 3    | Fuzzy Processing Pipeline requests membership functions from Configuration Manager via the System Orchestrator. | Fuzzy Processing Pipeline → System Orchestrator → Config Manager |
+| 4    | Fuzzy Engine applies membership functions to the numerical value, producing linguistic terms with degrees.      | Fuzzy Engine (internal)                                          |
+| 5    | Linguistic Descriptor Builder formats the result into a natural language description.                           | Linguistic Descriptor Builder (internal)                         |
+| 6    | Fuzzy Processing Pipeline caches the description and notifies the Rule Processing Pipeline of a state change.   | Fuzzy Processing Pipeline → Rule Processing Pipeline             |
 
-1. Device Monitor triggers periodic sensor poll
-2. Protocol Adapter reads sensor value
-3. Protocol Adapter returns numerical reading to Fuzzy Engine
-4. Fuzzy Engine retrieves membership functions from Configuration Manager
-5. Membership Function Library computes membership degrees
-6. Fuzzy Engine returns linguistic terms with degrees
-7. Linguistic Descriptor Builder formats description text
-8. Description logged by Logging Manager
-9. Description stored in system state cache
-```
+### 4.2 Rule Evaluation Flow
 
-**Data Flow:**
+This flow is triggered when the sensor state changes or on a scheduled interval.
+It begins with rule matching and ends with command execution.
 
-```
-Sensor → Protocol Adapter → Fuzzy Engine → Membership Functions
-  ↓                                              ↓
-Logging Manager ← Descriptor Builder ← Linguistic Terms
-```
+| Step | Action                                                                                                                  | From → To                                            |
+| ---- | ----------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| 1    | Rule Processing Pipeline requests the current system state (linguistic descriptions) from Fuzzy Processing Pipeline.    | Rule Processing Pipeline → Fuzzy Processing Pipeline |
+| 2    | Rule Interpreter identifies candidate rules whose conditions may match the current state.                               | Rule Interpreter (internal)                          |
+| 3    | Ollama Client constructs a prompt containing the sensor state and the rule text, then submits it to Ollama.             | Ollama Client → Ollama Service                       |
+| 4    | Ollama returns a text response indicating whether the rule applies and what action to take.                             | Ollama Service → Ollama Client                       |
+| 5    | Ollama Client parses the response to extract a structured action specification.                                         | Ollama Client (internal)                             |
+| 6    | Command Generator validates the action against device capabilities and safety constraints.                              | Command Generator (internal)                         |
+| 7    | If conflict resolution is needed (multiple commands targeting the same device), Rule Interpreter resolves the conflict. | Rule Interpreter (internal)                          |
+| 8    | Validated commands are passed to MQTT Communication Manager for publication.                                            | Rule Processing Pipeline → MQTT Comm. Manager        |
+| 9    | MQTT Client publishes the command to the appropriate actuator topic.                                                    | MQTT Client → MQTT Broker → Actuator                 |
 
-#### 4.1.2 Rule Evaluation Flow
+### 4.3 System Startup Flow
 
-```
-Sequence: State Change → Rule Evaluation → Action Execution
-
-1. System state updated with new linguistic descriptions
-2. Rule Interpreter retrieves applicable rules from Rule Manager
-3. For each applicable rule:
-   a. Rule Interpreter formats prompt with state and rule
-   b. LLM Engine generates decision based on prompt
-   c. LLM Engine parses response for actions
-   d. Command Generator translates actions to device commands
-   e. Command Generator validates commands
-4. Conflict resolution applied if multiple commands target same device
-5. Valid commands sent to Protocol Adapters
-6. Protocol Adapters execute commands on devices
-7. Execution results logged by Logging Manager
-8. Rule execution history updated in Rule Manager
-```
-
-**Data Flow:**
-
-```
-System State → Rule Interpreter → LLM Engine → Command Generator
-                      ↓                              ↓
-                 Rule Manager                Protocol Adapters
-                                                     ↓
-                                              Physical Devices
-```
-
-#### 4.1.3 Configuration Loading Flow
-
-```
-Sequence: System Startup → Configuration Loading
-
-1. Configuration Manager loads membership function JSON files
-2. Configuration Manager validates JSON schema and semantics
-3. Configuration Manager loads device configuration
-4. Device Registry populates with configured devices
-5. Protocol Adapters initialize for configured devices
-6. Rule Manager loads persisted rules
-7. LLM Engine loads specified model
-8. System enters ready state
-```
-
-#### 4.1.4 User Rule Addition Flow
-
-```
-Sequence: User Input → Rule Storage → Immediate Evaluation
-
-1. User submits natural language rule through interface
-2. CLI/Web UI sends rule to Rule Manager
-3. Rule Manager validates basic rule structure
-4. Rule Manager assigns rule ID and stores rule
-5. Rule Manager notifies Rule Interpreter of new rule
-6. Rule Interpreter evaluates rule against current state
-7. If applicable, triggers rule evaluation flow
-8. User receives confirmation with rule ID
-```
-
-### 4.2 Interface Specifications
-
-#### 4.2.1 Internal Component Interfaces
-
-All internal component communication uses Python function calls with
-strongly-typed parameters and return values. Components communicate through
-abstract base classes enabling interface stability and implementation
-flexibility.
-
-**Example Interface Contract:**
-
-```python
-class IFuzzyEngine(ABC):
-    @abstractmethod
-    def fuzzify(self, sensor_value: float, sensor_type: str) -> List[LinguisticTerm]:
-        """
-        Fuzzify a numerical sensor value.
-        
-        Args:
-            sensor_value: Numerical sensor reading
-            sensor_type: Identifier for sensor type (determines membership functions)
-            
-        Returns:
-            List of LinguisticTerm objects with term names and membership degrees
-            
-        Raises:
-            ValueError: If sensor_type not configured
-            TypeError: If sensor_value not numeric
-        """
-        pass
-```
-
-#### 4.2.2 Data Transfer Objects
-
-Components exchange data using immutable dataclasses for type safety and
-clarity.
-
-**Sensor Reading:**
-
-```python
-@dataclass(frozen=True)
-class SensorReading:
-    sensor_id: str
-    timestamp: datetime
-    value: float
-    unit: str
-    quality: Optional[float] = None
-```
-
-**Linguistic Term:**
-
-```python
-@dataclass(frozen=True)
-class LinguisticTerm:
-    term: str
-    membership_degree: float
-    sensor_id: str
-```
-
-**Device Command:**
-
-```python
-@dataclass(frozen=True)
-class DeviceCommand:
-    device_id: str
-    command_type: str
-    parameters: Dict[str, Any]
-    timestamp: datetime
-    source_rule_id: Optional[str] = None
-```
-
-#### 4.2.3 Event-Based Communication
-
-Components use an event bus for asynchronous notifications of state changes and
-system events.
-
-**Event Types:**
-
-- SensorReadingEvent: New sensor data available
-- RuleTriggeredEvent: Rule evaluation completed
-- CommandExecutedEvent: Device command executed
-- ConfigurationChangedEvent: Configuration updated
-- SystemErrorEvent: Error condition occurred
-
-**Event Subscription Pattern:**
-
-```python
-event_bus.subscribe(SensorReadingEvent, handler_function)
-```
-
-### 4.3 Error Handling Strategy
-
-Each component implements consistent error handling:
-
-1. **Input Validation:** Validate all inputs at component boundaries
-2. **Exception Propagation:** Propagate exceptions with context to calling
-   components
-3. **Graceful Degradation:** Continue operation with reduced functionality when
-   possible
-4. **Error Logging:** Log all errors with stack traces and context
-5. **User Notification:** Surface critical errors to user interface
-
-**Error Categories:**
-
-**Configuration Errors:** Invalid JSON, missing required fields, semantic
-inconsistencies. System refuses to start until resolved.
-
-**Communication Errors:** Device timeouts, connection failures, protocol errors.
-System retries with exponential backoff and continues with available devices.
-
-**Processing Errors:** LLM inference failures, invalid rule syntax, fuzzy
-computation errors. System logs error and skips affected operation.
-
-**Resource Errors:** Out of memory, disk full, model loading failures. System
-attempts cleanup and notifies user.
+| Step | Action                                                                                                |
+| ---- | ----------------------------------------------------------------------------------------------------- |
+| 1    | System Orchestrator loads and validates all configuration files via Configuration Manager.            |
+| 2    | Logging Manager is initialized.                                                                       |
+| 3    | Device Registry is populated from device configuration.                                               |
+| 4    | MQTT Client connects to Mosquitto broker and subscribes to all configured sensor topics.              |
+| 5    | Ollama Client verifies connectivity to Ollama service and confirms the configured model is available. |
+| 6    | Membership functions are loaded and validated.                                                        |
+| 7    | Rule Manager loads all persisted rules. Rule Interpreter indexes them.                                |
+| 8    | Device Monitor begins tracking device availability.                                                   |
+| 9    | User interfaces are initialized. System enters the ready state.                                       |
 
 ______________________________________________________________________
 
 ## 5. Data Architecture
 
-### 5.1 Data Storage Architecture
+### 5.1 Persistence Model
 
-The system employs file-based persistence for all data without database
-dependencies.
+All persistent data is stored as local JSON files. No database is required.
+Atomic write-rename operations prevent file corruption. The Configuration
+Manager creates timestamped backups before each modification.
 
-**Storage Categories:**
+### 5.2 Configuration Schemas
 
-1. **Configuration Data:** JSON files containing membership functions, device
-   configurations, and system settings
-2. **Rule Data:** JSON or line-delimited JSON files storing natural language
-   rules with metadata
-3. **Log Data:** Structured log files with system events, sensor readings, and
-   command executions
-4. **Cache Data:** In-memory caches with optional disk persistence for
-   performance optimization
+#### 5.2.1 Membership Function Configuration
 
-### 5.2 Configuration Data Schema
-
-**Membership Function Configuration:**
+One file per sensor type, located in `config/membership_functions/`.
 
 ```json
 {
-  "sensor_types": [
+  "sensor_type": "temperature",
+  "unit": "celsius",
+  "universe_of_discourse": { "min": -10.0, "max": 50.0 },
+  "confidence_threshold": 0.1,
+  "linguistic_variables": [
     {
-      "sensor_type": "temperature",
-      "unit": "celsius",
-      "universe_of_discourse": {
-        "min": -10.0,
-        "max": 50.0
-      },
-      "linguistic_variables": [
-        {
-          "term": "cold",
-          "function_type": "trapezoidal",
-          "parameters": {
-            "a": -10.0,
-            "b": 0.0,
-            "c": 10.0,
-            "d": 15.0
-          }
-        },
-        {
-          "term": "comfortable",
-          "function_type": "triangular",
-          "parameters": {
-            "a": 10.0,
-            "b": 20.0,
-            "c": 25.0
-          }
-        },
-        {
-          "term": "hot",
-          "function_type": "trapezoidal",
-          "parameters": {
-            "a": 22.0,
-            "b": 27.0,
-            "c": 40.0,
-            "d": 50.0
-          }
-        }
-      ]
+      "term": "cold",
+      "function_type": "trapezoidal",
+      "parameters": { "a": -10.0, "b": 0.0, "c": 10.0, "d": 15.0 }
+    },
+    {
+      "term": "comfortable",
+      "function_type": "triangular",
+      "parameters": { "a": 10.0, "b": 20.0, "c": 25.0 }
+    },
+    {
+      "term": "hot",
+      "function_type": "trapezoidal",
+      "parameters": { "a": 22.0, "b": 27.0, "c": 40.0, "d": 50.0 }
     }
   ]
 }
 ```
 
-**Device Configuration:**
+#### 5.2.2 Device Configuration
 
 ```json
 {
@@ -768,59 +329,121 @@ dependencies.
       "device_id": "temp_sensor_living_room",
       "device_type": "sensor",
       "sensor_type": "temperature",
-      "protocol": "mqtt",
-      "connection": {
-        "broker": "localhost",
-        "port": 1883,
-        "topic": "home/living_room/temperature"
+      "location": "Living Room",
+      "mqtt": {
+        "topic": "home/living_room/temperature",
+        "qos": 1,
+        "retain": false
       },
-      "polling_interval": 60
+      "polling_interval_seconds": 60
     },
     {
       "device_id": "hvac_living_room",
       "device_type": "actuator",
-      "protocol": "mqtt",
-      "connection": {
-        "broker": "localhost",
-        "port": 1883,
-        "topic": "home/living_room/hvac/control"
+      "location": "Living Room",
+      "mqtt": {
+        "topic": "home/living_room/hvac/command",
+        "status_topic": "home/living_room/hvac/status",
+        "qos": 1,
+        "retain": true
       },
-      "capabilities": ["set_temperature", "set_mode", "power_on", "power_off"]
+      "capabilities": ["set_temperature", "set_mode", "power_on", "power_off"],
+      "constraints": {
+        "temperature_min": 16,
+        "temperature_max": 30,
+        "modes": ["heating", "cooling", "auto", "off"]
+      }
     }
   ]
 }
 ```
 
-**LLM Configuration:**
+#### 5.2.3 MQTT Configuration
 
 ```json
 {
-  "llm_config": {
+  "mqtt": {
+    "broker": {
+      "host": "localhost",
+      "port": 1883,
+      "keepalive": 60
+    },
+    "authentication": {
+      "username": "iot_system",
+      "password": "secure_password",
+      "use_tls": false
+    },
+    "client": {
+      "client_id": "fuzzy_llm_iot_system",
+      "clean_session": true
+    },
+    "reconnection": {
+      "enabled": true,
+      "delay_min_seconds": 1,
+      "delay_max_seconds": 60
+    },
+    "last_will": {
+      "topic": "system/fuzzy_llm_iot/status",
+      "payload": "offline",
+      "qos": 1,
+      "retain": true
+    }
+  }
+}
+```
+
+#### 5.2.4 Ollama / LLM Configuration
+
+```json
+{
+  "llm": {
     "provider": "ollama",
-    "ollama_host": "localhost",
-    "ollama_port": 11434,
-    "model_name": "mistral:7b-instruct",
-    "inference_params": {
+    "connection": {
+      "host": "localhost",
+      "port": 11434,
+      "timeout_seconds": 30
+    },
+    "model": {
+      "name": "mistral:7b-instruct",
+      "fallback_models": ["llama3.2:7b-instruct", "phi3:3.8b"]
+    },
+    "inference": {
       "temperature": 0.3,
       "max_tokens": 512,
       "top_p": 0.9,
       "top_k": 40,
       "repeat_penalty": 1.1
     },
-    "timeout_seconds": 5,
-    "context_length": 4096,
-    "streaming": false,
-    "fallback_models": [
-      "llama3.2:7b-instruct",
-      "phi3:3.8b"
-    ]
+    "context": {
+      "enabled": false,
+      "max_history": 5
+    }
   }
 }
 ```
 
-### 5.3 Rule Data Schema
+#### 5.2.5 System Configuration
 
-**Rule Storage Format:**
+```json
+{
+  "system": { "name": "Fuzzy-LLM IoT System", "version": "1.0.0" },
+  "processing": {
+    "fuzzy": { "confidence_threshold": 0.1, "cache_ttl_seconds": 300 },
+    "rules": { "evaluation_interval_seconds": 5, "conflict_resolution": "priority" }
+  },
+  "logging": {
+    "level": "INFO",
+    "format": "json",
+    "rotation": { "max_bytes": 104857600, "retention_days": 30 }
+  },
+  "safety": {
+    "command_whitelist_enabled": true,
+    "rate_limit": { "enabled": true, "max_commands_per_minute": 60 }
+  }
+}
+```
+
+#### 5.2.6 Rule Storage
 
 ```json
 {
@@ -830,651 +453,222 @@ dependencies.
       "rule_text": "If the temperature is hot and humidity is high, turn on the air conditioner",
       "priority": 1,
       "enabled": true,
-      "created_timestamp": "2026-01-15T10:30:00Z",
-      "last_triggered": "2026-01-15T14:22:00Z",
-      "trigger_count": 5,
-      "metadata": {
-        "author": "user",
-        "tags": ["comfort", "climate_control"]
-      }
+      "created_timestamp": "2026-01-15T10:00:00Z",
+      "last_triggered": "2026-01-15T14:30:00Z",
+      "trigger_count": 12,
+      "metadata": { "tags": ["climate", "cooling"] }
     }
   ]
 }
 ```
 
-### 5.4 Caching Strategy
+### 5.3 Caching Strategy
 
-**Membership Function Results Cache:**
-
-Cache fuzzification results for identical sensor values within configurable time
-window. Invalidate cache on configuration changes.
-
-**Implementation:** In-memory LRU cache with 1000 entry limit per sensor type.
-
-**LLM Context Cache:**
-
-Cache recent LLM interactions to maintain context when enabled. Expire entries
-after configurable idle period.
-
-**Implementation:** In-memory circular buffer with configurable size limit.
-
-**Device Status Cache:**
-
-Cache device connectivity status to reduce monitoring overhead. Update on
-communication events.
-
-**Implementation:** In-memory dictionary with timestamp-based expiration.
-
-### 5.5 Data Persistence Guarantees
-
-**Atomic Writes:** All configuration and rule file updates use atomic
-write-rename pattern to prevent corruption.
-
-**Write-Ahead Logging:** Critical state changes logged before execution to
-support recovery.
-
-**Backup Strategy:** Configuration Manager creates timestamped backup before
-each modification.
-
-**Data Retention:** Logs rotated daily with 30-day retention by default.
-Configurable per deployment.
+| Cache         | Scope                               | Eviction Policy                                     | Rationale                                                                    |
+| ------------- | ----------------------------------- | --------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Fuzzy Results | Per sensor type, up to 1000 entries | LRU with 300 s TTL                                  | Avoids redundant membership function computation for repeated sensor values. |
+| Device Status | Per device                          | TTL 60 s, updated on MQTT status message            | Reduces repeated broker queries for device availability checks.              |
+| Configuration | Entire configuration tree           | Invalidated on file modification or explicit reload | Avoids repeated file I/O for frequently accessed parameters.                 |
 
 ______________________________________________________________________
 
 ## 6. Deployment Architecture
 
-### 6.1 Deployment Models
+### 6.1 Deployment Model
 
-#### 6.1.1 Single Edge Device Deployment
+The primary deployment target is a single edge device running all system
+components locally. The following services must be available on the host:
 
-Complete system deployed on single edge device managing local IoT
-infrastructure.
+| Service     | Technology         | Port  | Role                                                                             |
+| ----------- | ------------------ | ----- | -------------------------------------------------------------------------------- |
+| MQTT Broker | Eclipse Mosquitto  | 1883  | Message routing between IoT devices and the system.                              |
+| LLM Runtime | Ollama             | 11434 | Offline LLM inference for rule evaluation.                                       |
+| IoT System  | Python Application | —     | Core application orchestrating fuzzy logic, rule evaluation, and device control. |
+| Web UI      | Flask (Optional)   | 5000  | Browser-based rule management and monitoring interface.                          |
 
-**Components:**
-
-- All system layers on single host
-- Local file storage for configuration and logs
-- Direct connection to sensors and actuators
-- Optional web interface on localhost
-
-**Resource Requirements:**
-
-- 8GB RAM minimum
-- 20GB disk space for models and logs
-- 4 CPU cores recommended for optimal performance
-
-#### 6.1.2 Distributed Deployment
-
-Sensor nodes communicate with central processing node running fuzzy logic and
-LLM components.
-
-**Architecture:**
-
-- Lightweight sensor agents on low-power devices
-- Central edge server for processing and reasoning
-- MQTT broker for device communication
-- Shared configuration storage
-
-**Resource Requirements:**
-
-- Sensor nodes: 256MB RAM, minimal CPU
-- Central server: 8GB RAM, 4 CPU cores
-- Network: Low-latency local network
-
-#### 6.1.3 Containerized Deployment
-
-Docker containers for simplified deployment and isolation.
-
-**Container Structure:**
-
-- Base container with Python runtime and dependencies
-- Model container with LLM weights
-- Configuration volume mount
-- Data volume for logs and rules
-
-### 6.2 Deployment Components
-
-**Python Virtual Environment:**
-
-```
-venv/
-├── bin/
-│   └── python3
-├── lib/
-│   └── python3.9/site-packages/
-│       ├── transformers/
-│       ├── torch/
-│       ├── paho-mqtt/
-│       └── ...
-└── requirements.txt
-```
-
-**Directory Structure:**
+### 6.2 Directory Structure
 
 ```
 /opt/fuzzy-llm-iot/
-├── bin/
-│   ├── start_system.sh
-│   └── stop_system.sh
+├── bin/                          # Startup and setup scripts
 ├── config/
-│   ├── membership_functions/
-│   │   ├── temperature.json
-│   │   ├── humidity.json
-│   │   └── ...
+│   ├── membership_functions/     # One JSON file per sensor type
 │   ├── devices.json
-│   └── llm_config.json
-├── models/
-│   └── mistral-7b-instruct/
+│   ├── mqtt_config.json
+│   ├── llm_config.json
+│   ├── system_config.json
+│   └── prompt_template.txt
 ├── rules/
 │   └── active_rules.json
-├── logs/
-│   ├── system.log
-│   ├── commands.log
-│   └── errors.log
+├── logs/                         # System, command, sensor, and error logs
 ├── src/
-│   └── [source code]
-└── data/
-    └── cache/
+│   ├── main.py
+│   ├── device_interface/         # MQTT client, registry, monitor
+│   ├── data_processing/          # Fuzzy engine, membership functions, descriptor
+│   ├── control_reasoning/        # Rule interpreter, Ollama client, command generator
+│   ├── configuration/            # Config manager, rule manager, logging manager
+│   └── interfaces/               # CLI and optional web UI
+├── tests/
+├── requirements.txt
+└── README.md
 ```
 
-### 6.3 Installation Process
+### 6.3 Resource Budget
 
-**Step 1:** Install system dependencies
+| Resource                       | Budget  | Allocation                                         |
+| ------------------------------ | ------- | -------------------------------------------------- |
+| RAM — Ollama (7B model, 4-bit) | 4.0 GB  | LLM model weights and inference buffers.           |
+| RAM — OS and base services     | 1.5 GB  | Operating system, Mosquitto, background processes. |
+| RAM — Python application       | 1.0 GB  | Runtime, fuzzy engine, caches, rule data.          |
+| RAM — Headroom                 | 1.5 GB  | Buffer for peak usage and garbage collection.      |
+| Disk — LLM model               | 4–8 GB  | Depends on quantization level selected.            |
+| Disk — Logs (30-day retention) | ~3 GB   | Rotated daily, compressed after 24 hours.          |
+| Disk — Code and configuration  | ~200 MB | Application files and JSON configs.                |
 
-- Python 3.9+
-- CUDA toolkit (optional, for GPU acceleration)
-- MQTT broker (if using MQTT devices)
+### 6.4 Containerized Deployment (Optional)
 
-**Step 2:** Create virtual environment and install Python packages
-
-- transformers, torch, numpy, paho-mqtt, flask
-
-**Step 3:** Download and configure LLM model
-
-- Download model weights
-- Apply quantization if needed
-- Validate model loading
-
-**Step 4:** Configure system
-
-- Create membership function definitions
-- Configure device connections
-- Set LLM parameters
-
-**Step 5:** Initialize system
-
-- Validate configuration files
-- Test device connectivity
-- Load initial rules
-
-**Step 6:** Start system services
-
-- Launch background daemon
-- Enable web interface (if configured)
-- Verify operation
-
-### 6.4 System Monitoring
-
-**Health Checks:**
-
-- Device connectivity status
-- LLM inference latency
-- Memory usage tracking
-- Disk space monitoring
-
-**Metrics Collection:**
-
-- Sensor reading frequency
-- Rule evaluation count
-- Command execution success rate
-- Error rate by category
-
-**Alerting:**
-
-- Device offline alerts
-- Resource exhaustion warnings
-- Critical error notifications
+The system can be deployed using Docker Compose with three containers: one for
+the Mosquitto MQTT broker, one for the Ollama service, and one for the Python
+application. Configuration files, rule data, and logs are mounted as volumes to
+allow persistence and easy modification without rebuilding images. GPU access
+for the Ollama container is optional and managed via the NVIDIA container
+runtime.
 
 ______________________________________________________________________
 
 ## 7. Security Architecture
 
-### 7.1 Security Principles
+### 7.1 Threat Boundaries
 
-**Principle 1 - Data Locality:** All processing occurs on local device without
-external transmission.
+| Threat Surface                         | Mitigation                                                                                                                                                    |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| External network access to sensor data | All processing is local. No data is transmitted externally. Firewall rules restrict MQTT and Ollama to localhost.                                             |
+| Unauthorized MQTT access               | Mosquitto supports username/password and TLS client certificate authentication. ACLs restrict per-device topic access.                                        |
+| Malicious or erroneous LLM output      | All LLM-generated commands are parsed, validated against a device capability whitelist, and checked against configured safety constraints before execution.   |
+| Configuration tampering                | Configuration files use restrictive filesystem permissions. Backups are created before every modification. Schema validation rejects malformed files on load. |
+| Excessive command rate                 | A configurable rate limiter prevents more than a set number of commands per device per minute.                                                                |
 
-**Principle 2 - Minimal Attack Surface:** No unnecessary network services or
-open ports.
+### 7.2 Command Validation Pipeline
 
-**Principle 3 - Input Validation:** All external inputs validated before
-processing.
+Every command generated by the LLM passes through the following checks before
+execution. A command that fails any check is rejected and logged.
 
-**Principle 4 - Least Privilege:** Components operate with minimum required
-permissions.
-
-**Principle 5 - Defense in Depth:** Multiple security layers for critical
-functions.
-
-### 7.2 Authentication and Authorization
-
-**Local Access Control:**
-
-File system permissions restrict configuration modification to authorized users.
-Web interface (if enabled) requires authentication through configurable
-mechanism.
-
-**Device Authentication:**
-
-Protocol adapters support device-specific authentication:
-
-- MQTT: Username/password or client certificates
-- HTTP: API keys or OAuth tokens
-- Serial: Physical connection security
-
-### 7.3 Data Protection
-
-**Configuration Files:**
-
-Sensitive configuration parameters (credentials, API keys) stored in separate
-protected files with restricted permissions (0600).
-
-**Command Validation:**
-
-All device commands validated against safety constraints before execution.
-Commands affecting critical systems require explicit user authorization in
-configuration.
-
-**LLM Output Validation:**
-
-LLM-generated commands parsed and validated against whitelist of permitted
-actions. Malformed or suspicious outputs rejected with logging.
-
-### 7.4 Network Security
-
-**Firewall Rules:**
-
-Recommend host firewall configuration restricting inbound connections to
-localhost for web interface and API.
-
-**Communication Encryption:**
-
-Support TLS for MQTT and HTTPS for REST communication when devices support
-encrypted protocols.
-
-**Network Segmentation:**
-
-Deploy on isolated IoT network segment separated from general network traffic.
-
-### 7.5 Security Logging
-
-**Security Events:**
-
-Log all authentication attempts, configuration changes, and command executions
-with timestamp and source identification.
-
-**Audit Trail:**
-
-Maintain immutable audit log for security-relevant events with integrity
-verification.
+| Step | Check                                                                                                      | Failure Action                                      |
+| ---- | ---------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| 1    | Response Parsing — Verify the LLM output matches the expected ACTION format.                               | Reject; log malformed response.                     |
+| 2    | Device Existence — Confirm the target device ID exists in the Device Registry.                             | Reject; log unknown device reference.               |
+| 3    | Capability Match — Confirm the command type is in the device's capability list.                            | Reject; log unsupported command.                    |
+| 4    | Parameter Constraints — Validate all parameters against device-specific min/max bounds and allowed values. | Reject; log constraint violation.                   |
+| 5    | Safety Whitelist — Confirm the command type is in the global safety whitelist.                             | Reject; log whitelist violation.                    |
+| 6    | Rate Limit — Check that the device has not exceeded its per-minute command limit.                          | Reject; log rate limit breach.                      |
+| 7    | Critical Command Flag — If the command targets a critical device, flag for user confirmation.              | Queue for confirmation; do not execute immediately. |
 
 ______________________________________________________________________
 
 ## 8. Performance and Scalability
 
-### 8.1 Performance Requirements
+### 8.1 Latency Targets
 
-**Latency Targets:**
+| Operation                                      | Target   | Rationale                                                      |
+| ---------------------------------------------- | -------- | -------------------------------------------------------------- |
+| Fuzzy logic processing (per sensor)            | < 50 ms  | Minimal preprocessing overhead before LLM evaluation.          |
+| Sensor reading to linguistic description       | < 100 ms | Ensures prompt data is current when rule evaluation begins.    |
+| LLM inference (single rule)                    | < 3 s    | Acceptable delay for non-emergency control decisions.          |
+| Command generation and validation              | < 100 ms | Negligible overhead after LLM inference completes.             |
+| End-to-end (sensor change to actuator command) | < 5 s    | Maximum acceptable latency for typical IoT scenarios.          |
+| System startup                                 | < 30 s   | Includes Ollama model verification and MQTT broker connection. |
 
-- Sensor reading to linguistic description: \<100ms
-- LLM inference for typical rule: \<3s
-- End-to-end sensor to actuator: \<5s
-- Configuration loading: \<2s
+### 8.2 Optimization Strategies
 
-**Throughput Targets:**
+| Area          | Strategy                                                                                                                                                                    |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Fuzzy Logic   | Cache fuzzification results with TTL. Use NumPy vectorization for batch computation. Skip terms below confidence threshold.                                                 |
+| LLM Inference | Use quantized models (4-bit preferred) to reduce memory and improve throughput. Minimize prompt length. Consider batch evaluation for multiple related rules.               |
+| MQTT          | Use wildcard subscriptions to reduce broker load. Select QoS level per topic based on data criticality. Implement connection pooling.                                       |
+| System        | Process sensor readings and rule evaluations asynchronously. Use thread pools for parallel device communication. Implement memory monitoring with automatic cache eviction. |
 
-- Support 100 sensor readings per second
-- Process 50 concurrent rules
-- Handle 20 device commands per second
+### 8.3 Scalability Limits
 
-### 8.2 Performance Optimization Strategies
-
-#### 8.2.1 Fuzzy Logic Optimization
-
-**Lazy Evaluation:** Compute membership degrees only for sensor types with
-active rules.
-
-**Result Caching:** Cache fuzzification results for identical inputs within time
-window.
-
-**Vectorization:** Use NumPy for batch membership function computation.
-
-**Precomputation:** Precompute membership function values at initialization for
-discrete sensor ranges.
-
-#### 8.2.2 LLM Optimization
-
-**Model Quantization:** Use 4-bit or 8-bit quantized models to reduce memory and
-improve inference speed.
-
-**Prompt Optimization:** Minimize prompt length while maintaining clarity to
-reduce token processing time.
-
-**Batch Inference:** Group multiple rule evaluations into single LLM call when
-applicable.
-
-**KV Cache:** Leverage key-value cache for repeated context to accelerate
-inference.
-
-**Hardware Acceleration:** Use GPU or specialized AI accelerators when
-available.
-
-#### 8.2.3 System-Level Optimization
-
-**Asynchronous Processing:** Process sensor readings and rule evaluations
-asynchronously to prevent blocking.
-
-**Thread Pooling:** Use thread pool for concurrent device communication.
-
-**Memory Management:** Implement memory limits and garbage collection triggers
-to prevent unbounded growth.
-
-**I/O Optimization:** Use buffered I/O for log writes and batch configuration
-updates.
-
-### 8.3 Scalability Considerations
-
-#### 8.3.1 Vertical Scalability
-
-System scales vertically by utilizing additional CPU cores and memory:
-
-**Multi-threading:** Thread pool for parallel device communication and rule
-evaluation.
-
-**Process Isolation:** Optional multi-process architecture for CPU-intensive
-components.
-
-**Memory Scaling:** Support for larger models on systems with increased RAM.
-
-#### 8.3.2 Horizontal Scalability Limitations
-
-Current architecture targets single edge device deployment. Horizontal scaling
-requires architectural modifications:
-
-**Device Partitioning:** Split device management across multiple system
-instances.
-
-**Rule Distribution:** Distribute rule processing based on device groups.
-
-**Shared State:** Implement distributed state management for coordinated
-control.
-
-### 8.4 Resource Management
-
-**Memory Budgeting:**
-
-- LLM model: 3-6GB depending on quantization
-- Python runtime and libraries: 500MB
-- Fuzzy logic and caching: 500MB
-- Operating headroom: 1GB
-
-**CPU Allocation:**
-
-- LLM inference: 1-2 cores during active processing
-- Device communication: 1 core
-- Background tasks: 1 core
-
-**Disk Usage:**
-
-- Model storage: 5-15GB
-- Configuration: 10MB
-- Logs: 100MB daily (with rotation)
-- Cache: 500MB maximum
+The single-device architecture supports up to approximately 200 connected
+devices, 1,000 active rules, and 100 sensor readings per second. Exceeding these
+limits requires a distributed deployment model in which multiple edge nodes
+share a common MQTT broker and coordinate via a central rule repository.
 
 ______________________________________________________________________
 
 ## 9. Design Decisions and Rationale
 
-### 9.1 Architectural Decisions
-
-#### Decision 1: Layered Architecture
-
-**Decision:** Employ strict layered architecture with unidirectional
-dependencies.
-
-**Rationale:** Clear separation of concerns enables independent testing,
-parallel development, and component replacement. Each layer addresses distinct
-functional responsibility reducing complexity.
-
-**Alternatives Considered:**
-
-- Microservices architecture: Rejected due to overhead for single-device
-  deployment
-- Monolithic architecture: Rejected due to tight coupling and testing
-  difficulties
-
-**Trade-offs:** Layered architecture adds indirection overhead but provides
-superior maintainability and testability.
-
-#### Decision 2: Offline LLM Execution
-
-**Decision:** Require offline-capable LLM without cloud API dependencies.
-
-**Rationale:** Privacy requirements prohibit external data transmission. Edge
-deployments may lack reliable internet connectivity. Local execution provides
-deterministic latency.
-
-**Alternatives Considered:**
-
-- Cloud-based LLM APIs: Rejected due to privacy and connectivity constraints
-- Hybrid cloud-local fallback: Rejected due to complexity and inconsistent
-  behavior
-
-**Trade-offs:** Offline execution limits model size and requires local
-computational resources but ensures privacy and availability.
-
-#### Decision 3: JSON Configuration Format
-
-**Decision:** Use JSON for all configuration data and membership function
-definitions.
-
-**Rationale:** JSON provides human-readable format with widespread tooling
-support. Schema validation enables error detection. No additional dependencies
-required.
-
-**Alternatives Considered:**
-
-- YAML: Better human readability but requires additional parsing library
-- Python configuration files: Maximum flexibility but security risk from code
-  execution
-- Binary formats: Rejected due to lack of human readability
-
-**Trade-offs:** JSON lacks some expressiveness of YAML but offers better
-security and universal support.
-
-#### Decision 4: File-Based Persistence
-
-**Decision:** Store all persistent data in local files without database.
-
-**Rationale:** Minimal dependencies reduce deployment complexity. Sufficient for
-expected data volumes. Easy backup and replication through file copies.
-
-**Alternatives Considered:**
-
-- SQLite database: Additional dependency and complexity for limited benefit
-- NoSQL database: Overkill for data scale and query complexity
-
-**Trade-offs:** File-based storage limits query capabilities but simplifies
-deployment and reduces resource usage.
-
-### 9.2 Component Design Decisions
-
-#### Decision 5: Event Bus for Component Communication
-
-**Decision:** Implement event bus for asynchronous notifications between
-components.
-
-**Rationale:** Decouples components reducing direct dependencies. Supports
-multiple subscribers for same event type. Simplifies adding new observers
-without modifying publishers.
-
-**Alternatives Considered:**
-
-- Direct function calls only: Simpler but creates tight coupling
-- Message queue: More robust but excessive for single-process architecture
-
-**Trade-offs:** Event bus adds complexity but improves extensibility and reduces
-coupling.
-
-#### Decision 6: Abstract Protocol Adapters
-
-**Decision:** Define abstract interface for device communication with concrete
-protocol implementations.
-
-**Rationale:** Isolates protocol-specific code enabling easy addition of new
-protocols. Simplifies testing through mock implementations. Reduces coupling
-between device layer and upper layers.
-
-**Alternatives Considered:**
-
-- Protocol-specific device handlers: Simpler but duplicates logic across
-  protocols
-- Universal adapter: Single adapter for all protocols rejected due to complexity
-
-**Trade-offs:** Abstract adapters require additional classes but provide
-superior extensibility.
-
-#### Decision 7: Immutable Data Transfer Objects
-
-**Decision:** Use immutable frozen dataclasses for data exchange between
-components.
-
-**Rationale:** Prevents accidental modification improving debugging and thread
-safety. Clear data ownership semantics. Type checking support.
-
-**Alternatives Considered:**
-
-- Mutable dictionaries: Flexible but error-prone
-- Named tuples: Immutable but less expressive than dataclasses
-
-**Trade-offs:** Immutable objects require creating new instances for
-modifications but prevent subtle bugs.
-
-### 9.3 Technology Selection Decisions
-
-#### Decision 8: Python Implementation Language
-
-**Decision:** Implement entire system in Python 3.9+.
-
-**Rationale:** Extensive ecosystem for ML and IoT. Transformers library provides
-LLM support. Rapid development and prototyping. Cross-platform compatibility.
-
-**Alternatives Considered:**
-
-- C++: Better performance but slower development and limited ML libraries
-- Java: Enterprise support but heavier runtime and limited ML ecosystem
-- Rust: Memory safety and performance but steeper learning curve
-
-**Trade-offs:** Python's performance limitations acceptable for system
-requirements given development velocity benefits.
-
-#### Decision 9: Ollama for LLM Runtime
-
-**Decision:** Use Ollama service for LLM inference instead of direct model
-integration.
-
-**Rationale:**
-
-Ollama provides significant advantages for edge LLM deployment:
-
-1. Simplified model management through CLI commands
-2. Automatic optimization for target hardware
-3. Support for quantized models reducing memory footprint
-4. REST API enables language-agnostic integration
-5. Model serving separate from application process
-6. Efficient memory management with model loading/unloading
-7. Easy model switching without code changes
-8. Active development and community support
-
-Service architecture isolates model inference from application logic improving
-reliability.
-
-**Alternatives Considered:**
-
-- Hugging Face Transformers: Direct Python integration tighter coupling. Manual
-  model management. Memory management within Python process. Complex
-  optimization configuration. Benefits: More control over inference, no
-  additional service.
-
-- llama.cpp with bindings: Better raw performance. More complex setup and
-  integration. Limited model support compared to Ollama. Benefits: Lower memory
-  usage, faster inference.
-
-- LangChain: Higher-level abstraction unnecessary for this use case. Adds
-  dependency overhead. Ollama integration available but adds unnecessary layer.
-
-- Cloud LLM APIs: Violates offline requirement. Privacy concerns. Network
-  dependency. Benefits: No local compute, always latest models.
-
-**Trade-offs:**
-
-Ollama adds dependency on external service requiring separate installation and
-management. REST API introduces minor network latency but negligible for edge
-deployment. Service architecture requires additional monitoring and error
-handling. Benefits outweigh overhead through simplified model management and
-optimization.
-
-#### Decision 10: MQTT for IoT Communication
-
-**Decision:** Support MQTT as primary IoT communication protocol.
-
-**Rationale:** Lightweight publish-subscribe protocol designed for IoT.
-Widespread device support. Efficient for resource-constrained devices. Quality
-of service guarantees.
-
-**Alternatives Considered:**
-
-- HTTP REST only: Simpler but less efficient for continuous updates
-- CoAP: IoT-optimized but less common device support
-- Proprietary protocols: Rejected due to vendor lock-in
-
-**Trade-offs:** MQTT requires broker infrastructure but provides optimal IoT
-communication characteristics.
-
-### 9.4 Security Design Decisions
-
-#### Decision 11: No Built-In User Management
-
-**Decision:** Rely on operating system user permissions for access control.
-
-**Rationale:** System runs on trusted edge devices with physical access control.
-OS-level permissions sufficient for single-user or small team deployments.
-Reduces implementation complexity.
-
-**Alternatives Considered:**
-
-- Built-in user database: Additional complexity for limited benefit
-- Integration with external identity provider: Overkill for edge deployment
-
-**Trade-offs:** Limited multi-user support but simplified implementation and
-deployment.
-
-#### Decision 12: Command Whitelisting
-
-**Decision:** Validate LLM-generated commands against configured whitelist.
-
-**Rationale:** Prevents malicious or erroneous LLM outputs from executing
-dangerous commands. Defense in depth for critical actuators. Explicit user
-control over permitted actions.
-
-**Alternatives Considered:**
-
-- Trust LLM output: Unacceptable security risk
-- Interactive confirmation: Defeats automation purpose
-- Sandboxed execution: Excessive complexity for deterministic commands
-
-**Trade-offs:** Whitelisting requires configuration effort but provides
-essential safety guarantees.
+### DD-01: Strict Layered Architecture
+
+- **Decision:** Communication between layers flows exclusively through adjacent
+  layers via coordinator components. Internal components do not communicate
+  across layer boundaries.
+- **Rationale:** Enforces separation of concerns, reduces coupling, and makes
+  the system testable at each layer independently.
+- **Alternatives considered:** Microservices — rejected due to unnecessary
+  network overhead on a single device. Monolithic — rejected due to tight
+  coupling.
+
+### DD-02: Ollama for LLM Inference
+
+- **Decision:** LLM inference is handled by the Ollama service, accessed via its
+  REST API.
+- **Rationale:** Ollama simplifies model management, handles quantization and
+  memory optimization automatically, and isolates model loading from the
+  application process. It supports easy model switching via configuration.
+- **Alternatives considered:** Hugging Face Transformers — more complex setup,
+  higher memory overhead, and tighter coupling to Python process. llama.cpp —
+  better raw performance but harder integration and narrower model support.
+
+### DD-03: MQTT as Device Protocol
+
+- **Decision:** MQTT is the primary protocol for all sensor and actuator
+  communication, brokered by Mosquitto.
+- **Rationale:** MQTT is lightweight, natively supports pub-sub for IoT,
+  provides QoS guarantees, and enables device monitoring via Last Will and
+  Testament messages.
+- **Alternatives considered:** HTTP REST — inefficient for continuous sensor
+  streams due to polling overhead. CoAP — less broad device support. Proprietary
+  — rejected due to vendor lock-in.
+
+### DD-04: JSON for All Configuration
+
+- **Decision:** Membership functions, device definitions, system parameters, and
+  rules are all stored as JSON.
+- **Rationale:** JSON is human-readable, universally supported,
+  schema-validatable, and requires no code execution — unlike Python config
+  files.
+- **Alternatives considered:** YAML — slightly more readable but requires an
+  additional parsing library. XML — verbose and declining in modern use.
+
+### DD-05: File-Based Persistence
+
+- **Decision:** All persistent data is stored as local files. No database is
+  used.
+- **Rationale:** Eliminates a deployment dependency. File volumes are sufficient
+  for the expected data scale. Enables trivial backup via file copy.
+- **Alternatives considered:** SQLite — unnecessary complexity for the data
+  volume. NoSQL databases — significant overhead for edge deployment.
+
+### DD-06: Per-Rule LLM Prompting
+
+- **Decision:** Each rule is evaluated in a separate LLM inference call rather
+  than batching all rules into one prompt.
+- **Rationale:** Focused prompts improve LLM accuracy and simplify response
+  parsing. Independent calls enable parallel evaluation and clear attribution of
+  commands to specific rules.
+- **Alternatives considered:** Batch prompting — reduces API calls but increases
+  prompt complexity and makes output parsing unreliable.
+
+### DD-07: Command Validation Before Execution
+
+- **Decision:** All LLM-generated commands pass through a multi-step validation
+  pipeline before being published to MQTT.
+- **Rationale:** LLMs can produce hallucinated or invalid outputs. Validation
+  against device capabilities, safety whitelists, and rate limits prevents
+  erroneous or dangerous commands from reaching physical devices.
+- **Alternatives considered:** Trusting LLM output directly — unacceptable risk
+  for physical device control.
 
 ______________________________________________________________________
 
@@ -1482,82 +676,51 @@ ______________________________________________________________________
 
 ### Appendix A: Technology Stack
 
-**Core Languages and Runtimes:**
+| Category    | Technology                    | Role                                                      |
+| ----------- | ----------------------------- | --------------------------------------------------------- |
+| Language    | Python 3.9+                   | Core application implementation.                          |
+| LLM Runtime | Ollama                        | Local LLM model serving and inference.                    |
+| LLM Model   | Mistral 7B Instruct (default) | Natural language rule processing and decision generation. |
+| MQTT Broker | Eclipse Mosquitto 2.0+        | Message routing for IoT device communication.             |
+| MQTT Client | paho-mqtt                     | Python MQTT client library.                               |
+| HTTP Client | requests                      | REST communication with Ollama API.                       |
+| Numerical   | NumPy                         | Vectorized membership function computation.               |
+| Validation  | jsonschema                    | JSON configuration schema validation.                     |
+| Web UI      | Flask (optional)              | Lightweight HTTP server for web interface.                |
+| Testing     | pytest                        | Unit and integration testing framework.                   |
 
-- Python 3.9+
-- NumPy for numerical computation
-- PyTorch for LLM inference
+### Appendix B: Ollama API Reference
 
-**LLM and ML Libraries:**
+The Ollama Client interacts with the Ollama service using the following
+endpoints.
 
-- Ollama for LLM runtime
-- Accelerate for optimization
-- BitsAndBytes for quantization
+| Endpoint                            | Method | Purpose                                                      |
+| ----------------------------------- | ------ | ------------------------------------------------------------ |
+| `http://{host}:{port}/`             | GET    | Health check — confirms Ollama service is running.           |
+| `http://{host}:{port}/api/tags`     | GET    | Lists all locally available models.                          |
+| `http://{host}:{port}/api/generate` | POST   | Submits a prompt and receives a generated text response.     |
+| `http://{host}:{port}/api/pull`     | POST   | Downloads a model to local storage (used during setup only). |
 
-**IoT Communication:**
+### Appendix C: MQTT Topic Convention
 
-- paho-mqtt for MQTT protocol
-- requests for HTTP communication
-- pyserial for serial communication
+The system uses the following topic hierarchy for device communication.
 
-**Configuration and Data:**
+| Topic Pattern                    | Direction         | Purpose                                        |
+| -------------------------------- | ----------------- | ---------------------------------------------- |
+| `home/{zone}/{sensor_type}`      | Sensor → System   | Sensor data publications.                      |
+| `home/{zone}/{actuator}/command` | System → Actuator | Control commands to actuators.                 |
+| `home/{zone}/{actuator}/status`  | Actuator → System | Actuator state confirmations.                  |
+| `system/fuzzy_llm_iot/status`    | System → Broker   | System online/offline Last Will and Testament. |
+| `{device_id}/heartbeat`          | Device → System   | Periodic device availability heartbeat.        |
 
-- json (standard library)
-- jsonschema for validation
-- dataclasses (standard library)
+### Appendix D: Design Patterns
 
-**Optional Components:**
-
-- Flask for web interface
-- Flask-CORS for API access
-- sqlite3 for advanced rule storage
-
-**Development and Testing:**
-
-- pytest for unit testing
-- pytest-asyncio for async testing
-- black for code formatting
-- mypy for type checking
-
-### Appendix B: Design Patterns Used
-
-**Adapter Pattern:** Protocol adapters abstract device communication protocols.
-
-**Factory Pattern:** Device registry creates protocol adapter instances based on
-configuration.
-
-**Observer Pattern:** Event bus implements observer pattern for component
-notifications.
-
-**Strategy Pattern:** Membership function library uses strategy pattern for
-different function types.
-
-**Singleton Pattern:** Configuration manager and logging manager implement
-singleton pattern.
-
-**Builder Pattern:** Linguistic descriptor builder constructs complex
-description strings.
-
-**Template Method:** Base protocol adapter defines communication template with
-protocol-specific implementations.
-
-### Appendix C: Future Architecture Enhancements
-
-**Multi-LLM Support:** Architecture supports future enhancement to use
-specialized LLMs for different task types (classification, generation,
-reasoning).
-
-**Distributed Deployment:** Event bus and abstract interfaces enable future
-distributed deployment with message queue backend.
-
-**Advanced Caching:** Current caching strategy extensible to distributed cache
-or persistent cache database.
-
-**Plugin Architecture:** Abstract interfaces support future plugin system for
-custom membership functions, protocols, and LLM backends.
-
-**Real-Time Constraint Handling:** Architecture accommodates future real-time
-scheduling extensions for time-critical control loops.
-
-**Federated Learning:** Offline architecture compatible with future federated
-learning for model improvement across deployments without data sharing.
+| Pattern              | Usage                                                                                                                    |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Layered Architecture | System-wide structural organization with strict adjacent-layer communication.                                            |
+| Adapter              | Protocol adapters abstract device-specific communication details behind a unified interface.                             |
+| Factory              | Device Registry creates appropriate communication handlers based on device configuration.                                |
+| Strategy             | Membership Function Library applies different function types (triangular, trapezoidal, etc.) through a common interface. |
+| Observer             | Event bus notifies components of state changes (e.g., sensor updates triggering rule evaluation) without tight coupling. |
+| Builder              | Linguistic Descriptor Builder assembles complex description strings from structured fuzzy logic output.                  |
+| Singleton            | Configuration Manager and Logging Manager maintain single instances accessible system-wide.                              |

@@ -62,9 +62,9 @@ required for thesis evaluation:
 | Command-Line Interface    |     X      |             |
 | JSON Configuration        |     X      |             |
 | Smart Home Demo Scenario  |     X      |             |
+| Docker Containerization   |     X      |             |
 | Web-Based User Interface  |            |      X      |
 | REST API Interface        |            |      X      |
-| Docker Containerization   |            |      X      |
 | Multi-Protocol Support    |            |      X      |
 | Distributed Deployment    |            |      X      |
 
@@ -513,21 +513,85 @@ ______________________________________________________________________
 
 ### 6.1 Deployment Model
 
-The primary deployment target is a single edge device running all system
-components locally. The following services must be available on the host:
+The primary deployment model uses **Docker Compose** to orchestrate all system
+components. This approach ensures consistent development, testing, and
+deployment environments. The following services are containerized:
 
-| Service     | Technology         | Port  | Role                                                                             | MVP |
-| ----------- | ------------------ | ----- | -------------------------------------------------------------------------------- | --- |
-| MQTT Broker | Eclipse Mosquitto  | 1883  | Message routing between IoT devices and the system.                              | Yes |
-| LLM Runtime | Ollama             | 11434 | Offline LLM inference for rule evaluation.                                       | Yes |
-| IoT System  | Python Application | —     | Core application orchestrating fuzzy logic, rule evaluation, and device control. | Yes |
-| Web UI      | Flask              | 5000  | Browser-based rule management and monitoring interface.                          | No  |
+| Service     | Technology         | Port  | Container Name | Role                                                                             |
+| ----------- | ------------------ | ----- | -------------- | -------------------------------------------------------------------------------- |
+| MQTT Broker | Eclipse Mosquitto  | 1883  | mosquitto      | Message routing between IoT devices and the system.                              |
+| LLM Runtime | Ollama             | 11434 | ollama         | Offline LLM inference for rule evaluation.                                       |
+| IoT System  | Python Application | —     | app            | Core application orchestrating fuzzy logic, rule evaluation, and device control. |
 
-### 6.2 Directory Structure
+### 6.2 Docker Compose Architecture
+
+```yaml
+version: '3.8'
+
+services:
+  mosquitto:
+    build: ./docker/mosquitto
+    ports:
+      - "1883:1883"
+    volumes:
+      - mosquitto-data:/mosquitto/data
+      - mosquitto-logs:/mosquitto/log
+      - ./docker/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    healthcheck:
+      test: ["CMD", "mosquitto_sub", "-t", "$$SYS/#", "-C", "1", "-i", "healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  ollama:
+    build: ./docker/ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-models:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]  # Optional GPU support
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  app:
+    build: ./docker/app
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+    volumes:
+      - ./config:/app/config
+      - ./rules:/app/rules
+      - ./logs:/app/logs
+    environment:
+      - MQTT_HOST=mosquitto
+      - MQTT_PORT=1883
+      - OLLAMA_HOST=ollama
+      - OLLAMA_PORT=11434
+
+volumes:
+  mosquitto-data:
+  mosquitto-logs:
+  ollama-models:
+```
+
+### 6.3 Directory Structure
 
 ```
-/opt/fuzzy-llm-iot/
-├── bin/                          # Startup and setup scripts
+project-root/
+├── bin/                          # Startup and utility scripts
 ├── config/
 │   ├── membership_functions/     # One JSON file per sensor type
 │   ├── devices.json
@@ -535,6 +599,16 @@ components locally. The following services must be available on the host:
 │   ├── llm_config.json
 │   ├── system_config.json
 │   └── prompt_template.txt
+├── docker/
+│   ├── app/
+│   │   ├── Dockerfile
+│   │   └── entrypoint.sh
+│   ├── mosquitto/
+│   │   ├── Dockerfile
+│   │   └── mosquitto.conf
+│   └── ollama/
+│       ├── Dockerfile
+│       └── entrypoint.sh
 ├── rules/
 │   └── active_rules.json
 ├── logs/                         # System, command, sensor, and error logs
@@ -546,11 +620,13 @@ components locally. The following services must be available on the host:
 │   ├── configuration/            # Config manager, rule manager, logging manager
 │   └── interfaces/               # CLI and optional web UI
 ├── tests/
+├── docker-compose.yml
+├── Makefile
 ├── requirements.txt
 └── README.md
 ```
 
-### 6.3 Resource Budget
+### 6.4 Resource Budget
 
 | Resource                       | Budget  | Allocation                                         |
 | ------------------------------ | ------- | -------------------------------------------------- |
@@ -560,17 +636,34 @@ components locally. The following services must be available on the host:
 | RAM — Headroom                 | 1.5 GB  | Buffer for peak usage and garbage collection.      |
 | Disk — LLM model               | 4–8 GB  | Depends on quantization level selected.            |
 | Disk — Logs (30-day retention) | ~3 GB   | Rotated daily, compressed after 24 hours.          |
+| Disk — Docker images           | ~2 GB   | Base images and application layers.                |
 | Disk — Code and configuration  | ~200 MB | Application files and JSON configs.                |
 
-### 6.4 Containerized Deployment (Future Work)
+### 6.5 Development Workflow
 
-The system can optionally be deployed using Docker Compose with three
-containers: one for the Mosquitto MQTT broker, one for the Ollama service, and
-one for the Python application. **Containerization is not required for thesis
-evaluation.** Configuration files, rule data, and logs are mounted as volumes to
-allow persistence and easy modification without rebuilding images. GPU access
-for the Ollama container is optional and managed via the NVIDIA container
-runtime.
+A **Makefile** provides convenient commands for development:
+
+| Command         | Description                                             |
+| --------------- | ------------------------------------------------------- |
+| `make build`    | Build all Docker images                                 |
+| `make up`       | Start all services via Docker Compose                   |
+| `make down`     | Stop all services                                       |
+| `make logs`     | Tail logs from all services                             |
+| `make test`     | Run test suite                                          |
+| `make shell`    | Open shell in app container                             |
+| `make dev-deps` | Start only mosquitto and ollama (for local development) |
+| `make dev`      | Run application locally (requires dev-deps)             |
+
+### 6.6 Native Deployment (Alternative)
+
+For environments where Docker is not available, the system can be deployed
+natively. The following services must be installed on the host:
+
+| Service     | Technology         | Port  | Installation                               |
+| ----------- | ------------------ | ----- | ------------------------------------------ |
+| MQTT Broker | Eclipse Mosquitto  | 1883  | `apt install mosquitto`                    |
+| LLM Runtime | Ollama             | 11434 | \`curl -fsSL https://ollama.com/install.sh |
+| IoT System  | Python Application | —     | `pip install -r requirements.txt`          |
 
 ______________________________________________________________________
 

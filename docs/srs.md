@@ -40,6 +40,7 @@ The thesis prototype implements the following core requirements:
 | Rule Processing  | Free-form natural language rules, LLM interpretation  |
 | Device Interface | MQTT communication via Mosquitto broker               |
 | User Interface   | Command-line interface for rule management            |
+| Deployment       | Docker Compose containerization                       |
 | Demonstration    | Smart home automation scenario                        |
 
 ### 1.2.2 Out of Scope (Future Work)
@@ -50,7 +51,6 @@ for thesis evaluation:
 - Web-based user interface (UI-MODE-002)
 - REST API interface (UI-MODE-003)
 - HTTP REST and serial device protocols (FR-DC-004 partial)
-- Containerized deployment
 - Multi-node distributed deployment
 
 ### 1.3 Definitions and Acronyms

@@ -50,6 +50,8 @@ concept with these essential features:
 - **Natural Language Rules:** Free-form rule input with LLM-based interpretation
 - **Device Control:** MQTT-based communication with sensors and actuators
 - **CLI Interface:** Command-line interface for rule management and monitoring
+- **Containerized Deployment:** Docker Compose orchestration for consistent
+  development, testing, and deployment
 
 ### 2.2 Out of Scope (Future Work)
 
@@ -58,7 +60,6 @@ for thesis evaluation:
 
 - Web-based user interface
 - REST API for programmatic access
-- Containerized deployment (Docker)
 - Multi-protocol device support (HTTP REST, serial, CoAP)
 - Distributed multi-node deployment
 

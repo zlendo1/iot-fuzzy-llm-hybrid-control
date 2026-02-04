@@ -22,10 +22,11 @@ linguistic concepts for LLM-based natural language rule processing.
 | ---------------------------- | ----------------------------- |
 | Fuzzy logic semantic bridge  | Web-based user interface      |
 | Ollama LLM integration (≤7B) | REST API interface            |
-| MQTT device communication    | Docker containerization       |
-| CLI interface                | Multi-protocol device support |
-| JSON configuration system    | Distributed deployment        |
-| Smart home demo scenario     | Advanced conflict resolution  |
+| MQTT device communication    | Multi-protocol device support |
+| CLI interface                | Distributed deployment        |
+| JSON configuration system    | Advanced conflict resolution  |
+| Smart home demo scenario     |                               |
+| Docker containerization      |                               |
 
 ### 1.2 Key Performance Targets
 

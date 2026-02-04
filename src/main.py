@@ -5,7 +5,7 @@ import sys
 import time
 
 
-def signal_handler(signum: int, frame) -> None:
+def signal_handler(signum: int, _frame: object) -> None:
     print(f"\nReceived signal {signum}, shutting down gracefully...")
     sys.exit(0)
 

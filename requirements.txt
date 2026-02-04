@@ -1,0 +1,5 @@
+paho-mqtt==2.1.0
+requests==2.32.5
+numpy==2.4.2
+jsonschema==4.26.0
+click==8.3.1

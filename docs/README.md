@@ -84,6 +84,34 @@ reviewers
 
 ______________________________________________________________________
 
+### Engineering Documents
+
+#### [engineering-tasks.md](engineering-tasks.md)
+
+**Purpose:** Chronologically ordered engineering task list for implementation
+
+A comprehensive, implementation-ready task list optimized for autonomous
+development units. Contains:
+
+- **Phase-based organization** with clear dependencies
+- **Chronological ordering** for bottom-up implementation
+- **Task-level granularity** with acceptance criteria
+- **Effort estimates** for planning
+- **Validation checkpoints** at each phase
+- **Integration points** between layers
+
+**Target Audience:** Developers, autonomous coding agents, project managers
+
+**Key Content:**
+
+- 9 implementation phases from foundation to documentation
+- 150+ detailed engineering tasks
+- SRS requirement traceability for each task
+- Performance and coverage targets
+- Smart home demo scenario tasks
+
+______________________________________________________________________
+
 ### Requirements Documents
 
 #### [srs.md](srs.md)
@@ -123,7 +151,11 @@ graph TD
     A[thesis-setup.md] -->|Initial Context| B[project-brief.md]
     B -->|Objectives & Scope| C[srs.md]
     C -->|Requirements| D[add.md]
-    D -->|Architecture| E[Implementation]
+    C -->|Requirements| E[wbs.md]
+    D -->|Architecture| E
+    E -->|Work Packages| F[engineering-tasks.md]
+    D -->|Architecture| F
+    F -->|Tasks| G[Implementation]
 ```
 
 **Document Flow:**
@@ -133,7 +165,9 @@ graph TD
    deliverables
 3. **srs.md** - Translates objectives into detailed requirements
 4. **add.md** - Designs architecture to meet requirements
-5. **Implementation** - Code built from ADD specifications
+5. **wbs.md** - Breaks work into packages with dependencies
+6. **engineering-tasks.md** - Detailed, ordered task list for implementation
+7. **Implementation** - Code built from task specifications
 
 ______________________________________________________________________
 
@@ -269,13 +303,13 @@ ______________________________________________________________________
 - Natural language rule processing
 - MQTT device communication
 - Command-line interface
+- Docker Compose containerization
 - Smart home demonstration scenario
 
 ### Future Work (Not Required for Thesis)
 
 - Web-based user interface
 - REST API interface
-- Docker containerization
 - Multi-protocol device support
 - Distributed deployment
 
@@ -285,9 +319,11 @@ ______________________________________________________________________
 - Coordinator pattern for inter-layer communication
 - Device Interface (bottom) → Data Processing → Control & Reasoning →
   Configuration → User Interface (top)
+- Docker Compose for service orchestration
 - MQTT for device communication
 - Ollama for LLM inference
 - JSON for configuration and persistence
+- Makefile for development convenience
 
 ______________________________________________________________________
 

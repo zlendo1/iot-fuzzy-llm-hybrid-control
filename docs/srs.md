@@ -1,5 +1,12 @@
 # Software Requirements Specification
 
+## Fuzzy-LLM Hybrid IoT Management System
+
+**Document Status:** Active\
+**Last Updated:** 2026-02-04\
+**Source Documents:** [thesis-setup.md](thesis-setup.md),
+[project-brief.md](project-brief.md)
+
 ______________________________________________________________________
 
 ## 1. Introduction
@@ -8,16 +15,43 @@ ______________________________________________________________________
 
 This document specifies the software requirements for a hybrid system that
 integrates fuzzy logic and large language models for IoT device management
-through natural language rules. This specification serves as the authoritative
-reference for system design, implementation, testing, and validation.
+through natural language rules. Fuzzy logic serves as a **semantic bridge**
+between raw numerical sensor values and linguistic concepts that an LLM can
+understand and process. This specification serves as the authoritative reference
+for system design, implementation, testing, and validation **within the thesis
+scope defined in [thesis-setup.md](thesis-setup.md)**.
 
 ### 1.2 Scope
 
 The system accepts natural language control rules from users, translates
-numerical sensor data into linguistic descriptions using fuzzy logic, processes
-these descriptions with an offline LLM, and generates control commands for IoT
-devices. The system operates entirely offline on edge devices without external
-network dependencies.
+numerical sensor data into linguistic descriptions using fuzzy logic as a
+**semantic bridge**, processes these descriptions with an offline LLM, and
+generates control commands for IoT devices. The system operates entirely offline
+on edge devices without external network dependencies.
+
+### 1.2.1 Thesis Prototype Scope (MVP)
+
+The thesis prototype implements the following core requirements:
+
+| Category         | MVP Features                                          |
+| ---------------- | ----------------------------------------------------- |
+| Fuzzy Logic      | JSON-based membership functions, linguistic variables |
+| LLM Integration  | Ollama-based offline inference (up to 7B parameters)  |
+| Rule Processing  | Free-form natural language rules, LLM interpretation  |
+| Device Interface | MQTT communication via Mosquitto broker               |
+| User Interface   | Command-line interface for rule management            |
+| Demonstration    | Smart home automation scenario                        |
+
+### 1.2.2 Out of Scope (Future Work)
+
+The following features are documented for extensibility but are **not required**
+for thesis evaluation:
+
+- Web-based user interface (UI-MODE-002)
+- REST API interface (UI-MODE-003)
+- HTTP REST and serial device protocols (FR-DC-004 partial)
+- Containerized deployment
+- Multi-node distributed deployment
 
 ### 1.3 Definitions and Acronyms
 
@@ -25,6 +59,8 @@ network dependencies.
 - **LLM:** Large Language Model
 - **Fuzzy Logic:** Mathematical framework for reasoning with imprecise or
   qualitative information
+- **Semantic Bridge:** The fuzzy logic layer that transforms numerical sensor
+  values into linguistic concepts understandable by the LLM
 - **Membership Function:** Mathematical function defining the degree to which a
   value belongs to a fuzzy set
 - **Linguistic Variable:** Variable whose values are words or sentences in
@@ -32,10 +68,14 @@ network dependencies.
 - **Edge Device:** Computing device deployed at the network edge near data
   sources
 - **Actuator:** Device that converts control signals into physical actions
+- **Ollama:** Open-source platform for running LLMs locally without cloud
+  dependencies
 
 ### 1.4 References
 
-- Project Brief: Fuzzy-LLM Hybrid Approach for Rule-Based IoT System Management
+- **thesis-setup.md:** Authoritative thesis assignment defining research scope
+- **project-brief.md:** High-level project overview and objectives
+- **add.md:** Architecture Design Document
 - IEEE 830-1998: IEEE Recommended Practice for Software Requirements
   Specifications
 
@@ -51,12 +91,16 @@ ______________________________________________________________________
 
 ### 2.1 Product Perspective
 
-The system consists of four primary components:
+The system consists of four primary components implementing the **semantic
+bridge** architecture:
 
-1. Fuzzy Logic Module: Converts numerical sensor data to linguistic descriptions
-2. LLM Interface: Processes linguistic data and natural language rules
-3. Rule Interpretation System: Maps LLM outputs to device control actions
-4. Device Control Interface: Communicates with IoT sensors and actuators
+1. **Fuzzy Logic Module (Semantic Bridge):** Converts numerical sensor data to
+   linguistic descriptions that an LLM can understand
+2. **LLM Interface:** Processes linguistic data and natural language rules via
+   Ollama
+3. **Rule Interpretation System:** Maps LLM outputs to device control actions
+4. **Device Control Interface:** Communicates with IoT sensors and actuators via
+   MQTT
 
 ### 2.2 Product Functions
 
@@ -83,9 +127,10 @@ deployment.
 ### 2.4 Constraints
 
 - Python implementation language
-- Offline operation without internet connectivity
+- Offline LLM operation via Ollama without internet connectivity
 - LLM model size limited to 7 billion parameters maximum
 - JSON format for all configuration data
+- MQTT protocol for device communication (thesis prototype)
 - Edge device deployment on resource-constrained hardware
 - No transmission of data to external services
 
@@ -101,7 +146,7 @@ ______________________________________________________________________
 
 ## 3. Functional Requirements
 
-### 3.1 Fuzzy Logic Module
+### 3.1 Fuzzy Logic Module (Semantic Bridge)
 
 #### FR-FL-001: Numerical Data Processing
 
@@ -180,21 +225,21 @@ without system restart.
 #### FR-LLM-001: Offline Model Loading
 
 The system shall load and initialize a specified offline LLM with maximum 7B
-parameters from local storage.
+parameters via Ollama from local storage.
 
 **Priority:** High\
-**Input:** Model path, model configuration parameters\
-**Output:** Initialized model instance ready for inference\
+**Input:** Model name, Ollama configuration parameters\
+**Output:** Initialized model instance ready for inference via Ollama REST API\
 **Rationale:** Core requirement for offline operation
 
 #### FR-LLM-002: Model Selection Support
 
-The system shall support loading of LLaMA, Mistral, or equivalent open-source
-models through a unified interface.
+The system shall support loading of Mistral 7B Instruct (default), LLaMA, or
+equivalent open-source models through Ollama's unified interface.
 
 **Priority:** High\
-**Input:** Model type identifier, model files\
-**Output:** Loaded model instance\
+**Input:** Model type identifier\
+**Output:** Loaded model instance via Ollama\
 **Rationale:** Flexibility to select optimal model for hardware constraints
 
 #### FR-LLM-003: Linguistic Input Processing
@@ -372,13 +417,14 @@ their capabilities and communication parameters.
 
 #### FR-DC-004: Communication Protocol Support
 
-The system shall support common IoT communication protocols including MQTT, HTTP
-REST APIs, and serial communication.
+The system shall support MQTT as the primary IoT communication protocol via
+Eclipse Mosquitto broker (thesis prototype). HTTP REST APIs and serial
+communication are supported as extensibility options for future work.
 
-**Priority:** Medium\
+**Priority:** High (MQTT), Low (HTTP REST, serial)\
 **Input:** Protocol-specific configuration\
 **Output:** Established communication channels\
-**Rationale:** Interoperability with diverse IoT devices
+**Rationale:** MQTT is the de facto standard for IoT device communication
 
 #### FR-DC-005: Polling and Events
 
@@ -716,12 +762,12 @@ network protocols.
 
 #### SW-INT-001: LLM Model Interface
 
-The system shall interface with LLM models through the Hugging Face Transformers
-library or equivalent.
+The system shall interface with LLM models through Ollama's REST API for local
+inference.
 
-**Input Format:** Tokenized text prompts\
-**Output Format:** Generated token sequences\
-**Error Handling:** Inference timeout and out-of-memory handling
+**Input Format:** JSON request with prompt text\
+**Output Format:** JSON response with generated text\
+**Error Handling:** Inference timeout and service unavailability handling
 
 #### SW-INT-002: JSON Parser
 
@@ -854,7 +900,7 @@ ______________________________________________________________________
 
 The system shall provide the following user interface modes:
 
-#### UI-MODE-001: Command-Line Interface
+#### UI-MODE-001: Command-Line Interface (Required for Thesis)
 
 A command-line interface for system administration, configuration, and rule
 management.
@@ -867,10 +913,10 @@ management.
 - Configuration validation
 - Log viewing
 
-#### UI-MODE-002: Web Interface (Optional)
+#### UI-MODE-002: Web Interface (Optional — Future Work)
 
 An optional web-based interface for user-friendly rule management and system
-monitoring.
+monitoring. **Not required for thesis evaluation.**
 
 **Capabilities:**
 
@@ -879,9 +925,10 @@ monitoring.
 - Rule execution history
 - Device status visualization
 
-#### UI-MODE-003: API Interface
+#### UI-MODE-003: API Interface (Optional — Future Work)
 
 A programmatic API for integration with external systems or custom interfaces.
+**Not required for thesis evaluation.**
 
 **Protocol:** REST API over HTTP or Python API for embedded use\
 **Authentication:** Token-based authentication for network API\
@@ -891,13 +938,13 @@ ______________________________________________________________________
 
 ## 8. System Features by Priority
 
-### 8.1 High Priority (Essential for Core Functionality)
+### 8.1 High Priority (Required for Thesis — MVP)
 
-- FR-FL-001: Numerical Data Processing
+- FR-FL-001: Numerical Data Processing (Semantic Bridge)
 - FR-FL-002: JSON Configuration Loading
 - FR-FL-003: Multiple Sensor Support
 - FR-FL-005: Linguistic Term Generation
-- FR-LLM-001: Offline Model Loading
+- FR-LLM-001: Offline Model Loading (via Ollama)
 - FR-LLM-002: Model Selection Support
 - FR-LLM-003: Linguistic Input Processing
 - FR-LLM-004: Inference Execution
@@ -909,48 +956,53 @@ ______________________________________________________________________
 - FR-DC-001: Sensor Data Acquisition
 - FR-DC-002: Actuator Command Execution
 - FR-DC-003: Device Registration
+- FR-DC-004: MQTT Communication Protocol
 - FR-CM-001: JSON Schema Definition
 - FR-CM-002: Configuration File Loading
-- FR-UI-001: Rule Definition Interface
+- FR-UI-001: Rule Definition Interface (CLI)
 
-### 8.2 Medium Priority (Important for Usability)
+### 8.2 Medium Priority (Important for Usability — Thesis Scope)
 
 - FR-FL-004: Membership Function Types
 - FR-FL-006: Configuration Validation
-- FR-LLM-006: Model Optimization
+- FR-LLM-006: Model Optimization (quantization)
 - FR-LLM-007: Inference Timeout
 - FR-RI-005: Multi-Device Commands
 - FR-RI-006: Conflict Resolution
 - FR-RI-008: Rule Validation
-- FR-DC-004: Communication Protocol Support
 - FR-DC-005: Polling and Events
 - FR-CM-003: Configuration Export
 - FR-UI-002: System Status Display
 - FR-UI-003: Rule Execution Feedback
 
-### 8.3 Low Priority (Enhanced Functionality)
+### 8.3 Low Priority (Enhanced Functionality — Future Work)
 
 - FR-FL-007: Runtime Reconfiguration
 - FR-LLM-008: Context Management
 - FR-RI-007: Rule Priority
+- FR-DC-004: HTTP REST and Serial protocols (extensibility)
 - FR-DC-006: Device Health Monitoring
 - FR-DC-007: Command Logging
 - FR-CM-004: Default Configurations
 - FR-UI-004: Configuration Interface
+- UI-MODE-002: Web Interface
+- UI-MODE-003: REST API Interface
 
 ______________________________________________________________________
 
 ## 9. Acceptance Criteria
 
-The system shall be considered complete and ready for deployment when it
+The system shall be considered complete and ready for thesis evaluation when it
 satisfies the following criteria:
 
-### 9.1 Functional Completeness
+### 9.1 Functional Completeness (Thesis MVP)
 
-1. All high-priority functional requirements are implemented and tested
+1. All high-priority functional requirements (Section 8.1) are implemented and
+   tested
 2. At least 80% of medium-priority requirements are implemented
-3. Demonstration scenario executes successfully end-to-end
-4. All documented APIs function as specified
+3. Smart home demonstration scenario executes successfully end-to-end
+4. Semantic bridge correctly transforms sensor values to linguistic descriptions
+5. All documented APIs function as specified
 
 ### 9.2 Performance Validation
 
@@ -973,11 +1025,15 @@ satisfies the following criteria:
 3. Installation and deployment procedures verified
 4. JSON schema specifications complete and validated
 
-### 9.5 Usability Validation
+### 9.5 Usability Validation (Thesis Evaluation)
 
 1. Setup time requirement (NFR-USE-002) validated with representative users
 2. Error messages reviewed for clarity and actionability
 3. At least three test scenarios executable by non-technical users
+4. **Rule interpretation accuracy** measured and documented
+5. **Response time** from sensor input to actuator control measured (target \<
+   5s)
+6. **End-user usability** assessment conducted as specified in thesis assignment
 
 ______________________________________________________________________
 

@@ -1,67 +1,124 @@
 # Project Brief
 
+## Fuzzy-LLM Hybrid IoT Management System
+
+**Document Status:** Active\
+**Last Updated:** 2026-02-04\
+**Source Documents:** [thesis-setup.md](thesis-setup.md)
+
+______________________________________________________________________
+
 ## 1. Project Overview
 
 This project implements a hybrid system combining fuzzy logic and large language
 models (LLMs) for managing IoT devices through natural language rules. The
-system uses fuzzy logic to translate numerical sensor data into linguistic
-descriptions that an LLM can process for decision-making and device control.
+system uses fuzzy logic as a **semantic bridge** between raw numerical sensor
+values and linguistic concepts that an LLM can understand and process for
+decision-making and device control.
 
 **Primary Language:** Python
 
 **Target Environment:** Resource-constrained edge devices with limited or no
 internet connectivity
 
-## 2. Project Objectives
+**Authoritative Source:** This document derives from and implements the thesis
+assignment defined in [thesis-setup.md](thesis-setup.md)
+
+## 2. Thesis Scope and Alignment
+
+This project directly addresses the thesis assignment requirements. The
+following table maps thesis deliverables to project components:
+
+| Thesis Requirement                                        | Project Component                    |
+| --------------------------------------------------------- | ------------------------------------ |
+| Literature review of fuzzy-LLM integration approaches     | Section 5.1 Literature Review        |
+| Fuzzy module with JSON-based membership functions         | Fuzzy Logic Module (Section 4.1)     |
+| Offline LLM selection and configuration (up to 7B params) | LLM Interface via Ollama (Sec 4.2)   |
+| Rule interpretation and device control mechanism          | Rule Interpretation System (Sec 4.3) |
+| Prototype in concrete IoT scenario                        | Smart home demonstration scenario    |
+| Evaluation: accuracy, response time, usability            | Section 5.4 Evaluation and Testing   |
+
+### 2.1 Thesis Prototype Scope (MVP)
+
+The thesis prototype focuses on demonstrating the core **semantic bridge**
+concept with these essential features:
+
+- **Fuzzy Logic Processing:** JSON-configurable membership functions and
+  linguistic variables transforming sensor values to qualitative descriptions
+- **Offline LLM Inference:** Local execution via Ollama with models up to 7B
+  parameters (Mistral, LLaMA, or equivalent)
+- **Natural Language Rules:** Free-form rule input with LLM-based interpretation
+- **Device Control:** MQTT-based communication with sensors and actuators
+- **CLI Interface:** Command-line interface for rule management and monitoring
+
+### 2.2 Out of Scope (Future Work)
+
+The following features are documented for extensibility but are **not required**
+for thesis evaluation:
+
+- Web-based user interface
+- REST API for programmatic access
+- Containerized deployment (Docker)
+- Multi-protocol device support (HTTP REST, serial, CoAP)
+- Distributed multi-node deployment
+
+## 3. Project Objectives
 
 The project delivers a functional prototype system with the following
 capabilities:
 
 1. Accept natural language control rules from non-technical users
 2. Convert raw sensor data into qualitative linguistic descriptions using fuzzy
-   logic
+   logic as a **semantic bridge** to linguistic concepts
 3. Process linguistic descriptions and rules using an offline LLM
 4. Generate concrete control actions for IoT devices
 5. Operate without internet connectivity while maintaining data privacy
 
-## 3. Technical Requirements
+## 4. Technical Requirements
 
-### 3.1 Fuzzy Logic Module
+### 4.1 Fuzzy Logic Module (Semantic Bridge)
 
-- Transform numerical sensor values into linguistic variables
+The fuzzy logic module serves as the **semantic bridge** between raw numerical
+sensor data and linguistic concepts that the LLM can understand:
+
+- Transform numerical sensor values into linguistic variables (e.g.,
+  "temperature is hot", "humidity is moderate")
 - Define membership functions in JSON format for dynamic configuration
 - Support multiple sensor types and linguistic categories
 - Enable runtime reconfiguration without system redeployment
 - Provide transparent mapping between numerical and qualitative values
 
-### 3.2 Large Language Model Component
+### 4.2 Large Language Model Component
 
-- Utilize an offline-capable LLM (maximum 7B parameters)
-- Recommended models: LLaMA, Mistral, or equivalent open-source alternatives
-- Optimize for resource-constrained hardware execution
-- Process linguistic sensor descriptions and natural language rules
+- Utilize an offline-capable LLM (maximum 7B parameters) via Ollama
+- Supported models: Mistral 7B Instruct (default), LLaMA, or equivalent
+  open-source alternatives
+- Optimize for resource-constrained edge device execution
+- Process linguistic sensor descriptions generated by the semantic bridge
+- Interpret free-form natural language rules
 - Generate actionable device control commands
 
-### 3.3 Rule Interpretation System
+### 4.3 Rule Interpretation System
 
-- Parse free-form natural language control rules
-- Map linguistic conditions to sensor state descriptions
+- Parse free-form natural language control rules as specified in the thesis
+- Match linguistic conditions from the semantic bridge against rule
+  specifications
 - Translate LLM outputs to device-specific control actions
 - Handle ambiguous or incomplete rule specifications
 - Maintain rule consistency and conflict resolution
 
-### 3.4 System Integration
+### 4.4 System Integration (Thesis Prototype)
 
-- Implement communication interfaces for sensor data acquisition
-- Develop actuator control mechanisms for IoT devices
+- Implement MQTT-based communication for sensor data acquisition (via Mosquitto)
+- Develop actuator control mechanisms for IoT devices via MQTT
 - Create JSON-based configuration system for membership functions and linguistic
   variables
-- Establish data flow pipeline from sensors through fuzzy module to LLM and
+- Establish data flow pipeline: sensors → fuzzy semantic bridge → LLM →
   actuators
 
-## 4. Deliverables
+## 5. Deliverables
 
-### 4.1 Literature Review and Analysis
+### 5.1 Literature Review and Analysis
 
 Comprehensive analysis documenting:
 
@@ -71,76 +128,83 @@ Comprehensive analysis documenting:
 - Advantages and limitations of identified approaches
 - Justification for selected architecture
 
-### 4.2 System Implementation
+### 5.2 System Implementation
 
 Complete Python codebase including:
 
-- Fuzzy logic module with JSON-based configuration
-- LLM integration layer with offline execution support
+- Fuzzy logic module with JSON-based configuration (semantic bridge)
+- LLM integration layer via Ollama with offline execution support
 - Rule interpretation and device control mechanism
-- Prototype application for selected IoT scenario
+- Prototype application for smart home IoT scenario
 - Configuration files for membership functions and linguistic variables
 
-### 4.3 Demonstration Scenario
+### 5.3 Demonstration Scenario
 
-Working prototype in one of the following domains:
+Working prototype demonstrating the **semantic bridge** approach in:
 
-- Smart home automation (temperature, lighting, security)
+- **Smart home automation** (temperature, lighting, security) — primary scenario
+
+Alternative scenarios for illustration:
+
 - Industrial monitoring and control (equipment status, environmental conditions)
 - Agricultural automation (irrigation, climate control, crop monitoring)
 
-The selected scenario must demonstrate practical applicability and system
-effectiveness.
+The demonstration must show practical applicability of fuzzy-LLM integration and
+validate the core thesis hypothesis.
 
-### 4.4 Evaluation and Testing
+### 5.4 Evaluation and Testing
 
-Experimental results measuring:
+Experimental results measuring (as specified in thesis assignment):
 
-- Rule interpretation accuracy across diverse natural language inputs
-- System response time from sensor input to actuator control
+- **Rule interpretation accuracy** across diverse natural language inputs
+- **Response time** from sensor input to actuator control (target: < 5 seconds)
+- **Usability** assessment for non-technical end users
 - Resource utilization on target hardware
-- End-user usability through qualitative or quantitative assessment
 - Comparison with baseline approaches where applicable
 
-### 4.5 Documentation
+### 5.5 Documentation
 
 Complete technical documentation including:
 
 - System architecture description
 - Installation and configuration instructions
 - JSON schema specifications for fuzzy logic configuration
-- Usage examples and sample rules
+- Usage examples and sample natural language rules
 - API documentation for system components
 - Evaluation methodology and results
 
-## 5. Success Criteria
+## 6. Success Criteria
 
-The project will be considered successful if it achieves:
+The project will be considered successful if it achieves the thesis objectives:
 
-1. Accurate interpretation of natural language rules with minimal ambiguity
-2. Real-time or near-real-time response for typical IoT control scenarios
-3. Successful offline operation on resource-constrained hardware
-4. Demonstrated functionality in selected IoT application domain
-5. Positive usability feedback from non-technical users
-6. Measurable advantages over baseline rule-based or purely LLM-based approaches
+1. **Semantic bridge validation:** Accurate transformation of sensor values to
+   linguistic descriptions that enable effective LLM reasoning
+2. Accurate interpretation of natural language rules with minimal ambiguity
+3. Response time under 5 seconds for typical IoT control scenarios
+4. Successful offline operation on resource-constrained hardware
+5. Demonstrated functionality in smart home automation domain
+6. Positive usability feedback from non-technical users
+7. Measurable advantages of the fuzzy-LLM hybrid approach over baseline methods
 
-## 6. Technical Constraints
+## 7. Technical Constraints
 
 - Python as primary implementation language
-- Offline LLM operation (no cloud API dependencies)
+- Offline LLM operation via Ollama (no cloud API dependencies)
 - Maximum 7B parameter model size
-- JSON format for all configuration data
+- JSON format for all configuration data (membership functions, linguistic
+  variables, device definitions)
+- MQTT protocol for device communication (thesis prototype)
 - Support for edge device deployment
 - Privacy-preserving design (no data transmission to external services)
 
-## 7. Expected Outcomes and Significance
+## 8. Expected Outcomes and Significance
 
 This project addresses a critical gap in IoT system management by enabling
 non-technical users to define complex control logic in natural language while
-maintaining interpretability through fuzzy logic. The offline execution
-requirement ensures data privacy and low-latency operation, making the approach
-suitable for industrial, residential, and agricultural applications where
-internet connectivity is limited or prohibited.
+maintaining interpretability through the fuzzy logic **semantic bridge**. The
+offline execution requirement ensures data privacy and low latency, making the
+approach suitable for industrial, residential, and agricultural applications
+where internet connectivity is limited or prohibited.
 
 The hybrid architecture provides transparency in the mapping from sensor values
 to linguistic concepts, allowing users to understand and debug system behavior.
@@ -149,20 +213,20 @@ engines. Successful implementation will demonstrate that sophisticated AI
 techniques can be deployed on resource-constrained edge devices while remaining
 accessible to users without programming expertise.
 
-## 8. Risk Mitigation
+## 9. Risk Mitigation
 
-**LLM Performance Limitations:** Select multiple candidate models for
-evaluation. Implement fallback mechanisms for rule interpretation if LLM output
-is ambiguous or incorrect.
+**LLM Performance Limitations:** Use Ollama with multiple candidate models
+(Mistral 7B, LLaMA 3.2). Implement fallback mechanisms for rule interpretation
+if LLM output is ambiguous or incorrect.
 
-**Resource Constraints:** Profile and optimize critical code paths. Consider
-quantization techniques for LLM deployment. Implement caching strategies for
-repeated rule evaluations.
+**Resource Constraints:** Profile and optimize critical code paths. Use
+quantized models (4-bit) for LLM deployment via Ollama. Implement caching
+strategies for repeated rule evaluations.
 
 **Rule Ambiguity:** Design prompt engineering strategies to reduce LLM output
 variability. Implement validation mechanisms for generated control commands.
 Provide user feedback for ambiguous rules.
 
-**Integration Complexity:** Adopt modular architecture with clear interfaces.
-Implement comprehensive unit and integration tests. Document API contracts
-between components.
+**Integration Complexity:** Adopt modular layered architecture with clear
+interfaces. Implement comprehensive unit and integration tests. Document API
+contracts between components.

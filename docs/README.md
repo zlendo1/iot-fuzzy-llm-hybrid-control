@@ -4,6 +4,11 @@ This directory contains all project documentation for the Fuzzy-LLM Hybrid IoT
 Management System. These documents provide comprehensive information from
 project conception through architectural design and software requirements.
 
+**Authoritative Source:** All documents derive from and implement the thesis
+assignment defined in [thesis-setup.md](thesis-setup.md). The core concept is
+using fuzzy logic as a **semantic bridge** between sensor values and linguistic
+concepts for LLM processing.
+
 ## Document Overview
 
 ### Project-Planning Documents
@@ -15,7 +20,10 @@ project conception through architectural design and software requirements.
 Describes the overall project concept, objectives, and expected outcomes.
 Contains:
 
+- **Thesis scope alignment** with traceability to thesis requirements
+- **Semantic bridge** concept explanation
 - Project overview and primary goals
+- Thesis MVP scope vs future work distinction
 - Detailed technical requirements for each major component
 - Success criteria and expected outcomes
 - Deliverables specification
@@ -67,7 +75,8 @@ reviewers
 **Key Content:**
 
 - 5-layer architecture: User Interface → Configuration & Management → Control &
-  Reasoning → Data Processing → Device Interface
+  Reasoning → Data Processing (Semantic Bridge) → Device Interface
+- **Thesis MVP vs Future Work** distinction for all components
 - Component coordination patterns
 - JSON-based configuration schemas
 - Resource budget (8GB total footprint)
@@ -97,11 +106,13 @@ non-functional requirements. Contains:
 
 **Key Content:**
 
+- **Thesis prototype scope** with MVP requirements clearly identified
 - High-priority requirements for core functionality
 - Performance requirements (response time < 5s, LLM latency < 3s)
 - Resource constraints (7B max model size, 8GB RAM)
 - Privacy and security requirements
 - IEEE 830 structure for requirements specification
+- **Semantic bridge** definition and integration
 
 ______________________________________________________________________
 
@@ -166,14 +177,21 @@ ______________________________________________________________________
 
 **Research Context:**
 
-- `thesis-setup.md` - Original assignment and expectations
-- `project-brief.md` - How objectives are addressed
+- `thesis-setup.md` - Authoritative source: original assignment and expectations
+- `project-brief.md` - How objectives are addressed, thesis scope alignment
 - Literature review section in both documents
+
+**Core Concept Validation:**
+
+- Verify **semantic bridge** implementation (fuzzy logic → linguistic
+  descriptions)
+- Check alignment with thesis deliverables table in `project-brief.md`
+- Confirm MVP features match thesis requirements
 
 **Implementation Evidence:**
 
-- `add.md` - Demonstrates systematic design
-- `srs.md` - Shows requirements engineering process
+- `add.md` - Demonstrates systematic design with MVP/future work distinction
+- `srs.md` - Shows requirements engineering process with thesis scope
 - Code implementation - Realization of documented design
 
 ______________________________________________________________________
@@ -238,10 +256,28 @@ ______________________________________________________________________
 ### Important Constraints
 
 - Python 3.9+ required
-- Offline LLM execution only (no cloud)
+- Offline LLM execution via Ollama (no cloud)
 - Maximum 7B parameter models
 - JSON format for all configuration
+- MQTT for device communication (thesis prototype)
 - No data transmission to external services
+
+### Thesis MVP Features
+
+- Fuzzy logic semantic bridge with JSON configuration
+- Ollama-based LLM inference
+- Natural language rule processing
+- MQTT device communication
+- Command-line interface
+- Smart home demonstration scenario
+
+### Future Work (Not Required for Thesis)
+
+- Web-based user interface
+- REST API interface
+- Docker containerization
+- Multi-protocol device support
+- Distributed deployment
 
 ### Architecture Highlights
 
@@ -288,4 +324,3 @@ For documentation inconsistencies or errors:
 - Report issues in project issue tracker
 - Suggest improvements via pull requests
 - Maintain alignment between code and documentation
-

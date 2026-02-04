@@ -2,6 +2,11 @@
 
 ## Fuzzy-LLM Hybrid IoT Management System
 
+**Document Status:** Active\
+**Last Updated:** 2026-02-04\
+**Source Documents:** [thesis-setup.md](thesis-setup.md),
+[project-brief.md](project-brief.md), [srs.md](srs.md)
+
 ______________________________________________________________________
 
 ## 1. Introduction
@@ -12,13 +17,16 @@ This document defines the software architecture for the Fuzzy-LLM Hybrid IoT
 Management System. It establishes the system's structural organization,
 component responsibilities, communication patterns, and deployment model. This
 document serves as the primary reference for all implementation and integration
-activities.
+activities within the thesis scope defined in
+[thesis-setup.md](thesis-setup.md).
 
 ### 1.2 Scope
 
 The architecture covers all software components required for offline IoT device
-management through natural language rules. Core responsibilities include fuzzy
-logic processing of sensor data, LLM-based rule reasoning via Ollama, MQTT-based
+management through natural language rules. The core concept is using fuzzy logic
+as a **semantic bridge** between raw numerical sensor values and linguistic
+concepts that an LLM can understand. Responsibilities include fuzzy logic
+processing of sensor data, LLM-based rule reasoning via Ollama, MQTT-based
 device communication, and JSON-driven configuration management. Physical IoT
 hardware and device-level firmware fall outside this scope.
 
@@ -39,6 +47,33 @@ fuzzy logic fundamentals, and basic knowledge of language models.
 | MQTT                | Message Queuing Telemetry Transport — a lightweight publish-subscribe protocol widely adopted for IoT communication.                         |
 | Edge Device         | A computing device deployed at the network periphery, close to IoT data sources, with limited computational resources.                       |
 | Actuator            | A physical device that performs a control action (e.g., turning on an HVAC unit) in response to a command.                                   |
+
+### 1.5 Thesis Scope and MVP Architecture
+
+This architecture document describes both the thesis prototype (MVP) and
+potential future extensions. The following table clarifies which components are
+required for thesis evaluation:
+
+| Component                 | Thesis MVP | Future Work |
+| ------------------------- | :--------: | :---------: |
+| Fuzzy Logic Module        |     X      |             |
+| Ollama LLM Integration    |     X      |             |
+| MQTT Device Communication |     X      |             |
+| Command-Line Interface    |     X      |             |
+| JSON Configuration        |     X      |             |
+| Smart Home Demo Scenario  |     X      |             |
+| Web-Based User Interface  |            |      X      |
+| REST API Interface        |            |      X      |
+| Docker Containerization   |            |      X      |
+| Multi-Protocol Support    |            |      X      |
+| Distributed Deployment    |            |      X      |
+
+**Performance targets for thesis prototype:**
+
+- End-to-end response: < 5 seconds (measured for evaluation)
+- LLM inference: < 3 seconds
+- Fuzzy processing: < 100 ms
+- Concurrent rules: 50 (sufficient for demo scenario)
 
 ______________________________________________________________________
 
@@ -88,10 +123,10 @@ specialized work within the layer.
 
 | Layer                      | Coordinator                | Responsibility                                                                                     |
 | -------------------------- | -------------------------- | -------------------------------------------------------------------------------------------------- |
-| User Interface             | —                          | Exposes CLI, optional Web UI, and optional REST API for user interaction.                          |
+| User Interface             | —                          | Exposes CLI for user interaction (Web UI optional for future).                                     |
 | Configuration & Management | System Orchestrator        | Manages system lifecycle, configuration loading, rule persistence, and centralized logging.        |
 | Control & Reasoning        | Rule Processing Pipeline   | Evaluates natural language rules against sensor state using the LLM and generates device commands. |
-| Data Processing            | Fuzzy Processing Pipeline  | Transforms raw numerical sensor data into linguistic descriptions via fuzzy logic.                 |
+| Data Processing            | Fuzzy Processing Pipeline  | **Semantic Bridge:** Transforms raw sensor data into linguistic descriptions via fuzzy logic.      |
 | Device Interface           | MQTT Communication Manager | Manages all device communication through the MQTT broker.                                          |
 
 ### 3.2 Component Diagram
@@ -106,7 +141,7 @@ main application.
 ┌─────────────────────────────────────────────────────────────────────┐
 │                      USER INTERFACE LAYER                           │
 │                                                                     │
-│   CLI Interface  |  Web UI (Optional)  |  REST API (Optional)       │
+│   CLI Interface (MVP)  |  Web UI (Future)  |  REST API (Future)     │
 └───────────────────────────────┬─────────────────────────────────────┘
                                 │ User commands and queries
 ┌───────────────────────────────┼─────────────────────────────────────┐
@@ -176,20 +211,21 @@ between the Device Interface Layer and the Data Processing Layer above it.
   Testament messages and periodic heartbeats. Reports device failures to the
   logging system.
 
-#### 3.3.2 Data Processing Layer
+#### 3.3.2 Data Processing Layer (Semantic Bridge)
 
-Fuzzy Processing Pipeline transforms raw sensor readings into linguistic
-descriptions and is the sole interface between the Device Interface Layer and
-the Control & Reasoning Layer.
+Fuzzy Processing Pipeline implements the **semantic bridge** concept,
+transforming raw sensor readings into linguistic descriptions. It is the sole
+interface between the Device Interface Layer and the Control & Reasoning Layer.
 
 - **Fuzzy Engine** — Applies membership functions to numerical sensor values and
-  computes membership degrees for all configured linguistic terms.
+  computes membership degrees for all configured linguistic terms. Core of the
+  semantic bridge.
 - **Membership Function Library** — Provides implementations of triangular,
   trapezoidal, Gaussian, and sigmoid membership functions. Supports registration
   of custom function types.
 - **Linguistic Descriptor Builder** — Formats the output of the Fuzzy Engine
   into structured natural language descriptions suitable for LLM consumption
-  (e.g., "temperature is hot (0.85)").
+  (e.g., "temperature is hot (0.85)"). Completes the semantic bridge to the LLM.
 
 #### 3.3.3 Control & Reasoning Layer
 
@@ -222,12 +258,13 @@ initialization, runtime, and shutdown across all layers.
 
 #### 3.3.5 User Interface Layer
 
-- **CLI Interface** — Primary interaction tool for system administration, rule
-  management, and status monitoring.
-- **Web UI (Optional)** — Browser-based interface providing visual rule editing,
-  real-time sensor status, and execution history.
-- **REST API (Optional)** — HTTP API for programmatic system access and
-  third-party integration.
+- **CLI Interface (MVP)** — Primary interaction tool for system administration,
+  rule management, and status monitoring. Required for thesis evaluation.
+- **Web UI (Future Work)** — Browser-based interface providing visual rule
+  editing, real-time sensor status, and execution history. Not required for
+  thesis.
+- **REST API (Future Work)** — HTTP API for programmatic system access and
+  third-party integration. Not required for thesis.
 
 ______________________________________________________________________
 
@@ -479,12 +516,12 @@ ______________________________________________________________________
 The primary deployment target is a single edge device running all system
 components locally. The following services must be available on the host:
 
-| Service     | Technology         | Port  | Role                                                                             |
-| ----------- | ------------------ | ----- | -------------------------------------------------------------------------------- |
-| MQTT Broker | Eclipse Mosquitto  | 1883  | Message routing between IoT devices and the system.                              |
-| LLM Runtime | Ollama             | 11434 | Offline LLM inference for rule evaluation.                                       |
-| IoT System  | Python Application | —     | Core application orchestrating fuzzy logic, rule evaluation, and device control. |
-| Web UI      | Flask (Optional)   | 5000  | Browser-based rule management and monitoring interface.                          |
+| Service     | Technology         | Port  | Role                                                                             | MVP |
+| ----------- | ------------------ | ----- | -------------------------------------------------------------------------------- | --- |
+| MQTT Broker | Eclipse Mosquitto  | 1883  | Message routing between IoT devices and the system.                              | Yes |
+| LLM Runtime | Ollama             | 11434 | Offline LLM inference for rule evaluation.                                       | Yes |
+| IoT System  | Python Application | —     | Core application orchestrating fuzzy logic, rule evaluation, and device control. | Yes |
+| Web UI      | Flask              | 5000  | Browser-based rule management and monitoring interface.                          | No  |
 
 ### 6.2 Directory Structure
 
@@ -525,11 +562,12 @@ components locally. The following services must be available on the host:
 | Disk — Logs (30-day retention) | ~3 GB   | Rotated daily, compressed after 24 hours.          |
 | Disk — Code and configuration  | ~200 MB | Application files and JSON configs.                |
 
-### 6.4 Containerized Deployment (Optional)
+### 6.4 Containerized Deployment (Future Work)
 
-The system can be deployed using Docker Compose with three containers: one for
-the Mosquitto MQTT broker, one for the Ollama service, and one for the Python
-application. Configuration files, rule data, and logs are mounted as volumes to
+The system can optionally be deployed using Docker Compose with three
+containers: one for the Mosquitto MQTT broker, one for the Ollama service, and
+one for the Python application. **Containerization is not required for thesis
+evaluation.** Configuration files, rule data, and logs are mounted as volumes to
 allow persistence and easy modification without rebuilding images. GPU access
 for the Ollama container is optional and managed via the NVIDIA container
 runtime.
@@ -589,10 +627,16 @@ ______________________________________________________________________
 
 ### 8.3 Scalability Limits
 
-The single-device architecture supports up to approximately 200 connected
-devices, 1,000 active rules, and 100 sensor readings per second. Exceeding these
-limits requires a distributed deployment model in which multiple edge nodes
-share a common MQTT broker and coordinate via a central rule repository.
+**Thesis Prototype Targets:** The thesis prototype is designed for a smart home
+demonstration scenario with approximately 10-20 devices, up to 50 active rules,
+and 10 sensor readings per second. These targets are sufficient to demonstrate
+the semantic bridge concept.
+
+**Extended Architecture (Future Work):** The architecture supports scaling to
+approximately 200 connected devices, 1,000 active rules, and 100 sensor readings
+per second. Exceeding these limits requires a distributed deployment model in
+which multiple edge nodes share a common MQTT broker and coordinate via a
+central rule repository.
 
 ______________________________________________________________________
 

@@ -33,15 +33,15 @@ on edge devices without external network dependencies.
 
 The thesis prototype implements the following core requirements:
 
-| Category         | MVP Features                                          |
-| ---------------- | ----------------------------------------------------- |
-| Fuzzy Logic      | JSON-based membership functions, linguistic variables |
-| LLM Integration  | Ollama-based offline inference (up to 7B parameters)  |
-| Rule Processing  | Free-form natural language rules, LLM interpretation  |
-| Device Interface | MQTT communication via Mosquitto broker               |
-| User Interface   | Command-line interface for rule management            |
-| Deployment       | Docker Compose containerization                       |
-| Demonstration    | Smart home automation scenario                        |
+| Category         | MVP Features                                                       |
+| ---------------- | ------------------------------------------------------------------ |
+| Fuzzy Logic      | JSON-based membership functions, linguistic variables              |
+| LLM Integration  | Ollama-based offline inference (lightweight edge models, CPU-only) |
+| Rule Processing  | Free-form natural language rules, LLM interpretation               |
+| Device Interface | MQTT communication via Mosquitto broker                            |
+| User Interface   | Command-line interface for rule management                         |
+| Deployment       | Docker Compose containerization for edge devices                   |
+| Demonstration    | Smart home automation scenario                                     |
 
 ### 1.2.2 Out of Scope (Future Work)
 
@@ -224,23 +224,25 @@ without system restart.
 
 #### FR-LLM-001: Offline Model Loading
 
-The system shall load and initialize a specified offline LLM with maximum 7B
-parameters via Ollama from local storage.
+The system shall load and initialize a lightweight offline LLM optimized for
+edge deployment via Ollama from local storage. CPU-only inference is required.
 
 **Priority:** High\
 **Input:** Model name, Ollama configuration parameters\
 **Output:** Initialized model instance ready for inference via Ollama REST API\
-**Rationale:** Core requirement for offline operation
+**Rationale:** Core requirement for offline operation on resource-constrained
+edge devices
 
 #### FR-LLM-002: Model Selection Support
 
-The system shall support loading of Mistral 7B Instruct (default), LLaMA, or
-equivalent open-source models through Ollama's unified interface.
+The system shall support loading of qwen3:0.6b (default) or equivalent
+lightweight open-source models through Ollama's unified interface, optimized for
+CPU inference.
 
 **Priority:** High\
 **Input:** Model type identifier\
 **Output:** Loaded model instance via Ollama\
-**Rationale:** Flexibility to select optimal model for hardware constraints
+**Rationale:** Flexibility to select optimal model for edge hardware constraints
 
 #### FR-LLM-003: Linguistic Input Processing
 
@@ -584,12 +586,12 @@ performance degradation.
 
 #### NFR-PERF-005: Memory Footprint
 
-The system shall operate within 8GB RAM including loaded LLM model on target
-hardware.
+The system shall operate within 2GB RAM (minimum) to 4GB RAM (recommended)
+including loaded LLM model on target edge hardware.
 
 **Priority:** High\
 **Measurement:** Peak memory usage\
-**Rationale:** Edge device constraints
+**Rationale:** Edge/embedded device constraints
 
 ### 4.2 Reliability Requirements
 

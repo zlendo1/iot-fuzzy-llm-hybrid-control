@@ -18,22 +18,22 @@ linguistic concepts for LLM-based natural language rule processing.
 
 ### 1.1 Scope Boundaries
 
-| In Scope (Thesis MVP)        | Out of Scope (Future Work)    |
-| ---------------------------- | ----------------------------- |
-| Fuzzy logic semantic bridge  | Web-based user interface      |
-| Ollama LLM integration (≤7B) | REST API interface            |
-| MQTT device communication    | Multi-protocol device support |
-| CLI interface                | Distributed deployment        |
-| JSON configuration system    | Advanced conflict resolution  |
-| Smart home demo scenario     |                               |
-| Docker containerization      |                               |
+| In Scope (Thesis MVP)                             | Out of Scope (Future Work)    |
+| ------------------------------------------------- | ----------------------------- |
+| Fuzzy logic semantic bridge                       | Web-based user interface      |
+| Ollama LLM integration (edge-optimized, CPU-only) | REST API interface            |
+| MQTT device communication                         | Multi-protocol device support |
+| CLI interface                                     | Distributed deployment        |
+| JSON configuration system                         | Advanced conflict resolution  |
+| Smart home demo scenario                          |                               |
+| Docker containerization                           |                               |
 
 ### 1.2 Key Performance Targets
 
 - End-to-end response: < 5 seconds
 - LLM inference: < 3 seconds
 - Fuzzy processing: < 100 ms
-- Memory footprint: 8 GB total
+- Memory footprint: 2-4 GB total (edge-optimized)
 - Rule interpretation accuracy: ≥ 85%
 
 ______________________________________________________________________
@@ -94,7 +94,7 @@ ______________________________________________________________________
 **Deliverables:**
 
 - Literature review document
-- LLM model comparison matrix (Mistral 7B, LLaMA, Phi)
+- LLM model comparison matrix (qwen3, tinyllama, phi - edge-optimized)
 - Architecture pattern analysis
 - Justified approach selection
 
@@ -367,13 +367,13 @@ ______________________________________________________________________
 
 **Performance Benchmarks:**
 
-| Metric             | Target  | Test Method                 |
-| ------------------ | ------- | --------------------------- |
-| Fuzzy processing   | < 100ms | 20 sensors batch processing |
-| LLM inference      | < 3s    | Average over 50 rule evals  |
-| End-to-end latency | < 5s    | Sensor → actuator command   |
-| Memory footprint   | < 8GB   | Peak usage under load       |
-| Concurrent rules   | 50      | Parallel rule evaluation    |
+| Metric             | Target  | Test Method                  |
+| ------------------ | ------- | ---------------------------- |
+| Fuzzy processing   | < 100ms | 20 sensors batch processing  |
+| LLM inference      | < 3s    | Average over 50 rule evals   |
+| End-to-end latency | < 5s    | Sensor → actuator command    |
+| Memory footprint   | < 4GB   | Peak usage under load (edge) |
+| Concurrent rules   | 50      | Parallel rule evaluation     |
 
 **Acceptance Criteria:**
 
@@ -512,15 +512,15 @@ ______________________________________________________________________
 
 ## 5. Risk Register
 
-| Risk ID | Risk Description                          | Probability | Impact | Mitigation                                      |
-| ------- | ----------------------------------------- | ----------- | ------ | ----------------------------------------------- |
-| R1      | LLM inference too slow on target hardware | Medium      | High   | Use quantized models (4-bit); implement caching |
-| R2      | LLM outputs inconsistent/ambiguous        | Medium      | High   | Robust prompt engineering; validation pipeline  |
-| R3      | Memory exceeds 8GB limit                  | Low         | High   | Profile early; use smaller model if needed      |
-| R4      | MQTT connectivity issues                  | Low         | Medium | Implement reconnection logic; queue commands    |
-| R5      | Fuzzy configuration complexity            | Medium      | Medium | Provide default templates; clear documentation  |
-| R6      | Rule interpretation accuracy < 85%        | Medium      | High   | Iterative prompt refinement; fallback rules     |
-| R7      | Integration complexity between layers     | Medium      | Medium | Clear interfaces; thorough integration testing  |
+| Risk ID | Risk Description                          | Probability | Impact | Mitigation                                     |
+| ------- | ----------------------------------------- | ----------- | ------ | ---------------------------------------------- |
+| R1      | LLM inference too slow on target hardware | Medium      | High   | Use lightweight edge models; implement caching |
+| R2      | LLM outputs inconsistent/ambiguous        | Medium      | High   | Robust prompt engineering; validation pipeline |
+| R3      | Memory exceeds 4GB limit                  | Low         | High   | Profile early; use smaller model if needed     |
+| R4      | MQTT connectivity issues                  | Low         | Medium | Implement reconnection logic; queue commands   |
+| R5      | Fuzzy configuration complexity            | Medium      | Medium | Provide default templates; clear documentation |
+| R6      | Rule interpretation accuracy < 85%        | Medium      | High   | Iterative prompt refinement; fallback rules    |
+| R7      | Integration complexity between layers     | Medium      | Medium | Clear interfaces; thorough integration testing |
 
 ______________________________________________________________________
 
@@ -531,10 +531,10 @@ ______________________________________________________________________
 | Component   | Requirement                       |
 | ----------- | --------------------------------- |
 | Python      | 3.9+                              |
-| Ollama      | Latest (with Mistral 7B model)    |
+| Ollama      | Latest (with qwen3:0.6b model)    |
 | MQTT Broker | Eclipse Mosquitto 2.0+            |
-| RAM         | 16 GB recommended (8 GB minimum)  |
-| Disk        | 20 GB (incl. LLM model)           |
+| RAM         | 4 GB recommended (2 GB minimum)   |
+| Disk        | 5 GB (incl. LLM model)            |
 | OS          | Linux (Ubuntu 22.04+ recommended) |
 
 ### 6.2 Python Dependencies

@@ -79,7 +79,7 @@ reviewers
 - **Thesis MVP vs Future Work** distinction for all components
 - Component coordination patterns
 - JSON-based configuration schemas
-- Resource budget (8GB total footprint)
+- Resource budget (2-4GB total footprint, edge-optimized)
 - Performance targets (end-to-end < 5s, LLM inference < 3s)
 
 ______________________________________________________________________
@@ -137,7 +137,7 @@ non-functional requirements. Contains:
 - **Thesis prototype scope** with MVP requirements clearly identified
 - High-priority requirements for core functionality
 - Performance requirements (response time < 5s, LLM latency < 3s)
-- Resource constraints (7B max model size, 8GB RAM)
+- Resource constraints (edge-optimized models, 2-4GB RAM)
 - Privacy and security requirements
 - IEEE 830 structure for requirements specification
 - **Semantic bridge** definition and integration
@@ -284,14 +284,14 @@ ______________________________________________________________________
 - LLM inference: < 3 seconds
 - Fuzzy processing: < 100ms
 - System startup: < 30 seconds
-- Memory footprint: 8GB total
+- Memory footprint: 2-4GB total (edge-optimized)
 - System availability: 99% uptime
 
 ### Important Constraints
 
 - Python 3.9+ required
-- Offline LLM execution via Ollama (no cloud)
-- Maximum 7B parameter models
+- Offline LLM execution via Ollama (no cloud, CPU-only)
+- Lightweight edge-optimized models (qwen3:0.6b default)
 - JSON format for all configuration
 - MQTT for device communication (thesis prototype)
 - No data transmission to external services

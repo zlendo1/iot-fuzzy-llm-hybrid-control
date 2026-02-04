@@ -100,15 +100,16 @@ components in other layers.
 
 ### 2.3 Architectural Constraints
 
-| Constraint           | Detail                                                         |
-| -------------------- | -------------------------------------------------------------- |
-| Language             | Python 3.9 or later                                            |
-| LLM Runtime          | Ollama (local service, max 7B parameter models)                |
-| Device Protocol      | MQTT via Eclipse Mosquitto broker                              |
-| Configuration Format | JSON for all configuration and membership function definitions |
-| Network              | No internet connectivity required for core operation           |
-| Target Platform      | Linux on x86-64 or ARM64 hardware                              |
-| Memory               | 8 GB maximum total footprint including Ollama                  |
+| Constraint           | Detail                                                            |
+| -------------------- | ----------------------------------------------------------------- |
+| Language             | Python 3.9 or later                                               |
+| LLM Runtime          | Ollama (local service, small embedded models for edge deployment) |
+| LLM Model            | qwen3:0.6b (default), CPU-only inference for edge devices         |
+| Device Protocol      | MQTT via Eclipse Mosquitto broker                                 |
+| Configuration Format | JSON for all configuration and membership function definitions    |
+| Network              | No internet connectivity required for core operation              |
+| Target Platform      | Linux on x86-64 or ARM64 edge/embedded hardware                   |
+| Memory               | 2-4 GB total footprint (optimized for edge deployment)            |
 
 ______________________________________________________________________
 
@@ -441,8 +442,8 @@ One file per sensor type, located in `config/membership_functions/`.
       "timeout_seconds": 30
     },
     "model": {
-      "name": "mistral:7b-instruct",
-      "fallback_models": ["llama3.2:7b-instruct", "phi3:3.8b"]
+      "name": "qwen3:0.6b",
+      "fallback_models": ["qwen3:1.7b", "tinyllama"]
     },
     "inference": {
       "temperature": 0.3,
@@ -551,13 +552,7 @@ services:
       - ollama-models:/root/.ollama
     environment:
       - OLLAMA_HOST=0.0.0.0
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]  # Optional GPU support
+      - OLLAMA_MODEL=qwen3:0.6b
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:11434/"]
       interval: 30s
@@ -628,16 +623,19 @@ project-root/
 
 ### 6.4 Resource Budget
 
-| Resource                       | Budget  | Allocation                                         |
-| ------------------------------ | ------- | -------------------------------------------------- |
-| RAM — Ollama (7B model, 4-bit) | 4.0 GB  | LLM model weights and inference buffers.           |
-| RAM — OS and base services     | 1.5 GB  | Operating system, Mosquitto, background processes. |
-| RAM — Python application       | 1.0 GB  | Runtime, fuzzy engine, caches, rule data.          |
-| RAM — Headroom                 | 1.5 GB  | Buffer for peak usage and garbage collection.      |
-| Disk — LLM model               | 4–8 GB  | Depends on quantization level selected.            |
-| Disk — Logs (30-day retention) | ~3 GB   | Rotated daily, compressed after 24 hours.          |
-| Disk — Docker images           | ~2 GB   | Base images and application layers.                |
-| Disk — Code and configuration  | ~200 MB | Application files and JSON configs.                |
+The system is optimized for edge deployment with minimal resource requirements:
+
+| Resource                         | Budget   | Allocation                                         |
+| -------------------------------- | -------- | -------------------------------------------------- |
+| RAM — Ollama (qwen3:0.6b, 4-bit) | 0.8 GB   | LLM model weights and inference buffers.           |
+| RAM — OS and base services       | 0.5 GB   | Operating system, Mosquitto, background processes. |
+| RAM — Python application         | 0.5 GB   | Runtime, fuzzy engine, caches, rule data.          |
+| RAM — Headroom                   | 0.2 GB   | Buffer for peak usage and garbage collection.      |
+| **Total RAM**                    | **2 GB** | Minimum for edge deployment.                       |
+| Disk — LLM model                 | ~400 MB  | qwen3:0.6b quantized model.                        |
+| Disk — Logs (30-day retention)   | ~1 GB    | Rotated daily, compressed after 24 hours.          |
+| Disk — Docker images             | ~1 GB    | Base images and application layers.                |
+| Disk — Code and configuration    | ~100 MB  | Application files and JSON configs.                |
 
 ### 6.5 Development Workflow
 
@@ -813,18 +811,18 @@ ______________________________________________________________________
 
 ### Appendix A: Technology Stack
 
-| Category    | Technology                    | Role                                                      |
-| ----------- | ----------------------------- | --------------------------------------------------------- |
-| Language    | Python 3.9+                   | Core application implementation.                          |
-| LLM Runtime | Ollama                        | Local LLM model serving and inference.                    |
-| LLM Model   | Mistral 7B Instruct (default) | Natural language rule processing and decision generation. |
-| MQTT Broker | Eclipse Mosquitto 2.0+        | Message routing for IoT device communication.             |
-| MQTT Client | paho-mqtt                     | Python MQTT client library.                               |
-| HTTP Client | requests                      | REST communication with Ollama API.                       |
-| Numerical   | NumPy                         | Vectorized membership function computation.               |
-| Validation  | jsonschema                    | JSON configuration schema validation.                     |
-| Web UI      | Flask (optional)              | Lightweight HTTP server for web interface.                |
-| Testing     | pytest                        | Unit and integration testing framework.                   |
+| Category    | Technology             | Role                                                  |
+| ----------- | ---------------------- | ----------------------------------------------------- |
+| Language    | Python 3.9+            | Core application implementation.                      |
+| LLM Runtime | Ollama                 | Local LLM model serving and inference.                |
+| LLM Model   | qwen3:0.6b (default)   | Lightweight model for edge deployment, CPU inference. |
+| MQTT Broker | Eclipse Mosquitto 2.0+ | Message routing for IoT device communication.         |
+| MQTT Client | paho-mqtt              | Python MQTT client library.                           |
+| HTTP Client | requests               | REST communication with Ollama API.                   |
+| Numerical   | NumPy                  | Vectorized membership function computation.           |
+| Validation  | jsonschema             | JSON configuration schema validation.                 |
+| Web UI      | Flask (optional)       | Lightweight HTTP server for web interface.            |
+| Testing     | pytest                 | Unit and integration testing framework.               |
 
 ### Appendix B: Ollama API Reference
 

@@ -59,7 +59,7 @@ project infrastructure.
 | F-006   | Mosquitto Dockerfile        | Create Dockerfile for Eclipse Mosquitto with custom config          | `docker build` succeeds, image runs                  | 1h         |
 | F-007   | Mosquitto configuration     | Create mosquitto.conf with authentication, persistence, and logging | Config enables auth, logs to volume                  | 1h         |
 | F-008   | Ollama Dockerfile           | Create Dockerfile for Ollama service with model pre-pull script     | `docker build` succeeds, Ollama service starts       | 1.5h       |
-| F-009   | Ollama model initialization | Create entrypoint script to pull Mistral 7B on first run            | Model available after container starts               | 1h         |
+| F-009   | Ollama model initialization | Create entrypoint script to pull qwen3:0.6b on first run            | Model available after container starts               | 1h         |
 | F-010   | Application Dockerfile      | Create multi-stage Dockerfile for Python application                | `docker build` succeeds, app runs in container       | 2h         |
 | F-011   | Application entrypoint      | Create entrypoint.sh with proper signal handling                    | Container responds to SIGTERM gracefully             | 0.5h       |
 | F-012   | docker-compose.yml          | Create Docker Compose file orchestrating all services               | `docker-compose up` starts all services              | 2h         |
@@ -67,8 +67,7 @@ project infrastructure.
 | F-014   | Docker volumes              | Configure volumes for persistence (logs, config, rules, models)     | Data persists across container restarts              | 1h         |
 | F-015   | Docker environment files    | Create .env.example and .env for configuration                      | Environment variables configurable                   | 0.5h       |
 | F-016   | Docker health checks        | Add health checks for all services in docker-compose                | `docker-compose ps` shows health status              | 1h         |
-| F-017   | GPU support for Ollama      | Configure optional NVIDIA GPU passthrough for Ollama container      | GPU available in container when present              | 1h         |
-| F-018   | Docker documentation        | Document Docker setup in docker/README.md                           | README covers build, run, and troubleshooting        | 1h         |
+| F-017   | Docker documentation        | Document Docker setup in docker/README.md                           | README covers build, run, and troubleshooting        | 1h         |
 
 **Docker Compose Services:**
 
@@ -591,7 +590,7 @@ ______________________________________________________________________
 | TST-007 | Fuzzy processing benchmark   | Measure 20-sensor processing time | < 100ms achieved      | 2h         |
 | TST-008 | LLM inference benchmark      | Measure rule evaluation latency   | < 3 seconds average   | 2h         |
 | TST-009 | End-to-end latency benchmark | Measure sensor-to-command time    | < 5 seconds achieved  | 2h         |
-| TST-010 | Memory profiling             | Measure peak memory usage         | < 8GB total footprint | 2h         |
+| TST-010 | Memory profiling             | Measure peak memory usage         | < 4GB total footprint | 2h         |
 | TST-011 | Concurrent rule benchmark    | Test 50 concurrent rules          | System handles load   | 2h         |
 
 ### 7.4 Accuracy Tests
@@ -688,7 +687,7 @@ After Phase 0 is complete, all development follows this workflow:
 ```bash
 # First time setup
 make build              # Build all Docker images
-make pull-model         # Pull Mistral 7B model (takes time)
+make pull-model         # Pull qwen3:0.6b model
 
 # Daily development
 make up                 # Start all services

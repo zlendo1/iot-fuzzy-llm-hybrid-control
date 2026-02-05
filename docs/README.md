@@ -112,6 +112,38 @@ development units. Contains:
 
 ______________________________________________________________________
 
+### Demo Documentation
+
+#### [demo-walkthrough.md](demo-walkthrough.md)
+
+**Purpose:** Step-by-step guide for demonstrating the system
+
+Provides detailed instructions for running the thesis demo scenario. Contains:
+
+- Prerequisites and setup instructions
+- Step-by-step demo execution for all scenarios
+- Expected outputs and performance metrics
+- CLI command examples
+- Tips for recording the demo
+
+**Target Audience:** Thesis evaluators, demo presenters
+
+#### [demo-troubleshooting.md](demo-troubleshooting.md)
+
+**Purpose:** Solutions for common demo issues
+
+Comprehensive troubleshooting guide for demo problems. Contains:
+
+- Quick diagnostics commands
+- Common issues and solutions
+- Log analysis techniques
+- Recovery procedures
+- Environment variable reference
+
+**Target Audience:** Demo presenters, developers
+
+______________________________________________________________________
+
 ### Requirements Documents
 
 #### [srs.md](srs.md)

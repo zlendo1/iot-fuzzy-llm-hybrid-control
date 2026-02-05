@@ -44,12 +44,12 @@ project infrastructure.
 
 ### 0.1 Project Structure & Python Environment
 
-| Task ID | Task                       | Description                                                                               | Acceptance Criteria                                                        | Est. Hours |
-| ------- | -------------------------- | ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- | ---------- |
-| F-001   | Project structure creation | Create directory structure per ADD Section 6.2                                            | All directories exist: src/, config/, rules/, logs/, tests/, bin/, docker/ | 1h         |
-| F-002   | Python environment setup   | Create virtual environment with Python 3.9+, configure pyproject.toml or requirements.txt | `python --version` shows 3.9+, venv activates successfully                 | 1h         |
-| F-003   | Install core dependencies  | Install paho-mqtt, requests, numpy, jsonschema, click, pytest, pytest-cov                 | All packages install without errors, `pip list` shows all dependencies     | 1h         |
-| F-004   | requirements.txt creation  | Create requirements.txt with pinned versions for reproducibility                          | `pip install -r requirements.txt` succeeds on clean venv                   | 1h         |
+| Task ID | Task                       | Description                                                                               | Acceptance Criteria                                                    | Est. Hours |
+| ------- | -------------------------- | ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ---------- |
+| F-001   | Project structure creation | Create directory structure per ADD Section 6.2                                            | All directories exist: src/, config/, rules/, logs/, tests/, docker/   | 1h         |
+| F-002   | Python environment setup   | Create virtual environment with Python 3.9+, configure pyproject.toml or requirements.txt | `python --version` shows 3.9+, venv activates successfully             | 1h         |
+| F-003   | Install core dependencies  | Install paho-mqtt, requests, numpy, jsonschema, click, pytest, pytest-cov                 | All packages install without errors, `pip list` shows all dependencies | 1h         |
+| F-004   | requirements.txt creation  | Create requirements.txt with pinned versions for reproducibility                          | `pip install -r requirements.txt` succeeds on clean venv               | 1h         |
 
 ### 0.2 Docker Containerization
 
@@ -536,13 +536,13 @@ ______________________________________________________________________
 
 ### 6.1 Main Application
 
-| Task ID | Task                     | Description                                               | Acceptance Criteria                    | Est. Hours |
-| ------- | ------------------------ | --------------------------------------------------------- | -------------------------------------- | ---------- |
-| INT-001 | Main entry point         | Create src/main.py as application entry                   | `python -m src.main` starts system     | 2h         |
-| INT-002 | Layer wiring             | Connect all layers through coordinators                   | Data flows correctly between layers    | 4h         |
-| INT-003 | Event bus implementation | Implement observer pattern for state change notifications | Sensor changes trigger rule evaluation | 4h         |
-| INT-004 | End-to-end data flow     | Sensor → Fuzzy → Rule → Command → Actuator                | Complete flow works                    | 4h         |
-| INT-005 | Startup script           | Create bin/start.sh for system launch                     | Script starts all required services    | 1h         |
+| Task ID | Task                     | Description                                                                            | Acceptance Criteria                         | Est. Hours |
+| ------- | ------------------------ | -------------------------------------------------------------------------------------- | ------------------------------------------- | ---------- |
+| INT-001 | Main entry point         | Create src/main.py as application entry                                                | `python -m src.main` starts system          | 2h         |
+| INT-002 | Layer wiring             | Connect all layers through coordinators                                                | Data flows correctly between layers         | 4h         |
+| INT-003 | Event bus implementation | Implement observer pattern for state change notifications                              | Sensor changes trigger rule evaluation      | 4h         |
+| INT-004 | End-to-end data flow     | Sensor → Fuzzy → Rule → Command → Actuator                                             | Complete flow works                         | 4h         |
+| INT-005 | Startup script           | ~~Create bin/start.sh for system launch~~ OBSOLETE: Replaced by Makefile (make up/dev) | ~~Script starts all required services~~ N/A | 0h         |
 
 ### 6.2 Cross-Cutting Concerns
 

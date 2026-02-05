@@ -586,7 +586,6 @@ volumes:
 
 ```
 project-root/
-├── bin/                          # Startup and utility scripts
 ├── config/
 │   ├── membership_functions/     # One JSON file per sensor type
 │   ├── devices.json

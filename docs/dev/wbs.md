@@ -598,7 +598,6 @@ ______________________________________________________________________
 
 ```
 /opt/fuzzy-llm-iot/
-├── bin/                          # Startup scripts
 ├── config/
 │   ├── membership_functions/     # Per-sensor JSON configs
 │   ├── devices.json

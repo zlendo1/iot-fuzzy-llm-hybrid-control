@@ -438,7 +438,7 @@ def rule_list(ctx: CLIContext, enabled_only: bool, tag: str | None) -> None:
         tags_str = ", ".join(tags) if tags else ""
         rows.append(
             [
-                r.rule_id[:8],
+                r.rule_id,
                 "Yes" if r.enabled else "No",
                 str(r.priority),
                 text_preview,

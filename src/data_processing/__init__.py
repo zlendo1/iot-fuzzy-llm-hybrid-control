@@ -6,6 +6,11 @@ from src.data_processing.fuzzy_engine import (
     SensorTypeConfig,
     UniverseOfDiscourse,
 )
+from src.data_processing.linguistic_descriptor import (
+    LinguisticDescription,
+    LinguisticDescriptorBuilder,
+    TermMembership,
+)
 from src.data_processing.membership_functions import (
     GaussianMF,
     MembershipFunction,
@@ -30,4 +35,7 @@ __all__ = [
     "FuzzificationResult",
     "FuzzyEngine",
     "FuzzyEngineError",
+    "TermMembership",
+    "LinguisticDescription",
+    "LinguisticDescriptorBuilder",
 ]

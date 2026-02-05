@@ -1,0 +1,28 @@
+{
+  "sensor_type": "humidity",
+  "unit": "percent",
+  "universe_of_discourse": { "min": 0.0, "max": 100.0 },
+  "confidence_threshold": 0.1,
+  "linguistic_variables": [
+    {
+      "term": "dry",
+      "function_type": "trapezoidal",
+      "parameters": { "a": 0.0, "b": 0.0, "c": 25.0, "d": 35.0 }
+    },
+    {
+      "term": "comfortable",
+      "function_type": "triangular",
+      "parameters": { "a": 30.0, "b": 45.0, "c": 60.0 }
+    },
+    {
+      "term": "humid",
+      "function_type": "triangular",
+      "parameters": { "a": 55.0, "b": 70.0, "c": 80.0 }
+    },
+    {
+      "term": "very_humid",
+      "function_type": "trapezoidal",
+      "parameters": { "a": 75.0, "b": 85.0, "c": 100.0, "d": 100.0 }
+    }
+  ]
+}

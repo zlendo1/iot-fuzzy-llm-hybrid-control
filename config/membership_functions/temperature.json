@@ -1,0 +1,28 @@
+{
+  "sensor_type": "temperature",
+  "unit": "celsius",
+  "universe_of_discourse": { "min": -10.0, "max": 50.0 },
+  "confidence_threshold": 0.1,
+  "linguistic_variables": [
+    {
+      "term": "cold",
+      "function_type": "trapezoidal",
+      "parameters": { "a": -10.0, "b": -10.0, "c": 10.0, "d": 18.0 }
+    },
+    {
+      "term": "comfortable",
+      "function_type": "triangular",
+      "parameters": { "a": 16.0, "b": 22.0, "c": 26.0 }
+    },
+    {
+      "term": "warm",
+      "function_type": "triangular",
+      "parameters": { "a": 24.0, "b": 28.0, "c": 32.0 }
+    },
+    {
+      "term": "hot",
+      "function_type": "trapezoidal",
+      "parameters": { "a": 30.0, "b": 35.0, "c": 50.0, "d": 50.0 }
+    }
+  ]
+}

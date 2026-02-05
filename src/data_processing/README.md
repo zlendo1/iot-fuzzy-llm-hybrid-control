@@ -3,11 +3,22 @@
 This directory contains the layer that transforms raw numerical sensor data into
 linguistic descriptions suitable for LLM consumption.
 
+## Structure
+
+```
+data_processing/
+├── __init__.py
+├── fuzzy_pipeline.py          # Coordinator - orchestrates fuzzy processing
+├── fuzzy_engine.py            # Core fuzzy logic computation
+├── membership_functions.py    # Membership function implementations
+└── linguistic_descriptor.py   # Formats output for LLM consumption
+```
+
 ## Coordinator
 
-- **FuzzyProcessingPipeline** - The sole interface between the Device Interface
-  Layer below and the Control & Reasoning Layer above it. Orchestrates fuzzy
-  logic processing.
+- **FuzzyProcessingPipeline** (`fuzzy_pipeline.py`) - The sole interface between
+  the Device Interface Layer below and the Control & Reasoning Layer above it.
+  Orchestrates fuzzy logic processing.
 
 ## Components
 
@@ -18,7 +29,7 @@ linguistic descriptions suitable for LLM consumption.
 - Filters results by confidence threshold (default 0.1)
 - Uses NumPy vectorization for efficient computation
 
-### MembershipFunctionLibrary
+### MembershipFunctions
 
 - Implements fuzzy membership function types:
   - Triangular (parameters: a, b, c)
@@ -28,7 +39,7 @@ linguistic descriptions suitable for LLM consumption.
 - Provides factory pattern for function creation
 - Supports custom function type registration
 
-### LinguisticDescriptorBuilder
+### LinguisticDescriptor
 
 - Formats fuzzy logic output into natural language descriptions
 - Structures output optimized for LLM consumption

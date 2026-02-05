@@ -13,29 +13,43 @@ Centralized logging for all system operations to enable:
 - Rule evaluation auditing
 - Compliance and traceability
 
-## Log Categories
+## Log Files
 
-- `system.log` - System-level events (startup, shutdown, configuration changes)
-- `commands.log` - All commands sent to devices with timestamps and outcomes
-- `sensors.log` - Raw sensor values and processing results
-- `errors.log` - Error messages and exceptions with stack traces
-- `rules.log` - Rule evaluation history and trigger events
+```
+logs/
+├── commands.json   # Commands sent to devices with timestamps and outcomes
+├── errors.json     # Error messages and exceptions with stack traces
+├── rules.json      # Rule evaluation history and trigger events
+├── sensors.json    # Raw sensor values and processing results
+└── system.json     # System-level events (startup, shutdown, config changes)
+```
+
+## Log Format
+
+All log files use JSON format for machine readability and easy parsing.
+
+Example log entry:
+
+```json
+{
+  "timestamp": "2026-02-05T14:30:00Z",
+  "level": "INFO",
+  "component": "rule_pipeline",
+  "message": "Rule climate_001 triggered",
+  "context": {
+    "rule_id": "climate_001",
+    "sensor_state": "temperature is hot (0.85)",
+    "action": "turn_on living_room_ac"
+  }
+}
+```
 
 ## Log Configuration
 
-As specified in the system_config.json:
+Default settings (configurable via system config):
 
 - Format: JSON structured logging
-- Rotation: Max 100MB per file
-- Retention: 30 days
-- Levels:DEBUG, INFO, WARNING, ERROR, CRITICAL (configurable)
-
-## Log Management
-
-- Automatic daily rotation
-- Compression of rotated files after 24 hours
-- Automatic deletion of files older than retention period
-- Log files are included in backups
+- Levels: DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 ## Privacy
 

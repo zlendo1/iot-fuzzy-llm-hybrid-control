@@ -5,100 +5,78 @@ integration scenarios.
 
 ## Test Files
 
-- `test_main.py` - Tests for system main entry point and integration scenarios
+```
+test_main/
+├── test_accuracy.py        # Accuracy verification tests
+├── test_application.py     # Application lifecycle tests
+├── test_e2e_integration.py # End-to-end integration tests
+├── test_performance.py     # Performance benchmark tests
+├── test_placeholder.py     # Placeholder test file
+└── test_stress.py          # Stress and load tests
+```
 
 ## Test Focus
 
-### Main System Tests
+### Application Tests
 
-- System entry point initialization (main.py)
-- Command-line argument parsing for main.py
+- Application class initialization
 - System startup flow validation
 - Graceful shutdown verification
-- Signal handling (SIGTERM, SIGINT)
+- Signal handling
 
-### Integration Tests
+### End-to-End Integration Tests
 
-- End-to-end sensor data flow (MQTT -> Fuzzy -> LLM -> Command -> MQTT)
+- Complete sensor-to-actuator flow (MQTT -> Fuzzy -> LLM -> Command -> MQTT)
 - Complete system initialization (all layers in correct order)
 - System shutdown with cleanup
-- State persistence across system restarts
 - Cross-layer communication verification
 
-### System Health Tests
-
-- Overall system status reporting
-- Component health checks
-- Resource usage monitoring
-- Error recovery scenarios
-
-## Performance Tests
+### Performance Tests
 
 Verify end-to-end system targets from ADD Section 8.1:
 
 - End-to-end (sensor change to actuator command): < 5 seconds
 - System startup: < 30 seconds
+- Fuzzy processing: < 50ms
+- LLM inference: < 3s
+- Command generation: < 100ms
+
+### Stress Tests
+
+- Test system limits (200 devices, 1000 rules, 100 readings/sec)
+- Verify memory constraints (8GB total footprint)
+- Test cache eviction under load
+- Verify graceful degradation under stress
+
+### Accuracy Tests
+
+- Verify fuzzy logic computation accuracy
+- Test rule matching correctness
+- Validate command generation fidelity
 
 ## Mocking Strategy
 
 For integration tests, use lightweight mocks for external services:
 
-- **MQTT Broker**: In-memory MQTT broker mock or test instance
+- **MQTT Broker**: In-memory MQTT broker mock
 - **Ollama Service**: Mock HTTP responses with realistic timing
 - **File System**: Temporary directories for config and logs
-
-## Test Configuration
-
-Fixtures provide:
-
-- Complete system configuration (all config files)
-- Sample devices (sensors and actuators)
-- Sample rules
-- Mock MQTT broker and Ollama service
-- Temporary test directories
 
 ## Running Tests
 
 ```bash
-# Main system tests
-pytest tests/test_main.py
-
-# With verbose output
-pytest tests/test_main.py -v
+# All main tests
+pytest tests/test_main/
 
 # Integration tests
-pytest tests/test_main.py -k integration
+pytest tests/test_main/test_e2e_integration.py
 
 # Performance tests
-pytest tests/test_main.py -m performance
+pytest tests/test_main/test_performance.py
 
-# With system integration (requires external services)
-pytest tests/test_main.py --integration
+# Stress tests
+pytest tests/test_main/test_stress.py
+
+# With verbose output
+pytest tests/test_main/ -v
 ```
-
-## Integration Test Scenarios
-
-1. **Happy Path**: Complete sensor-to-actuator flow
-2. **Rule Firing**: Verify rule triggers correctly
-3. **Conflict Resolution**: Test priority-based conflict handling
-4. **Command Validation**: Verify validation pipeline works
-5. **Device Failure**: Test behavior when device goes offline
-6. **Ollama Failure**: Test graceful degradation if LLM unavailable
-7. **Configuration Update**: Test hot-reloading configuration changes
-8. **Startup/Shutdown**: Complete lifecycle test
-
-## Deployment Tests
-
-Test system deployment scenarios:
-
-- Fresh installation and first startup
-- Restart with persisted state
-- Upgrade from previous version
-- Recovery from crash
-
-## Coverage Goals
-
-- System entry point: 100%
-- Main initialization flow: 100%
-- Cross-layer integration points: > 90%
-- Error handling paths: > 90%

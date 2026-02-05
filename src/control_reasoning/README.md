@@ -3,39 +3,73 @@
 This directory contains the layer that evaluates natural language rules against
 linguistic sensor states and generates device commands.
 
+## Structure
+
+```
+control_reasoning/
+├── __init__.py
+├── rule_pipeline.py        # Coordinator - orchestrates rule evaluation
+├── ollama_client.py        # LLM communication via Ollama REST API
+├── prompt_builder.py       # Constructs prompts for LLM
+├── response_parser.py      # Parses LLM responses into structured actions
+├── rule_interpreter.py     # Matches sensor states to rule conditions
+├── command_generator.py    # Translates LLM actions to device commands
+├── command_validator.py    # Validates commands against device capabilities
+└── conflict_resolver.py    # Resolves conflicts when multiple rules fire
+```
+
 ## Coordinator
 
-- **RuleProcessingPipeline** - The sole interface between the Data Processing
-  Layer below and the Configuration & Management Layer above it. Orchestrates
-  the full rule evaluation workflow.
+- **RuleProcessingPipeline** (`rule_pipeline.py`) - The sole interface between
+  the Data Processing Layer below and the Configuration & Management Layer above
+  it. Orchestrates the full rule evaluation workflow.
 
 ## Components
+
+### OllamaClient
+
+- Communicates with Ollama LLM service via REST API
+- Submits inference requests to `/api/generate` endpoint
+- Handles timeouts, retries, and connection errors
+- Configures inference parameters (temperature, max_tokens, top_p, etc.)
+
+### PromptBuilder
+
+- Constructs prompts from sensor states and rule text
+- Uses configurable prompt templates
+- Formats linguistic descriptions for LLM consumption
+
+### ResponseParser
+
+- Parses LLM responses to extract structured actions
+- Validates response format (ACTION: command syntax)
+- Handles malformed or unexpected responses
 
 ### RuleInterpreter
 
 - Matches current linguistic sensor states to rule conditions
 - Identifies candidate rules for evaluation
-- Implements conflict resolution (priority-based by default per DD-06)
-- Resolves multiple commands targeting the same device
 - Updates rule metadata (trigger_count, last_triggered)
-
-### OllamaClient
-
-- Communicates with Ollama LLM service via REST API
-- Constructs prompts from sensor states and rule text
-- Submits inference requests to `/api/generate` endpoint
-- Parses LLM responses to extract structured actions
-- Implements model fallback mechanism (mistral → llama3.2 → phi3)
-- Configures inference parameters (temperature, max_tokens, top_p, etc.)
 
 ### CommandGenerator
 
 - Translates abstract LLM actions into concrete device commands
+- Maps action keywords to device capabilities
+- Formats commands for MQTT publication
+
+### CommandValidator
+
 - Validates commands against device capabilities
 - Checks device-specific constraints (temperature ranges, allowed modes)
 - Applies safety whitelists
 - Enforces rate limits (60 commands/minute per device)
 - Flags critical commands for user confirmation
+
+### ConflictResolver
+
+- Resolves conflicts when multiple rules target the same device
+- Implements priority-based resolution (higher priority wins)
+- Handles tie-breaking when priorities are equal
 
 ## Communication Flow
 
@@ -67,7 +101,7 @@ As specified in Section 4.2 of the ADD:
 
 ## Command Validation Pipeline
 
-Per Section 7.2, all commands pass through 7 validation steps:
+Per Section 7.2, all commands pass through validation steps:
 
 1. Response parsing (verify ACTION format)
 2. Device existence check

@@ -45,42 +45,31 @@ docker-compose ps
 # app         running (healthy)
 ```
 
-### Step 2: Enter Application Shell
-
-```bash
-# Enter the app container shell for running CLI commands
-make shell
-
-# You are now inside the container at /app
-# All subsequent python commands run from here
-```
-
-### Step 3: CLI Status Check
+### Step 2: CLI Status Check
 
 ```bash
 # Check system status via CLI
-python -m src.interfaces status
+iot-fuzzy-llm status
 
-# Expected: Shows component availability from configuration files
+# Expected: Shows component availability and running state
 ```
 
 > [!NOTE]
-> The CLI creates its own local orchestrator instance to validate
-> configurations. It does not connect to the running application process. Status
-> shows "UNINITIALIZED" because the CLI's orchestrator hasn't been started—this
-> is expected behavior. The actual application runs separately in the
-> container's main process.
+> The CLI first attempts to connect to the running application via
+> `http://localhost:8080/status`. If successful, it shows live application
+> state. If unreachable, it falls back to standalone mode validating
+> configurations locally.
 
-### Step 4: List Demo Rules
+### Step 3: List Demo Rules
 
 ```bash
 # List all configured rules
-python -m src.interfaces rule list
+iot-fuzzy-llm rule list
 
 # Expected: 10 rules displayed with IDs and status
 ```
 
-### Step 5: Climate Control Demo (DEMO-004)
+### Step 4: Climate Control Demo (DEMO-004)
 
 **Scenario**: Living room is hot (32°C) and humid (78%)
 
@@ -113,7 +102,7 @@ mosquitto_pub -h localhost -t home/living_room/humidity \
 mosquitto_sub -h localhost -t home/living_room/ac/set
 ```
 
-### Step 6: Lighting Control Demo (DEMO-005)
+### Step 5: Lighting Control Demo (DEMO-005)
 
 **Scenario**: Motion detected in dark hallway
 
@@ -133,7 +122,7 @@ mosquitto_pub -h localhost -t home/hallway/motion \
 # - LLM: ACTION: light_hallway, turn_on
 ```
 
-### Step 7: Heating Control Demo (DEMO-006)
+### Step 6: Heating Control Demo (DEMO-006)
 
 **Scenario**: Bedroom is cold (15°C)
 
@@ -148,7 +137,7 @@ mosquitto_pub -h localhost -t home/bedroom/temperature \
 # - LLM: ACTION: heater_bedroom, turn_on, temperature=21
 ```
 
-### Step 8: Blind Control Demo (DEMO-007)
+### Step 7: Blind Control Demo (DEMO-007)
 
 **Scenario**: Very bright sunlight (40000 lux)
 
@@ -163,37 +152,37 @@ mosquitto_pub -h localhost -t home/living_room/light_level \
 # - LLM: ACTION: blinds_living_room, set_position, position=50
 ```
 
-### Step 9: Rule Management Demo
+### Step 8: Rule Management Demo
 
 ```bash
 # Add a new rule
-python -m src.interfaces rule add --id night_mode \
+iot-fuzzy-llm rule add --id night_mode \
   "If no motion detected for 30 minutes after 11pm, turn off all lights"
 
 # Disable a rule
-python -m src.interfaces rule disable climate_002
+iot-fuzzy-llm rule disable climate_002
 
 # Enable a rule
-python -m src.interfaces rule enable climate_002
+iot-fuzzy-llm rule enable climate_002
 
 # Show rule details
-python -m src.interfaces rule show climate_001
+iot-fuzzy-llm rule show climate_001
 ```
 
-### Step 10: Sensor Status Demo
+### Step 9: Sensor Status Demo
 
 ```bash
 # Show current sensor readings
-python -m src.interfaces sensor status
+iot-fuzzy-llm sensor status
 
 # Expected: Shows registered sensors and their configuration
 ```
 
-### Step 11: Configuration Validation
+### Step 10: Configuration Validation
 
 ```bash
 # Validate all configuration files
-python -m src.interfaces config validate
+iot-fuzzy-llm config validate
 
 # Expected: All configs pass validation
 ```

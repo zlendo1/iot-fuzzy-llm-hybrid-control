@@ -1,394 +1,120 @@
-# Documentation Directory
+# Documentation
 
-This directory contains all project documentation for the Fuzzy-LLM Hybrid IoT
-Management System. These documents provide comprehensive information from
-project conception through architectural design and software requirements.
+## Fuzzy-LLM Hybrid IoT Management System
 
-**Authoritative Source:** All documents derive from and implement the thesis
-assignment defined in [thesis-setup.md](thesis-setup.md). The core concept is
-using fuzzy logic as a **semantic bridge** between sensor values and linguistic
-concepts for LLM processing.
+This directory contains all project documentation organized into two categories:
 
-## Document Overview
+- **[user/](user/)** - User and reference documentation for operating the system
+- **[dev/](dev/)** - Development documentation for understanding and extending
+  the system
 
-### Project-Planning Documents
-
-#### [project-brief.md](project-brief.md)
-
-**Purpose:** High-level project overview and objectives
-
-Describes the overall project concept, objectives, and expected outcomes.
-Contains:
-
-- **Thesis scope alignment** with traceability to thesis requirements
-- **Semantic bridge** concept explanation
-- Project overview and primary goals
-- Thesis MVP scope vs future work distinction
-- Detailed technical requirements for each major component
-- Success criteria and expected outcomes
-- Deliverables specification
-- Risk mitigation strategies
-
-**Target Audience:** Project stakeholders, thesis reviewers, developers seeking
-project context
+**Core Concept:** The system uses fuzzy logic as a **semantic bridge** between
+numerical sensor values and linguistic concepts that an LLM can understand,
+enabling natural language rule processing for IoT device management.
 
 ______________________________________________________________________
 
-#### [thesis-setup.md](thesis-setup.md)
+## Quick Start
 
-**Purpose:** Original thesis assignment and research scope
-
-The formal thesis assignment from the University of Sarajevo that defines the
-research topic. Contains:
-
-- Assignment description and research objectives
-- Significance of the work and expected contributions
-- Initial literature references
-- Faculty and departmental context
-
-**Target Audience:** Thesis candidate, academic supervisors, examiners
+| Task               | Document                                                   |
+| ------------------ | ---------------------------------------------------------- |
+| Install the system | [user/installation-guide.md](user/installation-guide.md)   |
+| Learn CLI commands | [user/user-guide.md](user/user-guide.md)                   |
+| Configure devices  | [user/configuration-guide.md](user/configuration-guide.md) |
+| Write rules        | [user/example-rules.md](user/example-rules.md)             |
+| Run the demo       | [user/demo-walkthrough.md](user/demo-walkthrough.md)       |
 
 ______________________________________________________________________
 
-### Design Documents
+## User Documentation
 
-#### [add.md](add.md)
+Location: **[user/](user/)**
 
-**Purpose:** System architecture and design specifications
+Documentation for system operators, administrators, and evaluators.
 
-The Architecture Design Document (ADD) provides complete architectural
-specifications for implementation. Contains:
-
-- Layered architecture design (5 layers with coordinators)
-- Component descriptions and responsibilities
-- Interaction flows between components
-- Data architecture and persistence model
-- Deployment architecture and directory structure
-- Security architecture and validation pipelines
-- Performance targets and optimization strategies
-- Design decisions with rationale
-- Technology stack and API references
-
-**Target Audience:** System architects, implementation developers, technical
-reviewers
-
-**Key Content:**
-
-- 5-layer architecture: User Interface → Configuration & Management → Control &
-  Reasoning → Data Processing (Semantic Bridge) → Device Interface
-- **Thesis MVP vs Future Work** distinction for all components
-- Component coordination patterns
-- JSON-based configuration schemas
-- Resource budget (2-4GB total footprint, edge-optimized)
-- Performance targets (end-to-end < 5s, LLM inference < 3s)
+| Document                                                | Purpose                                                  |
+| ------------------------------------------------------- | -------------------------------------------------------- |
+| [installation-guide.md](user/installation-guide.md)     | Docker and local installation instructions               |
+| [user-guide.md](user/user-guide.md)                     | CLI usage, commands, and workflows                       |
+| [configuration-guide.md](user/configuration-guide.md)   | Device, MQTT, LLM, and membership function configuration |
+| [schema-reference.md](user/schema-reference.md)         | Complete JSON schema documentation                       |
+| [api-reference.md](user/api-reference.md)               | Python API reference for all layers                      |
+| [example-rules.md](user/example-rules.md)               | Natural language rule examples and patterns              |
+| [demo-walkthrough.md](user/demo-walkthrough.md)         | Step-by-step demo execution guide                        |
+| [demo-troubleshooting.md](user/demo-troubleshooting.md) | Common issues and solutions                              |
+| [evaluation-report.md](user/evaluation-report.md)       | Test coverage, performance, and accuracy metrics         |
 
 ______________________________________________________________________
 
-### Engineering Documents
+## Development Documentation
 
-#### [engineering-tasks.md](engineering-tasks.md)
+Location: **[dev/](dev/)**
 
-**Purpose:** Chronologically ordered engineering task list for implementation
+Documentation for developers, architects, and thesis reviewers.
 
-A comprehensive, implementation-ready task list optimized for autonomous
-development units. Contains:
+| Document                                         | Purpose                                                 |
+| ------------------------------------------------ | ------------------------------------------------------- |
+| [thesis-setup.md](dev/thesis-setup.md)           | Original thesis assignment and research scope           |
+| [project-brief.md](dev/project-brief.md)         | Project overview, objectives, and deliverables          |
+| [srs.md](dev/srs.md)                             | Software Requirements Specification (100+ requirements) |
+| [add.md](dev/add.md)                             | Architecture Design Document (5-layer architecture)     |
+| [wbs.md](dev/wbs.md)                             | Work Breakdown Structure                                |
+| [engineering-tasks.md](dev/engineering-tasks.md) | Detailed implementation task list (150+ tasks)          |
 
-- **Phase-based organization** with clear dependencies
-- **Chronological ordering** for bottom-up implementation
-- **Task-level granularity** with acceptance criteria
-- **Effort estimates** for planning
-- **Validation checkpoints** at each phase
-- **Integration points** between layers
+### Document Flow
 
-**Target Audience:** Developers, autonomous coding agents, project managers
-
-**Key Content:**
-
-- 9 implementation phases from foundation to documentation
-- 150+ detailed engineering tasks
-- SRS requirement traceability for each task
-- Performance and coverage targets
-- Smart home demo scenario tasks
-
-______________________________________________________________________
-
-### Demo Documentation
-
-#### [demo-walkthrough.md](demo-walkthrough.md)
-
-**Purpose:** Step-by-step guide for demonstrating the system
-
-Provides detailed instructions for running the thesis demo scenario. Contains:
-
-- Prerequisites and setup instructions
-- Step-by-step demo execution for all scenarios
-- Expected outputs and performance metrics
-- CLI command examples
-- Tips for recording the demo
-
-**Target Audience:** Thesis evaluators, demo presenters
-
-#### [demo-troubleshooting.md](demo-troubleshooting.md)
-
-**Purpose:** Solutions for common demo issues
-
-Comprehensive troubleshooting guide for demo problems. Contains:
-
-- Quick diagnostics commands
-- Common issues and solutions
-- Log analysis techniques
-- Recovery procedures
-- Environment variable reference
-
-**Target Audience:** Demo presenters, developers
-
-______________________________________________________________________
-
-### Requirements Documents
-
-#### [srs.md](srs.md)
-
-**Purpose:** Comprehensive software requirements specification
-
-The Software Requirements Specification (SRS) provides detailed functional and
-non-functional requirements. Contains:
-
-- 100+ functional requirements organized by component
-- Non-functional requirements (performance, reliability, usability, security,
-  maintainability, portability)
-- System interface specifications
-- Data structure definitions
-- User interface modes
-- Acceptance criteria
-- Requirements traceability matrix
-
-**Target Audience:** Developers, QA engineers, project managers, stakeholders
-
-**Key Content:**
-
-- **Thesis prototype scope** with MVP requirements clearly identified
-- High-priority requirements for core functionality
-- Performance requirements (response time < 5s, LLM latency < 3s)
-- Resource constraints (edge-optimized models, 2-4GB RAM)
-- Privacy and security requirements
-- IEEE 830 structure for requirements specification
-- **Semantic bridge** definition and integration
-
-______________________________________________________________________
-
-## Document Relationships
-
-```mermaid
-graph TD
-    A[thesis-setup.md] -->|Initial Context| B[project-brief.md]
-    B -->|Objectives & Scope| C[srs.md]
-    C -->|Requirements| D[add.md]
-    C -->|Requirements| E[wbs.md]
-    D -->|Architecture| E
-    E -->|Work Packages| F[engineering-tasks.md]
-    D -->|Architecture| F
-    F -->|Tasks| G[Implementation]
+```
+thesis-setup.md → project-brief.md → srs.md → add.md → wbs.md → engineering-tasks.md
+     ↓                  ↓                ↓         ↓
+  Research          Objectives      Requirements  Architecture
+   Scope            & Scope         Specification   Design
 ```
 
-**Document Flow:**
-
-1. **thesis-setup.md** - Establishes research topic and scope
-2. **project-brief.md** - Expands scope into specific objectives and
-   deliverables
-3. **srs.md** - Translates objectives into detailed requirements
-4. **add.md** - Designs architecture to meet requirements
-5. **wbs.md** - Breaks work into packages with dependencies
-6. **engineering-tasks.md** - Detailed, ordered task list for implementation
-7. **Implementation** - Code built from task specifications
-
 ______________________________________________________________________
 
-## Usage Guide
+## Key Information
 
-### For Developers
+### Performance Targets
 
-**Starting Implementation:**
+| Metric              | Target       |
+| ------------------- | ------------ |
+| End-to-end response | < 5 seconds  |
+| LLM inference       | < 3 seconds  |
+| Fuzzy processing    | < 100 ms     |
+| System startup      | < 30 seconds |
 
-1. Read `project-brief.md` for project context
-2. Review `srs.md` to understand requirements
-3. Study `add.md` for architecture and design details
-4. Reference `thesis-setup.md` for research background
+### Technology Stack
 
-**During Development:**
-
-- Use `add.md` component descriptions as implementation guide
-- Verify implementation against `srs.md` requirements
-- Follow `add.md` directory structure and design patterns
-
-**For Testing:**
-
-- Use `srs.md` acceptance criteria for test planning
-- Verify `add.md` performance targets in performance tests
-
-### For Reviewers
-
-**Architecture Review:**
-
-- Focus on `add.md` for design justification
-- Review design decisions section (Section 9)
-- Verify adherence to layered architecture principles
-
-**Requirements Traceability:**
-
-- Map implementation to `srs.md` requirements
-- Verify coverage of high-priority items
-- Check against project objectives in `project-brief.md`
-
-### For Thesis Evaluation
-
-**Research Context:**
-
-- `thesis-setup.md` - Authoritative source: original assignment and expectations
-- `project-brief.md` - How objectives are addressed, thesis scope alignment
-- Literature review section in both documents
-
-**Core Concept Validation:**
-
-- Verify **semantic bridge** implementation (fuzzy logic → linguistic
-  descriptions)
-- Check alignment with thesis deliverables table in `project-brief.md`
-- Confirm MVP features match thesis requirements
-
-**Implementation Evidence:**
-
-- `add.md` - Demonstrates systematic design with MVP/future work distinction
-- `srs.md` - Shows requirements engineering process with thesis scope
-- Code implementation - Realization of documented design
-
-______________________________________________________________________
-
-## Document Maintenance
-
-### Version Control
-
-All documentation is version-controlled with the codebase. When changes are
-made:
-
-1. **Update relevant documents** when major architectural or requirement changes
-   occur
-2. **Maintain consistency** across documents (e.g., if ADD changes, update SRS
-   as needed)
-3. **Document changes** in commit messages with appropriate reference
-
-### Update Triggers
-
-**ADD Updates Required When:**
-
-- New components or layers are added
-- Communication patterns change
-- Design decisions are modified or reversed
-- New technologies are adopted
-
-**SRS Updates Required When:**
-
-- New requirements are added
-- Requirement priorities change
-- Non-functional targets are modified
-- Acceptance criteria evolve
-
-**project-brief Updates Required When:**
-
-- Project scope changes significantly
-- Success criteria are modified
-- Deliverables are added or removed
-
-### Review Process
-
-Before committing significant documentation changes:
-
-1. **Cross-reference** related documents for consistency
-2. **Verify** alignment with actual implementation
-3. **Update** diagrams if needed
-4. **Solicit feedback** from thesis supervisor or project stakeholders
-
-______________________________________________________________________
-
-## Quick Reference
-
-### Key Performance Targets (from ADD and SRS)
-
-- End-to-end response: < 5 seconds
-- LLM inference: < 3 seconds
-- Fuzzy processing: < 100ms
-- System startup: < 30 seconds
-- Memory footprint: 2-4GB total (edge-optimized)
-- System availability: 99% uptime
-
-### Important Constraints
-
-- Python 3.9+ required
-- Offline LLM execution via Ollama (no cloud, CPU-only)
-- Lightweight edge-optimized models (qwen3:0.6b default)
-- JSON format for all configuration
-- MQTT for device communication (thesis prototype)
-- No data transmission to external services
+| Component     | Technology                        |
+| ------------- | --------------------------------- |
+| Runtime       | Python 3.9+                       |
+| LLM           | Ollama (CPU-only, edge-optimized) |
+| Messaging     | MQTT (Mosquitto)                  |
+| Configuration | JSON with schema validation       |
+| Deployment    | Docker Compose                    |
 
 ### Thesis MVP Features
 
 - Fuzzy logic semantic bridge with JSON configuration
-- Ollama-based LLM inference
+- Ollama-based LLM inference (qwen3:0.6b default)
 - Natural language rule processing
 - MQTT device communication
 - Command-line interface
 - Docker Compose containerization
-- Smart home demonstration scenario
+- Smart home demo (14 devices, 10 rules)
 
-### Future Work (Not Required for Thesis)
+### Test Results
 
-- Web-based user interface
-- REST API interface
-- Multi-protocol device support
-- Distributed deployment
-
-### Architecture Highlights
-
-- 5-layer strict layered architecture
-- Coordinator pattern for inter-layer communication
-- Device Interface (bottom) → Data Processing → Control & Reasoning →
-  Configuration → User Interface (top)
-- Docker Compose for service orchestration
-- MQTT for device communication
-- Ollama for LLM inference
-- JSON for configuration and persistence
-- Makefile for development convenience
+- **806 tests** passing
+- **83% code coverage**
+- All performance targets met
 
 ______________________________________________________________________
 
-## Additional Resources
+## For Thesis Evaluation
 
-### External References
-
-Initial literature cited in `thesis-setup.md` provides research background on:
-
-- Synergistic integration of LLMs with fuzzy inference systems
-- LLM integration into IoT networks
-- Orchestrating AI and IoT with LLMs
-- Natural language access control for IoT
-
-### Implementation Support
-
-- Directory structure documented in `add.md` Section 6.2
-- README.md files in each code directory explain component purpose
-- Test strategy outlined in `tests/` directory README
-
-______________________________________________________________________
-
-## Questions or Issues
-
-For questions about documentation content:
-
-- Refer to specific document sections
-- Check document cross-references
-- Review implementation README files
-- Consult thesis supervisor for academic context
-
-For documentation inconsistencies or errors:
-
-- Report issues in project issue tracker
-- Suggest improvements via pull requests
-- Maintain alignment between code and documentation
+1. **Research Context**: [dev/thesis-setup.md](dev/thesis-setup.md)
+2. **Core Concept**: Semantic bridge implementation in [dev/add.md](dev/add.md)
+3. **Requirements**: [dev/srs.md](dev/srs.md)
+4. **Results**: [user/evaluation-report.md](user/evaluation-report.md)
+5. **Demo**: [user/demo-walkthrough.md](user/demo-walkthrough.md)

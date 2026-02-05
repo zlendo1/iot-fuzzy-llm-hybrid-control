@@ -304,13 +304,21 @@ def status(ctx: CLIContext) -> None:
     else:
         click.echo(ctx.formatter.warning("Running in standalone status mode."))
 
-    # Display status
-    click.echo(f"System State: {status_data['state'].upper()}")
-    click.echo(f"Ready: {'Yes' if status_data['is_ready'] else 'No'}")
+    # Display status - handle both remote and standalone response shapes
+    state = status_data.get("state", "unknown")
+    is_ready = status_data.get("is_ready")
+    if is_ready is None:
+        # Remote response has is_ready nested under orchestrator
+        is_ready = status_data.get("orchestrator", {}).get("is_ready", False)
 
-    # Component status
+    click.echo(f"System State: {state.upper()}")
+    click.echo(f"Ready: {'Yes' if is_ready else 'No'}")
+
+    # Component status - handle both response shapes
     click.echo("\nComponents:")
-    components = status_data.get("components") or status_data.get("orchestrator", {})
+    components = status_data.get("components")
+    if components is None:
+        components = status_data.get("orchestrator", {}).get("components", {})
     for name, available in components.items():
         status_icon = "✓" if available else "✗"
         status_color = "green" if available else "red"

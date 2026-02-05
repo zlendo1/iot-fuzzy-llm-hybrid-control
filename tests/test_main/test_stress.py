@@ -385,7 +385,6 @@ class TestCacheEviction:
     @pytest.mark.stress
     def test_description_builder_handles_load(
         self,
-        stress_config_dir: Path,
     ) -> None:
         from src.data_processing.fuzzy_engine import FuzzificationResult
         from src.data_processing.linguistic_descriptor import (

@@ -167,8 +167,6 @@ class TestCommandGenerationPerformance:
     def test_command_generation_under_target(
         self,
         perf_config_dir: Path,
-        perf_rules_dir: Path,
-        perf_logs_dir: Path,
     ) -> None:
         from src.common.config import ConfigLoader
         from src.control_reasoning.command_generator import (
@@ -201,8 +199,6 @@ class TestCommandGenerationPerformance:
     def test_command_validation_under_target(
         self,
         perf_config_dir: Path,
-        perf_rules_dir: Path,
-        perf_logs_dir: Path,
     ) -> None:
         from src.common.config import ConfigLoader
         from src.control_reasoning.command_generator import DeviceCommand
@@ -222,7 +218,7 @@ class TestCommandGenerationPerformance:
         )
 
         start = time.perf_counter()
-        result = validator.validate(command)
+        validator.validate(command)
         elapsed_ms = (time.perf_counter() - start) * 1000
 
         assert elapsed_ms < self.COMMAND_GEN_TARGET_MS, (

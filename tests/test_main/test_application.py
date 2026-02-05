@@ -201,13 +201,15 @@ class TestApplication:
         )
         app = Application(config)
 
-        with patch.object(app._orchestrator, "initialize", return_value=True):
-            with patch.object(app._orchestrator, "shutdown", return_value=True):
-                app.start()
-                result = app.stop()
+        with (
+            patch.object(app._orchestrator, "initialize", return_value=True),
+            patch.object(app._orchestrator, "shutdown", return_value=True),
+        ):
+            app.start()
+            result = app.stop()
 
-                assert result is True
-                assert app.state == ApplicationState.STOPPED
+            assert result is True
+            assert app.state == ApplicationState.STOPPED
 
     def test_get_status(self) -> None:
         from src.application import Application
@@ -278,13 +280,15 @@ class TestApplicationEvaluationLoop:
         )
         app = Application(config)
 
-        with patch.object(app._orchestrator, "initialize", return_value=True):
-            with patch.object(app, "_evaluate_and_execute") as mock_eval:
-                app.start()
-                time.sleep(0.2)
-                app.stop()
+        with (
+            patch.object(app._orchestrator, "initialize", return_value=True),
+            patch.object(app, "_evaluate_and_execute") as mock_eval,
+        ):
+            app.start()
+            time.sleep(0.2)
+            app.stop()
 
-                assert mock_eval.call_count >= 1
+            assert mock_eval.call_count >= 1
 
 
 @pytest.mark.unit

@@ -388,7 +388,7 @@ class TestShutdown:
 
 class TestStructuredFormatter:
     @pytest.mark.unit
-    def test_formatter_produces_json(self, log_dir: Path) -> None:
+    def test_formatter_produces_json(self) -> None:
         from src.configuration.logging_manager import StructuredFormatter
 
         formatter = StructuredFormatter()
@@ -455,7 +455,7 @@ class TestThreadSafety:
             t.join()
 
         assert len(errors) == 0
-        assert all(l is loggers[0] for l in loggers)
+        assert all(logger is loggers[0] for logger in loggers)
         manager.shutdown()
 
 

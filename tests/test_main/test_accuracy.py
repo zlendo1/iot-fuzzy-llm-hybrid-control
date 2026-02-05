@@ -268,7 +268,7 @@ class TestResponseParserAccuracy:
         parser = ResponseParser()
         correct = 0
 
-        for name, response in MALFORMED_RESPONSES:
+        for _name, response in MALFORMED_RESPONSES:
             result = parser.parse(response)
             if result.response_type == ResponseType.MALFORMED:
                 correct += 1

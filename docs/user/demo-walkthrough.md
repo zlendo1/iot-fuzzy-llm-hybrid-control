@@ -102,21 +102,24 @@ iot-fuzzy-llm rule list
 text:
 
 ```
-Rules (10 total)
-================
+ID           | Enabled | Priority | Text                                               | Tags
+-------------+---------+----------+----------------------------------------------------+-----------------------------
+climate_001  | Yes     | 1        | If the living room temperature is hot and humidity | climate, cooling, comfort
+             |         |          | is high, turn on the air conditioner and set it to |
+             |         |          | cooling mode at 22 degrees                         |
+-------------+---------+----------+----------------------------------------------------+-----------------------------
+climate_002  | Yes     | 2        | If the living room temperature is warm and         | climate, comfort
+             |         |          | humidity is comfortable, no action is needed       |
+-------------+---------+----------+----------------------------------------------------+-----------------------------
+lighting_001 | Yes     | 1        | When motion is detected in the hallway and the     | lighting, motion, safety
+             |         |          | light level is dark, turn on the hallway light     |
+-------------+---------+----------+----------------------------------------------------+-----------------------------
+lighting_002 | Yes     | 2        | When motion is detected in the living room and the | lighting, motion, comfort
+             |         |          | light level is dim, turn on the living room light  |
+             |         |          | and set brightness to 70 percent                   |
+...
 
-ID           Enabled  Priority  Rule Text
------------  -------  --------  -----------------------------------------
-climate_001  Yes      80        If the living room is hot and humid...
-climate_002  Yes      75        If the living room temperature is...
-heating_001  Yes      70        If the bedroom is cold, turn on...
-heating_002  Yes      70        If the office is cold, turn on...
-lighting_001 Yes      60        If motion is detected and it is dark...
-lighting_002 Yes      60        If no motion detected for 10 minutes...
-blinds_001   Yes      50        If the living room light level is...
-blinds_002   Yes      50        If the bedroom light level is...
-security_001 Yes      90        If motion detected at night when...
-energy_001   Yes      40        If no one is home, turn off all...
+Total: 10 rule(s)
 ```
 
 ### Step 4: Climate Control Demo (DEMO-004)

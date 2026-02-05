@@ -123,6 +123,44 @@ class TestOutputFormatter:
         assert result == "No data to display."
 
     @pytest.mark.unit
+    def test_format_table_with_text_wrapping(self) -> None:
+        from src.interfaces.cli import OutputFormatter
+
+        formatter = OutputFormatter()
+        headers = ["ID", "Description"]
+        long_text = "This is a very long description that should be wrapped"
+        rows = [["1", long_text]]
+
+        result = formatter.format_table(headers, rows, max_widths=[0, 20])
+        lines = result.split("\n")
+
+        assert len(lines) > 3
+        assert "ID" in lines[0]
+        assert "Description" in lines[0]
+        assert "This is a very long" in result
+        assert "description that" in result
+        assert "should be wrapped" in result
+
+    @pytest.mark.unit
+    def test_format_table_with_row_separator(self) -> None:
+        from src.interfaces.cli import OutputFormatter
+
+        formatter = OutputFormatter()
+        headers = ["ID", "Text"]
+        rows = [
+            ["1", "First rule with long text that wraps"],
+            ["2", "Second rule"],
+        ]
+
+        result = formatter.format_table(
+            headers, rows, max_widths=[0, 15], row_separator=True
+        )
+        lines = result.split("\n")
+
+        separator_line_count = sum(1 for line in lines if line.startswith("--"))
+        assert separator_line_count >= 2
+
+    @pytest.mark.unit
     def test_format_json(self) -> None:
         from src.interfaces.cli import OutputFormatter
 

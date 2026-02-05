@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+import textwrap
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -40,32 +41,68 @@ class OutputFormatter:
         rows: list[list[Any]],
         *,
         min_widths: list[int] | None = None,
+        max_widths: list[int] | None = None,
+        row_separator: bool = False,
     ) -> str:
-        """Format data as a table."""
+        """Format data as a table with optional text wrapping for long cells.
+
+        Args:
+            headers: Column header names.
+            rows: List of rows, each row is a list of cell values.
+            min_widths: Minimum width for each column (optional).
+            max_widths: Maximum width for each column - text will wrap (optional).
+            row_separator: If True, add a separator line between logical rows.
+
+        Returns:
+            Formatted table string.
+        """
         if not rows:
             return "No data to display."
 
-        # Calculate column widths
         widths = [len(h) for h in headers]
         for row in rows:
             for i, cell in enumerate(row):
                 widths[i] = max(widths[i], len(str(cell)))
 
-        # Apply minimum widths if provided
         if min_widths:
             for i, min_w in enumerate(min_widths):
                 if i < len(widths):
                     widths[i] = max(widths[i], min_w)
 
-        # Build header
+        if max_widths:
+            for i, max_w in enumerate(max_widths):
+                if i < len(widths) and max_w > 0:
+                    widths[i] = min(widths[i], max_w)
+
         header_line = " | ".join(h.ljust(widths[i]) for i, h in enumerate(headers))
         separator = "-+-".join("-" * w for w in widths)
 
-        # Build rows
-        data_lines = []
-        for row in rows:
-            line = " | ".join(str(cell).ljust(widths[i]) for i, cell in enumerate(row))
-            data_lines.append(line)
+        data_lines: list[str] = []
+        for row_idx, row in enumerate(rows):
+            wrapped_cells: list[list[str]] = []
+            for i, cell in enumerate(row):
+                cell_str = str(cell)
+                if max_widths and i < len(max_widths) and max_widths[i] > 0:
+                    wrapped = textwrap.wrap(
+                        cell_str, width=max_widths[i], break_long_words=True
+                    )
+                    wrapped_cells.append(wrapped if wrapped else [""])
+                else:
+                    wrapped_cells.append([cell_str])
+
+            max_lines = max(len(wc) for wc in wrapped_cells)
+
+            for line_idx in range(max_lines):
+                line_parts = []
+                for i, wrapped in enumerate(wrapped_cells):
+                    if line_idx < len(wrapped):
+                        line_parts.append(wrapped[line_idx].ljust(widths[i]))
+                    else:
+                        line_parts.append(" " * widths[i])
+                data_lines.append(" | ".join(line_parts))
+
+            if row_separator and row_idx < len(rows) - 1:
+                data_lines.append(separator)
 
         return "\n".join([header_line, separator] + data_lines)
 
@@ -431,9 +468,6 @@ def rule_list(ctx: CLIContext, enabled_only: bool, tag: str | None) -> None:
     headers = ["ID", "Enabled", "Priority", "Text", "Tags"]
     rows = []
     for r in rules:
-        text_preview = (
-            r.rule_text[:40] + "..." if len(r.rule_text) > 40 else r.rule_text
-        )
         tags = r.metadata.get("tags", [])
         tags_str = ", ".join(tags) if tags else ""
         rows.append(
@@ -441,12 +475,18 @@ def rule_list(ctx: CLIContext, enabled_only: bool, tag: str | None) -> None:
                 r.rule_id,
                 "Yes" if r.enabled else "No",
                 str(r.priority),
-                text_preview,
+                r.rule_text,
                 tags_str,
             ]
         )
 
-    click.echo(ctx.formatter.format_table(headers, rows))
+    text_column_wrap_width = 50
+    max_widths = [0, 0, 0, text_column_wrap_width, 0]
+    click.echo(
+        ctx.formatter.format_table(
+            headers, rows, max_widths=max_widths, row_separator=True
+        )
+    )
     click.echo(f"\nTotal: {len(rules)} rule(s)")
 
 

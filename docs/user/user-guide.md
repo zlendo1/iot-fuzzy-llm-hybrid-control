@@ -188,11 +188,17 @@ iot-fuzzy-llm --format json rule list
 **Example Output:**
 
 ```
-ID       | Enabled | Priority | Text                                     | Tags
----------+---------+----------+------------------------------------------+--------
-rule_001 | Yes     | 80       | When living room temperature is hot...   | comfort
-rule_002 | Yes     | 70       | When humidity is high, turn on vent...   | climate
-rule_003 | No      | 50       | When motion detected in hallway...       | security
+ID           | Enabled | Priority | Text                                               | Tags
+-------------+---------+----------+----------------------------------------------------+-----------------------------
+climate_001  | Yes     | 1        | If the living room temperature is hot and humidity | climate, cooling, comfort
+             |         |          | is high, turn on the air conditioner and set it to |
+             |         |          | cooling mode at 22 degrees                         |
+-------------+---------+----------+----------------------------------------------------+-----------------------------
+climate_002  | Yes     | 2        | If the living room temperature is warm and         | climate, comfort
+             |         |          | humidity is comfortable, no action is needed       |
+-------------+---------+----------+----------------------------------------------------+-----------------------------
+lighting_001 | Yes     | 1        | When motion is detected in the hallway and the     | lighting, motion, safety
+             |         |          | light level is dark, turn on the hallway light     |
 
 Total: 3 rule(s)
 ```

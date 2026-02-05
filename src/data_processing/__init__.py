@@ -6,6 +6,11 @@ from src.data_processing.fuzzy_engine import (
     SensorTypeConfig,
     UniverseOfDiscourse,
 )
+from src.data_processing.fuzzy_pipeline import (
+    DataProcessingLayerInterface,
+    FuzzyPipelineError,
+    FuzzyProcessingPipeline,
+)
 from src.data_processing.linguistic_descriptor import (
     LinguisticDescription,
     LinguisticDescriptorBuilder,
@@ -38,4 +43,7 @@ __all__ = [
     "TermMembership",
     "LinguisticDescription",
     "LinguisticDescriptorBuilder",
+    "DataProcessingLayerInterface",
+    "FuzzyProcessingPipeline",
+    "FuzzyPipelineError",
 ]

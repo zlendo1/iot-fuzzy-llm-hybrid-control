@@ -16,8 +16,15 @@ from src.control_reasoning.prompt_builder import (
     PromptBuilder,
     PromptTemplate,
 )
+from src.control_reasoning.response_parser import (
+    ActionSpec,
+    ParsedResponse,
+    ResponseParser,
+    ResponseType,
+)
 
 __all__ = [
+    "ActionSpec",
     "BuiltPrompt",
     "OllamaClient",
     "OllamaConfig",
@@ -30,6 +37,9 @@ __all__ = [
     "OllamaModelNotFoundError",
     "OllamaResponse",
     "OllamaTimeoutError",
+    "ParsedResponse",
     "PromptBuilder",
     "PromptTemplate",
+    "ResponseParser",
+    "ResponseType",
 ]

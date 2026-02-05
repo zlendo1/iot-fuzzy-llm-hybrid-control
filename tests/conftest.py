@@ -103,13 +103,13 @@ def sample_temperature_mf() -> dict[str, Any]:
     return {
         "sensor_type": "temperature",
         "unit": "celsius",
-        "universe": {"min": 0, "max": 50, "resolution": 0.5},
-        "terms": [
-            {"name": "cold", "type": "trapezoid", "parameters": [0, 0, 10, 18]},
-            {"name": "cool", "type": "triangle", "parameters": [15, 20, 25]},
-            {"name": "comfortable", "type": "triangle", "parameters": [22, 25, 28]},
-            {"name": "warm", "type": "triangle", "parameters": [26, 30, 35]},
-            {"name": "hot", "type": "trapezoid", "parameters": [32, 38, 50, 50]},
+        "universe_of_discourse": {"min": -10.0, "max": 50.0},
+        "confidence_threshold": 0.1,
+        "linguistic_variables": [
+            {"term": "cold", "function_type": "trapezoidal", "parameters": {"a": -10.0, "b": -10.0, "c": 10.0, "d": 18.0}},
+            {"term": "comfortable", "function_type": "triangular", "parameters": {"a": 16.0, "b": 22.0, "c": 26.0}},
+            {"term": "warm", "function_type": "triangular", "parameters": {"a": 24.0, "b": 28.0, "c": 32.0}},
+            {"term": "hot", "function_type": "trapezoidal", "parameters": {"a": 30.0, "b": 35.0, "c": 50.0, "d": 50.0}},
         ],
     }
 
@@ -119,12 +119,46 @@ def sample_humidity_mf() -> dict[str, Any]:
     return {
         "sensor_type": "humidity",
         "unit": "percent",
-        "universe": {"min": 0, "max": 100, "resolution": 1},
-        "terms": [
-            {"name": "dry", "type": "trapezoid", "parameters": [0, 0, 20, 35]},
-            {"name": "comfortable", "type": "triangle", "parameters": [30, 50, 70]},
-            {"name": "humid", "type": "trapezoid", "parameters": [65, 80, 100, 100]},
+        "universe_of_discourse": {"min": 0.0, "max": 100.0},
+        "confidence_threshold": 0.1,
+        "linguistic_variables": [
+            {"term": "dry", "function_type": "trapezoidal", "parameters": {"a": 0.0, "b": 0.0, "c": 20.0, "d": 35.0}},
+            {"term": "comfortable", "function_type": "triangular", "parameters": {"a": 30.0, "b": 50.0, "c": 70.0}},
+            {"term": "humid", "function_type": "trapezoidal", "parameters": {"a": 65.0, "b": 80.0, "c": 100.0, "d": 100.0}},
         ],
+    }
+
+
+@pytest.fixture
+def sample_mf_schema() -> dict[str, Any]:
+    return {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "membership_functions.schema.json",
+        "title": "Membership Function Configuration",
+        "type": "object",
+        "required": ["sensor_type", "unit", "universe_of_discourse", "linguistic_variables"],
+        "properties": {
+            "sensor_type": {"type": "string"},
+            "unit": {"type": "string"},
+            "universe_of_discourse": {
+                "type": "object",
+                "required": ["min", "max"],
+                "properties": {"min": {"type": "number"}, "max": {"type": "number"}},
+            },
+            "confidence_threshold": {"type": "number"},
+            "linguistic_variables": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "required": ["term", "function_type", "parameters"],
+                    "properties": {
+                        "term": {"type": "string"},
+                        "function_type": {"type": "string"},
+                        "parameters": {"type": "object"},
+                    },
+                },
+            },
+        },
     }
 
 
@@ -136,6 +170,7 @@ def config_directory(
     sample_devices_config: dict[str, Any],
     sample_temperature_mf: dict[str, Any],
     sample_humidity_mf: dict[str, Any],
+    sample_mf_schema: dict[str, Any],
 ) -> Path:
     config_dir = tmp_path / "config"
     config_dir.mkdir()
@@ -149,6 +184,8 @@ def config_directory(
     (config_dir / "mqtt_config.json").write_text(json.dumps(sample_mqtt_config))
     (config_dir / "llm_config.json").write_text(json.dumps(sample_llm_config))
     (config_dir / "devices.json").write_text(json.dumps(sample_devices_config))
+
+    (schemas_dir / "membership_functions.schema.json").write_text(json.dumps(sample_mf_schema))
 
     (mf_dir / "temperature.json").write_text(json.dumps(sample_temperature_mf))
     (mf_dir / "humidity.json").write_text(json.dumps(sample_humidity_mf))

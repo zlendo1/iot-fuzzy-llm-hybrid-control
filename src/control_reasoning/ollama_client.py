@@ -6,6 +6,7 @@ the Ollama REST API for local LLM inference.
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -32,9 +33,12 @@ class OllamaConnectionConfig:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> OllamaConnectionConfig:
+        host = os.environ.get("OLLAMA_HOST") or data.get("host", "localhost")
+        port_str = os.environ.get("OLLAMA_PORT")
+        port = int(port_str) if port_str else data.get("port", 11434)
         return cls(
-            host=data.get("host", "localhost"),
-            port=data.get("port", 11434),
+            host=host,
+            port=port,
             timeout_seconds=data.get("timeout_seconds", 30.0),
         )
 

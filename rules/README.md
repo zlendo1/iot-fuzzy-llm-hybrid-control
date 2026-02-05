@@ -66,39 +66,40 @@ dependencies while supporting rule backup via simple file copy operations.
 
 ## Demo Scenario Rules
 
-The `active_rules.json` includes 10 pre-configured rules for the smart home demo:
+The `active_rules.json` includes 10 pre-configured rules for the smart home
+demo:
 
 ### Climate Control (DEMO-004)
 
-| Rule ID     | Condition                            | Action                           |
-| ----------- | ------------------------------------ | -------------------------------- |
-| climate_001 | Temperature hot AND humidity high    | Turn on AC, set to 22°C cooling  |
-| climate_002 | Temperature warm AND humidity ok     | No action needed                 |
+| Rule ID     | Condition                         | Action                          |
+| ----------- | --------------------------------- | ------------------------------- |
+| climate_001 | Temperature hot AND humidity high | Turn on AC, set to 22°C cooling |
+| climate_002 | Temperature warm AND humidity ok  | No action needed                |
 
 ### Lighting Control (DEMO-005)
 
-| Rule ID      | Condition                           | Action                           |
-| ------------ | ----------------------------------- | -------------------------------- |
-| lighting_001 | Motion in hallway AND light dark    | Turn on hallway light            |
-| lighting_002 | Motion in living room AND light dim | Turn on light, brightness 70%    |
+| Rule ID      | Condition                           | Action                        |
+| ------------ | ----------------------------------- | ----------------------------- |
+| lighting_001 | Motion in hallway AND light dark    | Turn on hallway light         |
+| lighting_002 | Motion in living room AND light dim | Turn on light, brightness 70% |
 
 ### Heating Control (DEMO-006)
 
-| Rule ID     | Condition                | Action                           |
-| ----------- | ------------------------ | -------------------------------- |
-| heating_001 | Bedroom temperature cold | Turn on heater, set to 21°C      |
-| heating_002 | Office temperature cold  | Turn on heater, set to 22°C      |
+| Rule ID     | Condition                | Action                      |
+| ----------- | ------------------------ | --------------------------- |
+| heating_001 | Bedroom temperature cold | Turn on heater, set to 21°C |
+| heating_002 | Office temperature cold  | Turn on heater, set to 22°C |
 
 ### Blind Control (DEMO-007)
 
-| Rule ID    | Condition                      | Action                           |
-| ---------- | ------------------------------ | -------------------------------- |
-| blinds_001 | Light level very bright        | Close blinds to 50%              |
-| blinds_002 | Light dark AND no motion       | Open blinds fully                |
+| Rule ID    | Condition                | Action              |
+| ---------- | ------------------------ | ------------------- |
+| blinds_001 | Light level very bright  | Close blinds to 50% |
+| blinds_002 | Light dark AND no motion | Open blinds fully   |
 
 ### Additional Rules
 
-| Rule ID     | Condition                       | Action                           |
-| ----------- | ------------------------------- | -------------------------------- |
-| energy_001  | No motion AND light on          | Turn off light (energy saving)   |
-| comfort_001 | Temperature AND humidity ok     | No action (optimal conditions)   |
+| Rule ID     | Condition                   | Action                         |
+| ----------- | --------------------------- | ------------------------------ |
+| energy_001  | No motion AND light on      | Turn off light (energy saving) |
+| comfort_001 | Temperature AND humidity ok | No action (optimal conditions) |

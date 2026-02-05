@@ -220,12 +220,12 @@ ACTION: ac_living_room, turn_on, temperature=22
 
 During the demo, observe these performance targets:
 
-| Metric                  | Target  | How to Verify                    |
-| ----------------------- | ------- | -------------------------------- |
-| Fuzzy processing        | < 100ms | Check logs for timing            |
-| LLM inference           | < 3s    | Observe response time            |
-| End-to-end latency      | < 5s    | Time from sensor pub to command  |
-| System startup          | < 30s   | Time `make up` to healthy status |
+| Metric             | Target  | How to Verify                    |
+| ------------------ | ------- | -------------------------------- |
+| Fuzzy processing   | < 100ms | Check logs for timing            |
+| LLM inference      | < 3s    | Observe response time            |
+| End-to-end latency | < 5s    | Time from sensor pub to command  |
+| System startup     | < 30s   | Time `make up` to healthy status |
 
 ## Cleanup
 
@@ -239,8 +239,8 @@ make clean-docker
 
 ## Demo Tips
 
-1. **Use multiple terminals**: One for publishing sensors, one for subscribing to
-   actuator commands, one for viewing logs
+1. **Use multiple terminals**: One for publishing sensors, one for subscribing
+   to actuator commands, one for viewing logs
 
 2. **Log verbosity**: Set `LOG_LEVEL=DEBUG` for detailed processing info
 
@@ -254,12 +254,14 @@ make clean-docker
 For thesis documentation:
 
 1. **Screen recording**: Record terminal sessions showing:
+
    - System startup
    - Sensor simulation
    - Rule triggering
    - Command generation
 
 2. **Log capture**: Save logs showing:
+
    - Fuzzy logic transformations
    - LLM prompts and responses
    - Command validation

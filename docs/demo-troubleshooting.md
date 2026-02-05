@@ -26,12 +26,12 @@ docker-compose logs ollama --tail 50
 
 **Causes & Solutions**:
 
-| Cause                    | Solution                                       |
-| ------------------------ | ---------------------------------------------- |
-| Port already in use      | `lsof -i :1883` / `lsof -i :11434`, kill proc  |
+| Cause                    | Solution                                         |
+| ------------------------ | ------------------------------------------------ |
+| Port already in use      | `lsof -i :1883` / `lsof -i :11434`, kill proc    |
 | Docker not running       | Start Docker Desktop or `systemctl start docker` |
-| Insufficient memory      | Close other apps, need ~4GB free               |
-| Previous state corrupted | `make clean-docker && make build`              |
+| Insufficient memory      | Close other apps, need ~4GB free                 |
+| Previous state corrupted | `make clean-docker && make build`                |
 
 ```bash
 # Full reset
@@ -47,12 +47,12 @@ make up
 
 **Causes & Solutions**:
 
-| Cause                | Solution                                        |
-| -------------------- | ----------------------------------------------- |
-| Mosquitto not ready  | Wait 10s after startup, check `make ps`         |
-| Wrong hostname       | Use `localhost` for local, `mosquitto` in Docker |
-| Auth failed          | Check mqtt_config.json credentials              |
-| Firewall blocking    | Allow port 1883                                 |
+| Cause               | Solution                                         |
+| ------------------- | ------------------------------------------------ |
+| Mosquitto not ready | Wait 10s after startup, check `make ps`          |
+| Wrong hostname      | Use `localhost` for local, `mosquitto` in Docker |
+| Auth failed         | Check mqtt_config.json credentials               |
+| Firewall blocking   | Allow port 1883                                  |
 
 ```bash
 # Test MQTT connectivity
@@ -69,12 +69,12 @@ docker-compose logs mosquitto
 
 **Causes & Solutions**:
 
-| Cause               | Solution                                        |
-| ------------------- | ----------------------------------------------- |
-| Model not pulled    | `make pull-model`                               |
-| Ollama overloaded   | Wait, or increase timeout in llm_config.json    |
-| Insufficient RAM    | Close other apps, need ~2GB for model           |
-| Wrong model name    | Verify model name in llm_config.json            |
+| Cause             | Solution                                     |
+| ----------------- | -------------------------------------------- |
+| Model not pulled  | `make pull-model`                            |
+| Ollama overloaded | Wait, or increase timeout in llm_config.json |
+| Insufficient RAM  | Close other apps, need ~2GB for model        |
+| Wrong model name  | Verify model name in llm_config.json         |
 
 ```bash
 # Check Ollama status
@@ -100,12 +100,12 @@ curl http://localhost:11434/api/generate -d '{
 
 **Causes & Solutions**:
 
-| Cause                  | Solution                                       |
-| ---------------------- | ---------------------------------------------- |
-| Rules disabled         | `python -m src.main rule list` to check status |
-| Wrong sensor topic     | Verify topic matches devices.json              |
-| Fuzzy threshold        | Value may not meet membership threshold        |
-| LLM parsing failure    | Check logs for response parsing errors         |
+| Cause               | Solution                                       |
+| ------------------- | ---------------------------------------------- |
+| Rules disabled      | `python -m src.main rule list` to check status |
+| Wrong sensor topic  | Verify topic matches devices.json              |
+| Fuzzy threshold     | Value may not meet membership threshold        |
+| LLM parsing failure | Check logs for response parsing errors         |
 
 ```bash
 # Verify rules are loaded
@@ -125,12 +125,12 @@ make restart
 
 **Causes & Solutions**:
 
-| Cause                 | Solution                                        |
-| --------------------- | ----------------------------------------------- |
-| Validation failed     | Check logs for "validation failed" messages     |
-| Device not found      | Verify device_id in devices.json                |
-| Rate limited          | Wait 1 minute, check rate limit settings        |
-| Command not allowed   | Check safety whitelist in system_config.json    |
+| Cause               | Solution                                     |
+| ------------------- | -------------------------------------------- |
+| Validation failed   | Check logs for "validation failed" messages  |
+| Device not found    | Verify device_id in devices.json             |
+| Rate limited        | Wait 1 minute, check rate limit settings     |
+| Command not allowed | Check safety whitelist in system_config.json |
 
 ```bash
 # Subscribe to all command topics
@@ -146,12 +146,12 @@ grep -i "validation" logs/system.log
 
 **Causes & Solutions**:
 
-| Cause               | Solution                                        |
-| ------------------- | ----------------------------------------------- |
-| Large model         | Use smaller model (qwen3:0.6b)                  |
-| CPU throttling      | Check CPU usage, close background apps          |
-| Memory swapping     | Check RAM usage, increase available memory      |
-| Cold model          | First inference is slow, subsequent are faster  |
+| Cause           | Solution                                       |
+| --------------- | ---------------------------------------------- |
+| Large model     | Use smaller model (qwen3:0.6b)                 |
+| CPU throttling  | Check CPU usage, close background apps         |
+| Memory swapping | Check RAM usage, increase available memory     |
+| Cold model      | First inference is slow, subsequent are faster |
 
 ```bash
 # Monitor resource usage
@@ -171,12 +171,12 @@ curl http://localhost:11434/api/generate -d '{
 
 **Causes & Solutions**:
 
-| Cause              | Solution                                         |
-| ------------------ | ------------------------------------------------ |
-| Invalid JSON       | Validate JSON syntax: `python -m json.tool file` |
-| Schema violation   | Run `python -m src.main config validate`         |
-| Missing file       | Check all required configs exist                 |
-| Permission denied  | Check file permissions: `ls -la config/`         |
+| Cause             | Solution                                         |
+| ----------------- | ------------------------------------------------ |
+| Invalid JSON      | Validate JSON syntax: `python -m json.tool file` |
+| Schema violation  | Run `python -m src.main config validate`         |
+| Missing file      | Check all required configs exist                 |
+| Permission denied | Check file permissions: `ls -la config/`         |
 
 ```bash
 # Validate all configs
@@ -194,11 +194,11 @@ python -m json.tool rules/active_rules.json > /dev/null
 
 **Causes & Solutions**:
 
-| Cause                  | Solution                                       |
-| ---------------------- | ---------------------------------------------- |
-| Wrong value range      | Check universe_of_discourse in MF config       |
-| Overlapping terms      | Review term parameters, adjust boundaries      |
-| Threshold too high     | Lower confidence_threshold (default 0.1)       |
+| Cause              | Solution                                  |
+| ------------------ | ----------------------------------------- |
+| Wrong value range  | Check universe_of_discourse in MF config  |
+| Overlapping terms  | Review term parameters, adjust boundaries |
+| Threshold too high | Lower confidence_threshold (default 0.1)  |
 
 ```bash
 # Test fuzzification manually
@@ -279,11 +279,11 @@ rm rules/active_rules.json
 
 ## Environment Variables
 
-| Variable    | Default   | Description                      |
-| ----------- | --------- | -------------------------------- |
-| LOG_LEVEL   | INFO      | DEBUG, INFO, WARNING, ERROR      |
-| MQTT_HOST   | localhost | MQTT broker hostname             |
-| OLLAMA_HOST | localhost | Ollama service hostname          |
+| Variable    | Default   | Description                 |
+| ----------- | --------- | --------------------------- |
+| LOG_LEVEL   | INFO      | DEBUG, INFO, WARNING, ERROR |
+| MQTT_HOST   | localhost | MQTT broker hostname        |
+| OLLAMA_HOST | localhost | Ollama service hostname     |
 
 ```bash
 # Enable debug logging

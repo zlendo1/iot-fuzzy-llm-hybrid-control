@@ -1,3 +1,9 @@
+from src.control_reasoning.command_generator import (
+    CommandGenerator,
+    CommandStatus,
+    DeviceCommand,
+    GenerationResult,
+)
 from src.control_reasoning.ollama_client import (
     OllamaClient,
     OllamaConfig,
@@ -31,6 +37,10 @@ from src.control_reasoning.rule_interpreter import (
 __all__ = [
     "ActionSpec",
     "BuiltPrompt",
+    "CommandGenerator",
+    "CommandStatus",
+    "DeviceCommand",
+    "GenerationResult",
     "NaturalLanguageRule",
     "OllamaClient",
     "OllamaConfig",

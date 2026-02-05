@@ -160,6 +160,9 @@ class SystemOrchestrator:
                     self._state = SystemState.ERROR
                     return False
 
+                if not skip_ollama and not self._step_07b_init_rule_pipeline():
+                    pass
+
                 if not skip_mqtt and not self._step_08_start_device_monitor():
                     self._state = SystemState.ERROR
                     return False
@@ -309,6 +312,34 @@ class SystemOrchestrator:
                 rules_file=rules_file,
                 auto_save=True,
             )
+
+            self._complete_step(step)
+            return True
+        except Exception as e:
+            self._complete_step(step, str(e))
+            return False
+
+    def _step_07b_init_rule_pipeline(self) -> bool:
+        step = self._add_step("init_rule_pipeline", "Initialize RuleProcessingPipeline")
+        try:
+            from src.control_reasoning.ollama_client import OllamaConfig
+            from src.control_reasoning.rule_pipeline import (
+                PipelineConfig,
+                RuleProcessingPipeline,
+            )
+
+            if not self._config_manager:
+                raise ConfigurationError("ConfigurationManager not initialized")
+
+            llm_config = self._config_manager.llm_config
+            ollama_config = OllamaConfig.from_dict(llm_config)
+
+            pipeline_config = PipelineConfig(ollama_config=ollama_config)
+            self._rule_pipeline = RuleProcessingPipeline(
+                config=pipeline_config,
+                registry=self._device_registry,
+            )
+            self._rule_pipeline.initialize()
 
             self._complete_step(step)
             return True

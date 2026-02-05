@@ -1,29 +1,24 @@
 """IoT Fuzzy-LLM Hybrid Control System - Main Entry Point."""
 
-import signal
 import sys
-import time
 
+from src.application import create_application
+from src.common.logging import get_logger
 
-def signal_handler(signum: int, _frame: object) -> None:
-    print(f"\nReceived signal {signum}, shutting down gracefully...")
-    sys.exit(0)
+logger = get_logger(__name__)
 
 
 def main() -> None:
-    signal.signal(signal.SIGTERM, signal_handler)
-    signal.signal(signal.SIGINT, signal_handler)
-
-    print("IoT Fuzzy-LLM Hybrid Control System")
-    print("=" * 40)
-    print("System starting...")
-    print("Waiting for implementation of core components...")
+    logger.info("IoT Fuzzy-LLM Hybrid Control System starting...")
 
     try:
-        while True:
-            time.sleep(1)
+        app = create_application()
+        app.run_forever()
     except KeyboardInterrupt:
-        print("\nShutdown requested...")
+        logger.info("Shutdown requested via keyboard interrupt")
+    except Exception:
+        logger.exception("Fatal error during application startup")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

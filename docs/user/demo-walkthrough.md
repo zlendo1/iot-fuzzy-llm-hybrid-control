@@ -9,7 +9,6 @@ Before running the demo, ensure:
 
 1. **Docker and Docker Compose** are installed and running
 2. **System is built**: `make build`
-3. **LLM model is available**: `make pull-model` (pulls qwen3:0.6b)
 
 ## Quick Start
 

@@ -22,10 +22,16 @@ from src.control_reasoning.response_parser import (
     ResponseParser,
     ResponseType,
 )
+from src.control_reasoning.rule_interpreter import (
+    NaturalLanguageRule,
+    RuleInterpreter,
+    RuleMatch,
+)
 
 __all__ = [
     "ActionSpec",
     "BuiltPrompt",
+    "NaturalLanguageRule",
     "OllamaClient",
     "OllamaConfig",
     "OllamaConnectionConfig",
@@ -42,4 +48,6 @@ __all__ = [
     "PromptTemplate",
     "ResponseParser",
     "ResponseType",
+    "RuleInterpreter",
+    "RuleMatch",
 ]

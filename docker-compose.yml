@@ -33,14 +33,14 @@ services:
       - iot-network
     environment:
       - OLLAMA_MODEL=${OLLAMA_MODEL:-qwen3:0.6b}
-      - OLLAMA_PULL_ON_START=${OLLAMA_PULL_ON_START:-true}
+      - OLLAMA_PULL_ON_START=${OLLAMA_PULL_ON_START:-false}
       - OLLAMA_HOST=0.0.0.0
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 300s
+      start_period: 30s
 
   app:
     build:

@@ -10,6 +10,12 @@ from src.control_reasoning.command_validator import (
     ValidationResult,
     ValidationStep,
 )
+from src.control_reasoning.conflict_resolver import (
+    ConflictInfo,
+    ConflictResolver,
+    ResolutionResult,
+    ResolutionStrategy,
+)
 from src.control_reasoning.ollama_client import (
     OllamaClient,
     OllamaConfig,
@@ -46,6 +52,8 @@ __all__ = [
     "CommandGenerator",
     "CommandStatus",
     "CommandValidator",
+    "ConflictInfo",
+    "ConflictResolver",
     "DeviceCommand",
     "GenerationResult",
     "NaturalLanguageRule",
@@ -63,6 +71,8 @@ __all__ = [
     "ParsedResponse",
     "PromptBuilder",
     "PromptTemplate",
+    "ResolutionResult",
+    "ResolutionStrategy",
     "ResponseParser",
     "ResponseType",
     "RuleInterpreter",

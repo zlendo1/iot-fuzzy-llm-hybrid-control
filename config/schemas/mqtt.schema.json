@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mqtt.schema.json",
+  "title": "MQTT Configuration",
+  "description": "Schema for MQTT broker connection configuration",
+  "type": "object",
+  "required": ["broker"],
+  "properties": {
+    "broker": {
+      "type": "object",
+      "required": ["host"],
+      "properties": {
+        "host": {
+          "type": "string",
+          "description": "MQTT broker hostname or IP address"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "default": 1883
+        },
+        "keepalive": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 60,
+          "description": "Keep-alive interval in seconds"
+        }
+      }
+    },
+    "client": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Client ID for MQTT connection"
+        },
+        "clean_session": {
+          "type": "boolean",
+          "default": true
+        },
+        "protocol_version": {
+          "type": "integer",
+          "enum": [3, 4, 5],
+          "default": 5,
+          "description": "MQTT protocol version (3=3.1, 4=3.1.1, 5=5.0)"
+        }
+      }
+    },
+    "auth": {
+      "type": "object",
+      "properties": {
+        "username": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      }
+    },
+    "tls": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "ca_certs": {
+          "type": "string",
+          "description": "Path to CA certificate file"
+        },
+        "certfile": {
+          "type": "string",
+          "description": "Path to client certificate file"
+        },
+        "keyfile": {
+          "type": "string",
+          "description": "Path to client key file"
+        },
+        "insecure": {
+          "type": "boolean",
+          "default": false,
+          "description": "Skip server certificate verification"
+        }
+      }
+    },
+    "reconnect": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "min_delay": {
+          "type": "number",
+          "minimum": 0.1,
+          "default": 1,
+          "description": "Minimum delay between reconnection attempts (seconds)"
+        },
+        "max_delay": {
+          "type": "number",
+          "minimum": 1,
+          "default": 60,
+          "description": "Maximum delay between reconnection attempts (seconds)"
+        }
+      }
+    },
+    "lwt": {
+      "type": "object",
+      "description": "Last Will and Testament configuration",
+      "properties": {
+        "topic": {
+          "type": "string"
+        },
+        "payload": {
+          "type": "string",
+          "default": "offline"
+        },
+        "qos": {
+          "type": "integer",
+          "enum": [0, 1, 2],
+          "default": 1
+        },
+        "retain": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    }
+  }
+}

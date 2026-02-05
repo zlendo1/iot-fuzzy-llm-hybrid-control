@@ -1,0 +1,111 @@
+{
+  "devices": [
+    {
+      "id": "temp_living_room",
+      "name": "Living Room Temperature Sensor",
+      "type": "sensor",
+      "device_class": "temperature",
+      "location": "living_room",
+      "unit": "°C",
+      "value_type": "float",
+      "mqtt": {
+        "topic": "home/living_room/temperature",
+        "qos": 1
+      },
+      "constraints": {
+        "min": -40,
+        "max": 85
+      }
+    },
+    {
+      "id": "humidity_living_room",
+      "name": "Living Room Humidity Sensor",
+      "type": "sensor",
+      "device_class": "humidity",
+      "location": "living_room",
+      "unit": "%",
+      "value_type": "float",
+      "mqtt": {
+        "topic": "home/living_room/humidity",
+        "qos": 1
+      },
+      "constraints": {
+        "min": 0,
+        "max": 100
+      }
+    },
+    {
+      "id": "temp_bedroom",
+      "name": "Bedroom Temperature Sensor",
+      "type": "sensor",
+      "device_class": "temperature",
+      "location": "bedroom",
+      "unit": "°C",
+      "value_type": "float",
+      "mqtt": {
+        "topic": "home/bedroom/temperature",
+        "qos": 1
+      }
+    },
+    {
+      "id": "motion_hallway",
+      "name": "Hallway Motion Sensor",
+      "type": "sensor",
+      "device_class": "motion",
+      "location": "hallway",
+      "value_type": "bool",
+      "mqtt": {
+        "topic": "home/hallway/motion",
+        "qos": 1
+      }
+    },
+    {
+      "id": "ac_living_room",
+      "name": "Living Room Air Conditioner",
+      "type": "actuator",
+      "device_class": "thermostat",
+      "location": "living_room",
+      "capabilities": ["set_temperature", "set_mode", "turn_on", "turn_off"],
+      "mqtt": {
+        "topic": "home/living_room/ac/state",
+        "command_topic": "home/living_room/ac/set",
+        "qos": 1
+      },
+      "constraints": {
+        "min": 16,
+        "max": 30,
+        "step": 0.5
+      }
+    },
+    {
+      "id": "light_living_room",
+      "name": "Living Room Light",
+      "type": "actuator",
+      "device_class": "light",
+      "location": "living_room",
+      "capabilities": ["turn_on", "turn_off", "set_brightness"],
+      "mqtt": {
+        "topic": "home/living_room/light/state",
+        "command_topic": "home/living_room/light/set",
+        "qos": 1
+      },
+      "constraints": {
+        "min": 0,
+        "max": 100
+      }
+    },
+    {
+      "id": "light_hallway",
+      "name": "Hallway Light",
+      "type": "actuator",
+      "device_class": "light",
+      "location": "hallway",
+      "capabilities": ["turn_on", "turn_off"],
+      "mqtt": {
+        "topic": "home/hallway/light/state",
+        "command_topic": "home/hallway/light/set",
+        "qos": 1
+      }
+    }
+  ]
+}

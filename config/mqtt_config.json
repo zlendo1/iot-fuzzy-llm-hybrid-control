@@ -1,0 +1,27 @@
+{
+  "broker": {
+    "host": "localhost",
+    "port": 1883,
+    "keepalive": 60
+  },
+  "client": {
+    "id": "iot-fuzzy-llm",
+    "clean_session": true,
+    "protocol_version": 5
+  },
+  "auth": {
+    "username": "iot_user",
+    "password": "iot_password"
+  },
+  "reconnect": {
+    "enabled": true,
+    "min_delay": 1,
+    "max_delay": 60
+  },
+  "lwt": {
+    "topic": "iot-fuzzy-llm/status",
+    "payload": "offline",
+    "qos": 1,
+    "retain": true
+  }
+}

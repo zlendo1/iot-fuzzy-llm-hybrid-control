@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "devices.schema.json",
+  "title": "Device Configuration",
+  "description": "Schema for IoT device registry configuration",
+  "type": "object",
+  "required": ["devices"],
+  "properties": {
+    "devices": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/device"
+      }
+    }
+  },
+  "$defs": {
+    "device": {
+      "type": "object",
+      "required": ["id", "name", "type", "device_class"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_-]+$",
+          "description": "Unique device identifier"
+        },
+        "name": {
+          "type": "string",
+          "description": "Human-readable device name"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["sensor", "actuator"],
+          "description": "Device type"
+        },
+        "device_class": {
+          "type": "string",
+          "description": "Device class (e.g., temperature, humidity, switch, thermostat)"
+        },
+        "location": {
+          "type": "string",
+          "description": "Physical location of the device"
+        },
+        "mqtt": {
+          "$ref": "#/$defs/mqtt_config"
+        },
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of device capabilities (for actuators)"
+        },
+        "constraints": {
+          "$ref": "#/$defs/constraints"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Additional device metadata"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "type": { "const": "sensor" } }
+          },
+          "then": {
+            "properties": {
+              "unit": {
+                "type": "string",
+                "description": "Measurement unit for sensor values"
+              },
+              "value_type": {
+                "type": "string",
+                "enum": ["float", "int", "bool", "string"],
+                "default": "float"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "type": { "const": "actuator" } }
+          },
+          "then": {
+            "required": ["capabilities"]
+          }
+        }
+      ]
+    },
+    "mqtt_config": {
+      "type": "object",
+      "required": ["topic"],
+      "properties": {
+        "topic": {
+          "type": "string",
+          "description": "MQTT topic for publishing/subscribing"
+        },
+        "command_topic": {
+          "type": "string",
+          "description": "MQTT topic for sending commands (actuators only)"
+        },
+        "qos": {
+          "type": "integer",
+          "enum": [0, 1, 2],
+          "default": 1
+        },
+        "retain": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "properties": {
+        "min": {
+          "type": "number",
+          "description": "Minimum allowed value"
+        },
+        "max": {
+          "type": "number",
+          "description": "Maximum allowed value"
+        },
+        "step": {
+          "type": "number",
+          "description": "Value increment step"
+        },
+        "allowed_values": {
+          "type": "array",
+          "items": {},
+          "description": "List of allowed discrete values"
+        }
+      }
+    }
+  }
+}

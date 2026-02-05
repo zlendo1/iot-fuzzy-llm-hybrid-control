@@ -59,16 +59,16 @@ make shell
 
 ```bash
 # Check system status via CLI
-python -m src.main status
+python -m src.interfaces status
 
-# Expected: Shows connected devices, loaded rules, LLM status
+# Expected: Shows system state and component availability
 ```
 
 ### Step 4: List Demo Rules
 
 ```bash
 # List all configured rules
-python -m src.main rule list
+python -m src.interfaces rule list
 
 # Expected: 10 rules displayed with IDs and status
 ```
@@ -155,34 +155,33 @@ mosquitto_pub -h localhost -t home/living_room/light_level \
 
 ```bash
 # Add a new rule
-python -m src.main rule add "night_mode" \
+python -m src.interfaces rule add "night_mode" \
   "If no motion detected for 30 minutes after 11pm, turn off all lights"
 
 # Disable a rule
-python -m src.main rule disable climate_002
+python -m src.interfaces rule disable climate_002
 
 # Enable a rule
-python -m src.main rule enable climate_002
+python -m src.interfaces rule enable climate_002
 
 # Show rule details
-python -m src.main rule show climate_001
+python -m src.interfaces rule show climate_001
 ```
 
 ### Step 10: Sensor Status Demo
 
 ```bash
 # Show current sensor readings
-python -m src.main sensor status
+python -m src.interfaces sensor status
 
-# Expected: Shows raw values and linguistic descriptions
-# Example: temp_living_room: 32.0°C → "temperature is hot (0.85)"
+# Expected: Shows registered sensors and their configuration
 ```
 
 ### Step 11: Configuration Validation
 
 ```bash
 # Validate all configuration files
-python -m src.main config validate
+python -m src.interfaces config validate
 
 # Expected: All configs pass validation
 ```

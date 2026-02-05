@@ -11,17 +11,25 @@ from src.control_reasoning.ollama_client import (
     OllamaResponse,
     OllamaTimeoutError,
 )
+from src.control_reasoning.prompt_builder import (
+    BuiltPrompt,
+    PromptBuilder,
+    PromptTemplate,
+)
 
 __all__ = [
+    "BuiltPrompt",
     "OllamaClient",
     "OllamaConfig",
     "OllamaConnectionConfig",
-    "OllamaModelConfig",
-    "OllamaInferenceConfig",
-    "OllamaResponse",
-    "OllamaError",
     "OllamaConnectionError",
-    "OllamaTimeoutError",
-    "OllamaModelNotFoundError",
+    "OllamaError",
     "OllamaGenerationError",
+    "OllamaInferenceConfig",
+    "OllamaModelConfig",
+    "OllamaModelNotFoundError",
+    "OllamaResponse",
+    "OllamaTimeoutError",
+    "PromptBuilder",
+    "PromptTemplate",
 ]

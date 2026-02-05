@@ -13,7 +13,8 @@ wait_for_ollama() {
     local max_attempts=30
     local attempt=0
     while [ $attempt -lt $max_attempts ]; do
-        if curl -s http://localhost:11434/api/tags > /dev/null 2>&1; then
+        # Use 'ollama list' instead of curl since curl may not be available
+        if ollama list > /dev/null 2>&1; then
             return 0
         fi
         attempt=$((attempt + 1))

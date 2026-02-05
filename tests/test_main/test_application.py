@@ -1,4 +1,6 @@
+import json
 import time
+import urllib.request
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -243,6 +245,35 @@ class TestApplication:
 
             app.stop()
             assert app.is_running is False
+
+    def test_status_endpoint_returns_payload(self, tmp_path: Path) -> None:
+        from src.application import Application, ApplicationConfig
+
+        config = ApplicationConfig(
+            config_dir=tmp_path / "config",
+            rules_dir=tmp_path / "rules",
+            logs_dir=tmp_path / "logs",
+            skip_mqtt=True,
+            skip_ollama=True,
+            evaluation_interval=0.1,
+        )
+        app = Application(config)
+
+        with patch.object(app._orchestrator, "initialize", return_value=True):
+            assert app.start() is True
+            try:
+                with urllib.request.urlopen(
+                    "http://localhost:8080/status", timeout=2
+                ) as response:
+                    assert response.status == 200
+                    payload = json.loads(response.read().decode("utf-8"))
+
+                assert payload["state"] == "running"
+                assert payload["is_running"] is True
+                assert "stats" in payload
+                assert "orchestrator" in payload
+            finally:
+                app.stop()
 
 
 @pytest.mark.unit

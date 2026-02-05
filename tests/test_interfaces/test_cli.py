@@ -2,8 +2,10 @@
 from __future__ import annotations
 
 import json
+import urllib.error
 from pathlib import Path
 from typing import TYPE_CHECKING
+from unittest.mock import patch
 
 import pytest
 
@@ -966,6 +968,32 @@ class TestSystemCommands:
 
         assert result.exit_code == 0
         assert "System State:" in result.output
+
+    @pytest.mark.unit
+    def test_status_command_falls_back_when_endpoint_unreachable(
+        self, cli_runner: CliRunner, temp_dirs: dict[str, Path]
+    ) -> None:
+        from src.interfaces.cli import cli
+
+        def raise_url_error(*_args: object, **_kwargs: object) -> None:
+            raise urllib.error.URLError("connection failed")
+
+        with patch("urllib.request.urlopen", side_effect=raise_url_error):
+            result = cli_runner.invoke(
+                cli,
+                [
+                    "--config-dir",
+                    str(temp_dirs["config"]),
+                    "--rules-dir",
+                    str(temp_dirs["rules"]),
+                    "--logs-dir",
+                    str(temp_dirs["logs"]),
+                    "status",
+                ],
+            )
+
+        assert result.exit_code == 0
+        assert "standalone" in result.output.lower()
 
     @pytest.mark.unit
     def test_stop_not_running(

@@ -7,7 +7,10 @@ device monitoring, and configuration management.
 from __future__ import annotations
 
 import json
+import os
 import sys
+import urllib.error
+import urllib.request
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -271,13 +274,35 @@ def stop(ctx: CLIContext) -> None:
 @handle_errors
 def status(ctx: CLIContext) -> None:
     """Display system status."""
-    orchestrator = ctx.orchestrator
+    status_port = os.getenv("IOT_STATUS_PORT", "8080")
+    status_url = f"http://localhost:{status_port}/status"
+    status_data: dict[str, Any] | None = None
+    status_source = "standalone"
 
-    status_data = orchestrator.get_system_status()
+    try:
+        with urllib.request.urlopen(status_url, timeout=2) as response:
+            if response.status == 200:
+                status_data = json.loads(response.read().decode("utf-8"))
+                status_source = "running"
+    except (OSError, urllib.error.URLError, json.JSONDecodeError) as exc:
+        logger.debug("Status endpoint unavailable", extra={"error": str(exc)})
+
+    if status_data is None:
+        orchestrator = ctx.orchestrator
+        status_data = orchestrator.get_system_status()
 
     if ctx.output_format == "json":
+        if status_source == "running":
+            status_data = {"source": "running", **status_data}
+        else:
+            status_data = {"source": "standalone", **status_data}
         click.echo(ctx.formatter.format_json(status_data))
         return
+
+    if status_source == "running":
+        click.echo(ctx.formatter.success("Connected to running application."))
+    else:
+        click.echo(ctx.formatter.warning("Running in standalone status mode."))
 
     # Display status
     click.echo(f"System State: {status_data['state'].upper()}")
@@ -285,7 +310,7 @@ def status(ctx: CLIContext) -> None:
 
     # Component status
     click.echo("\nComponents:")
-    components = status_data["components"]
+    components = status_data.get("components") or status_data.get("orchestrator", {})
     for name, available in components.items():
         status_icon = "✓" if available else "✗"
         status_color = "green" if available else "red"
@@ -295,7 +320,10 @@ def status(ctx: CLIContext) -> None:
         )
 
     # Initialization steps (if any)
-    steps = status_data.get("initialization_steps", [])
+    steps = status_data.get("initialization_steps")
+    if steps is None:
+        steps = status_data.get("orchestrator", {}).get("initialization_steps", [])
+
     if steps and ctx.verbose:
         click.echo("\nInitialization Steps:")
         for step in steps:

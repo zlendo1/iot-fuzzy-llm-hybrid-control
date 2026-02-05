@@ -34,9 +34,7 @@ class ConfigurationManager:
     _schemas: dict[str, dict[str, Any]] = field(default_factory=dict, repr=False)
     _lock: threading.RLock = field(default_factory=threading.RLock, repr=False)
 
-    _instance: ConfigurationManager | None = field(
-        default=None, init=False, repr=False
-    )
+    _instance: ConfigurationManager | None = field(default=None, init=False, repr=False)
     _initialized: bool = field(default=False, init=False, repr=False)
 
     def __post_init__(self) -> None:
@@ -49,7 +47,10 @@ class ConfigurationManager:
         self._load_schemas()
         logger.info(
             "ConfigurationManager initialized",
-            extra={"config_dir": str(self.config_dir), "schema_dir": str(self.schema_dir)},
+            extra={
+                "config_dir": str(self.config_dir),
+                "schema_dir": str(self.schema_dir),
+            },
         )
 
     @classmethod
@@ -135,9 +136,7 @@ class ConfigurationManager:
                 f"Invalid schema for '{config_name}': {e.message}"
             ) from e
 
-    def load_config(
-        self, config_name: str, validate: bool = True
-    ) -> dict[str, Any]:
+    def load_config(self, config_name: str, validate: bool = True) -> dict[str, Any]:
         with self._lock:
             file_path = self.config_dir / f"{config_name}.json"
 
@@ -146,9 +145,7 @@ class ConfigurationManager:
                 return self._cache[config_name].data
 
             if not file_path.exists():
-                raise ConfigurationError(
-                    f"Configuration file not found: {file_path}"
-                )
+                raise ConfigurationError(f"Configuration file not found: {file_path}")
 
             try:
                 config = load_json(file_path)
@@ -176,9 +173,7 @@ class ConfigurationManager:
     ) -> dict[str, Any]:
         with self._lock:
             cache_key = f"membership_{sensor_type}"
-            file_path = (
-                self.config_dir / "membership_functions" / f"{sensor_type}.json"
-            )
+            file_path = self.config_dir / "membership_functions" / f"{sensor_type}.json"
 
             if self._is_cache_valid(cache_key, file_path):
                 logger.debug("Cache hit", extra={"cache_key": cache_key})
@@ -213,9 +208,7 @@ class ConfigurationManager:
             )
             return config
 
-    def get_config(
-        self, config_name: str, *keys: str, default: Any = None
-    ) -> Any:
+    def get_config(self, config_name: str, *keys: str, default: Any = None) -> Any:
         try:
             config = self.load_config(config_name)
         except (ConfigurationError, ValidationError):
@@ -279,7 +272,10 @@ class ConfigurationManager:
                     save_json(backup_path, existing)
                     logger.info(
                         "Created backup",
-                        extra={"config_name": config_name, "backup_path": str(backup_path)},
+                        extra={
+                            "config_name": config_name,
+                            "backup_path": str(backup_path),
+                        },
                     )
                 except Exception as e:
                     logger.warning(

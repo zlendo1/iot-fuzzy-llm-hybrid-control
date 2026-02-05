@@ -51,17 +51,31 @@ class SystemOrchestrator:
     _state: SystemState = field(default=SystemState.UNINITIALIZED, init=False)
     _lock: threading.RLock = field(default_factory=threading.RLock, repr=False)
 
-    _config_manager: ConfigurationManager | None = field(default=None, init=False, repr=False)
-    _logging_manager: LoggingManager | None = field(default=None, init=False, repr=False)
+    _config_manager: ConfigurationManager | None = field(
+        default=None, init=False, repr=False
+    )
+    _logging_manager: LoggingManager | None = field(
+        default=None, init=False, repr=False
+    )
     _rule_manager: RuleManager | None = field(default=None, init=False, repr=False)
 
-    _device_registry: DeviceRegistry | None = field(default=None, init=False, repr=False)
-    _mqtt_manager: MQTTCommunicationManager | None = field(default=None, init=False, repr=False)
+    _device_registry: DeviceRegistry | None = field(
+        default=None, init=False, repr=False
+    )
+    _mqtt_manager: MQTTCommunicationManager | None = field(
+        default=None, init=False, repr=False
+    )
     _device_monitor: DeviceMonitor | None = field(default=None, init=False, repr=False)
-    _fuzzy_pipeline: FuzzyProcessingPipeline | None = field(default=None, init=False, repr=False)
-    _rule_pipeline: RuleProcessingPipeline | None = field(default=None, init=False, repr=False)
+    _fuzzy_pipeline: FuzzyProcessingPipeline | None = field(
+        default=None, init=False, repr=False
+    )
+    _rule_pipeline: RuleProcessingPipeline | None = field(
+        default=None, init=False, repr=False
+    )
 
-    _init_steps: list[InitializationStep] = field(default_factory=list, init=False, repr=False)
+    _init_steps: list[InitializationStep] = field(
+        default_factory=list, init=False, repr=False
+    )
 
     def __post_init__(self) -> None:
         self.config_dir = Path(self.config_dir)
@@ -109,7 +123,9 @@ class SystemOrchestrator:
         self._init_steps.append(step)
         return step
 
-    def _complete_step(self, step: InitializationStep, error: str | None = None) -> None:
+    def _complete_step(
+        self, step: InitializationStep, error: str | None = None
+    ) -> None:
         step.completed = error is None
         step.error = error
         if error:
@@ -125,7 +141,11 @@ class SystemOrchestrator:
 
     def initialize(self, skip_mqtt: bool = False, skip_ollama: bool = False) -> bool:
         with self._lock:
-            if self._state not in (SystemState.UNINITIALIZED, SystemState.STOPPED, SystemState.ERROR):
+            if self._state not in (
+                SystemState.UNINITIALIZED,
+                SystemState.STOPPED,
+                SystemState.ERROR,
+            ):
                 logger.warning("System already initialized or initializing")
                 return False
 
@@ -184,7 +204,9 @@ class SystemOrchestrator:
                 return False
 
     def _step_01_load_config(self) -> bool:
-        step = self._add_step("load_config", "Load and validate all configuration files")
+        step = self._add_step(
+            "load_config", "Load and validate all configuration files"
+        )
         try:
             self._config_manager = ConfigurationManager(
                 config_dir=self.config_dir,
@@ -216,7 +238,9 @@ class SystemOrchestrator:
             return False
 
     def _step_03_populate_registry(self) -> bool:
-        step = self._add_step("populate_registry", "Populate DeviceRegistry from device configuration")
+        step = self._add_step(
+            "populate_registry", "Populate DeviceRegistry from device configuration"
+        )
         try:
             from src.common.config import ConfigLoader
             from src.device_interface.registry import DeviceRegistry
@@ -235,7 +259,9 @@ class SystemOrchestrator:
             return False
 
     def _step_04_connect_mqtt(self) -> bool:
-        step = self._add_step("connect_mqtt", "Connect MQTT client and subscribe to sensor topics")
+        step = self._add_step(
+            "connect_mqtt", "Connect MQTT client and subscribe to sensor topics"
+        )
         try:
             from src.common.config import ConfigLoader
             from src.device_interface.communication_manager import (
@@ -260,7 +286,9 @@ class SystemOrchestrator:
             return False
 
     def _step_05_verify_ollama(self) -> bool:
-        step = self._add_step("verify_ollama", "Verify Ollama connectivity and model availability")
+        step = self._add_step(
+            "verify_ollama", "Verify Ollama connectivity and model availability"
+        )
         try:
             from src.control_reasoning.ollama_client import OllamaClient, OllamaConfig
 
@@ -282,7 +310,9 @@ class SystemOrchestrator:
             return False
 
     def _step_06_load_membership_functions(self) -> bool:
-        step = self._add_step("load_membership_functions", "Load and validate membership functions")
+        step = self._add_step(
+            "load_membership_functions", "Load and validate membership functions"
+        )
         try:
             from src.data_processing.fuzzy_pipeline import FuzzyProcessingPipeline
 
@@ -290,7 +320,9 @@ class SystemOrchestrator:
                 raise ConfigurationError("ConfigurationManager not initialized")
 
             mf_dir = self.config_dir / "membership_functions"
-            schema_path = self.config_dir / "schemas" / "membership_functions.schema.json"
+            schema_path = (
+                self.config_dir / "schemas" / "membership_functions.schema.json"
+            )
 
             self._fuzzy_pipeline = FuzzyProcessingPipeline(
                 config_dir=mf_dir,
@@ -348,7 +380,10 @@ class SystemOrchestrator:
             return False
 
     def _step_08_start_device_monitor(self) -> bool:
-        step = self._add_step("start_device_monitor", "Start DeviceMonitor for tracking device availability")
+        step = self._add_step(
+            "start_device_monitor",
+            "Start DeviceMonitor for tracking device availability",
+        )
         try:
             from src.device_interface.device_monitor import DeviceMonitor
 
@@ -372,7 +407,9 @@ class SystemOrchestrator:
         return True
 
     def _step_10_enter_ready_state(self) -> bool:
-        step = self._add_step("enter_ready", "Enter ready state and begin normal operation")
+        step = self._add_step(
+            "enter_ready", "Enter ready state and begin normal operation"
+        )
         if self._logging_manager:
             self._logging_manager.log_system_event(
                 "System entered ready state",

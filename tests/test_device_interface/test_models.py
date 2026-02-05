@@ -88,7 +88,12 @@ def test_device_from_dict_creates_actuator() -> None:
 def test_mqtt_config_from_dict() -> None:
     from src.device_interface.models import MQTTConfig
 
-    data = {"topic": "test/topic", "command_topic": "test/cmd", "qos": 2, "retain": True}
+    data = {
+        "topic": "test/topic",
+        "command_topic": "test/cmd",
+        "qos": 2,
+        "retain": True,
+    }
 
     config = MQTTConfig.from_dict(data)
 

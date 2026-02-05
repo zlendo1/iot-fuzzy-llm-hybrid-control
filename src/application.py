@@ -132,7 +132,9 @@ class Application:
                 self._orchestrator._rule_pipeline.add_rule(rule)
             logger.info(
                 "Loaded rules into pipeline",
-                extra={"count": len(self._orchestrator.rule_manager.get_enabled_rules())},
+                extra={
+                    "count": len(self._orchestrator.rule_manager.get_enabled_rules())
+                },
             )
 
         if self._orchestrator._mqtt_manager and self._orchestrator.fuzzy_pipeline:

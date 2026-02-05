@@ -363,7 +363,14 @@ class TestRuleCommands:
 
         result = cli_runner.invoke(
             cli,
-            ["--rules-dir", str(temp_dirs["rules"]), "rule", "list", "--tag", "climate"],
+            [
+                "--rules-dir",
+                str(temp_dirs["rules"]),
+                "rule",
+                "list",
+                "--tag",
+                "climate",
+            ],
         )
 
         assert result.exit_code == 0
@@ -395,7 +402,14 @@ class TestRuleCommands:
 
         result = cli_runner.invoke(
             cli,
-            ["--rules-dir", str(temp_dirs["rules"]), "--format", "json", "rule", "list"],
+            [
+                "--rules-dir",
+                str(temp_dirs["rules"]),
+                "--format",
+                "json",
+                "rule",
+                "list",
+            ],
         )
 
         assert result.exit_code == 0
@@ -535,7 +549,14 @@ class TestRuleCommands:
 
         result = cli_runner.invoke(
             cli,
-            ["--rules-dir", str(temp_dirs["rules"]), "rule", "delete", "rule_001", "-y"],
+            [
+                "--rules-dir",
+                str(temp_dirs["rules"]),
+                "rule",
+                "delete",
+                "rule_001",
+                "-y",
+            ],
         )
 
         assert result.exit_code == 0
@@ -567,7 +588,14 @@ class TestRuleCommands:
 
         result = cli_runner.invoke(
             cli,
-            ["--rules-dir", str(temp_dirs["rules"]), "rule", "delete", "nonexistent", "-y"],
+            [
+                "--rules-dir",
+                str(temp_dirs["rules"]),
+                "rule",
+                "delete",
+                "nonexistent",
+                "-y",
+            ],
         )
 
         assert result.exit_code == 1
@@ -619,7 +647,14 @@ class TestSensorCommands:
 
         result = cli_runner.invoke(
             cli,
-            ["--config-dir", str(temp_dirs["config"]), "--format", "json", "sensor", "list"],
+            [
+                "--config-dir",
+                str(temp_dirs["config"]),
+                "--format",
+                "json",
+                "sensor",
+                "list",
+            ],
         )
 
         assert result.exit_code == 0
@@ -656,7 +691,13 @@ class TestSensorCommands:
 
         result = cli_runner.invoke(
             cli,
-            ["--config-dir", str(temp_dirs["config"]), "sensor", "status", "sensor_temp_1"],
+            [
+                "--config-dir",
+                str(temp_dirs["config"]),
+                "sensor",
+                "status",
+                "sensor_temp_1",
+            ],
         )
 
         assert result.exit_code == 0
@@ -673,7 +714,13 @@ class TestSensorCommands:
 
         result = cli_runner.invoke(
             cli,
-            ["--config-dir", str(temp_dirs["config"]), "sensor", "status", "nonexistent"],
+            [
+                "--config-dir",
+                str(temp_dirs["config"]),
+                "sensor",
+                "status",
+                "nonexistent",
+            ],
         )
 
         assert result.exit_code == 1
@@ -711,7 +758,14 @@ class TestDeviceCommands:
 
         result = cli_runner.invoke(
             cli,
-            ["--config-dir", str(temp_dirs["config"]), "--format", "json", "device", "list"],
+            [
+                "--config-dir",
+                str(temp_dirs["config"]),
+                "--format",
+                "json",
+                "device",
+                "list",
+            ],
         )
 
         assert result.exit_code == 0
@@ -747,7 +801,13 @@ class TestDeviceCommands:
 
         result = cli_runner.invoke(
             cli,
-            ["--config-dir", str(temp_dirs["config"]), "device", "status", "actuator_ac_1"],
+            [
+                "--config-dir",
+                str(temp_dirs["config"]),
+                "device",
+                "status",
+                "actuator_ac_1",
+            ],
         )
 
         assert result.exit_code == 0
@@ -765,7 +825,13 @@ class TestDeviceCommands:
 
         result = cli_runner.invoke(
             cli,
-            ["--config-dir", str(temp_dirs["config"]), "device", "status", "nonexistent"],
+            [
+                "--config-dir",
+                str(temp_dirs["config"]),
+                "device",
+                "status",
+                "nonexistent",
+            ],
         )
 
         assert result.exit_code == 1
@@ -825,8 +891,20 @@ class TestLogCommands:
 
         log_file = temp_dirs["logs"] / "system.log"
         entries = [
-            json.dumps({"timestamp": "2024-01-01T00:00:00Z", "level": "INFO", "message": "Test entry 1"}),
-            json.dumps({"timestamp": "2024-01-01T00:00:01Z", "level": "WARNING", "message": "Test entry 2"}),
+            json.dumps(
+                {
+                    "timestamp": "2024-01-01T00:00:00Z",
+                    "level": "INFO",
+                    "message": "Test entry 1",
+                }
+            ),
+            json.dumps(
+                {
+                    "timestamp": "2024-01-01T00:00:01Z",
+                    "level": "WARNING",
+                    "message": "Test entry 2",
+                }
+            ),
         ]
         log_file.write_text("\n".join(entries))
 
@@ -846,11 +924,20 @@ class TestLogCommands:
         from src.interfaces.cli import cli
 
         log_file = temp_dirs["logs"] / "errors.log"
-        log_file.write_text(json.dumps({"level": "ERROR", "message": "An error occurred"}))
+        log_file.write_text(
+            json.dumps({"level": "ERROR", "message": "An error occurred"})
+        )
 
         result = cli_runner.invoke(
             cli,
-            ["--logs-dir", str(temp_dirs["logs"]), "log", "tail", "--category", "errors"],
+            [
+                "--logs-dir",
+                str(temp_dirs["logs"]),
+                "log",
+                "tail",
+                "--category",
+                "errors",
+            ],
         )
 
         assert result.exit_code == 0
@@ -912,18 +999,36 @@ class TestErrorHandling:
 
         cli_runner.invoke(
             cli,
-            ["--rules-dir", str(temp_dirs["rules"]), "rule", "add", "Test rule", "--id", "rule_001"],
+            [
+                "--rules-dir",
+                str(temp_dirs["rules"]),
+                "rule",
+                "add",
+                "Test rule",
+                "--id",
+                "rule_001",
+            ],
         )
         result = cli_runner.invoke(
             cli,
-            ["--rules-dir", str(temp_dirs["rules"]), "rule", "add", "Duplicate rule", "--id", "rule_001"],
+            [
+                "--rules-dir",
+                str(temp_dirs["rules"]),
+                "rule",
+                "add",
+                "Duplicate rule",
+                "--id",
+                "rule_001",
+            ],
         )
 
         assert result.exit_code == 1
         assert "Rule error" in result.output
 
     @pytest.mark.unit
-    def test_verbose_flag(self, cli_runner: CliRunner, temp_dirs: dict[str, Path]) -> None:
+    def test_verbose_flag(
+        self, cli_runner: CliRunner, temp_dirs: dict[str, Path]
+    ) -> None:
         from src.interfaces.cli import cli
 
         result = cli_runner.invoke(

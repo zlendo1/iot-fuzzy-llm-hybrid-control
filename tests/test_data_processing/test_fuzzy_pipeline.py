@@ -28,9 +28,21 @@ def _make_temperature_config() -> dict:
         "universe_of_discourse": {"min": -10, "max": 50},
         "confidence_threshold": 0.1,
         "linguistic_variables": [
-            {"term": "cold", "function_type": "trapezoidal", "parameters": {"a": -10, "b": -10, "c": 10, "d": 18}},
-            {"term": "comfortable", "function_type": "triangular", "parameters": {"a": 16, "b": 22, "c": 28}},
-            {"term": "hot", "function_type": "trapezoidal", "parameters": {"a": 26, "b": 32, "c": 50, "d": 50}},
+            {
+                "term": "cold",
+                "function_type": "trapezoidal",
+                "parameters": {"a": -10, "b": -10, "c": 10, "d": 18},
+            },
+            {
+                "term": "comfortable",
+                "function_type": "triangular",
+                "parameters": {"a": 16, "b": 22, "c": 28},
+            },
+            {
+                "term": "hot",
+                "function_type": "trapezoidal",
+                "parameters": {"a": 26, "b": 32, "c": 50, "d": 50},
+            },
         ],
     }
 
@@ -42,9 +54,21 @@ def _make_humidity_config() -> dict:
         "universe_of_discourse": {"min": 0, "max": 100},
         "confidence_threshold": 0.1,
         "linguistic_variables": [
-            {"term": "dry", "function_type": "trapezoidal", "parameters": {"a": 0, "b": 0, "c": 20, "d": 35}},
-            {"term": "moderate", "function_type": "triangular", "parameters": {"a": 30, "b": 50, "c": 70}},
-            {"term": "humid", "function_type": "trapezoidal", "parameters": {"a": 65, "b": 80, "c": 100, "d": 100}},
+            {
+                "term": "dry",
+                "function_type": "trapezoidal",
+                "parameters": {"a": 0, "b": 0, "c": 20, "d": 35},
+            },
+            {
+                "term": "moderate",
+                "function_type": "triangular",
+                "parameters": {"a": 30, "b": 50, "c": 70},
+            },
+            {
+                "term": "humid",
+                "function_type": "trapezoidal",
+                "parameters": {"a": 65, "b": 80, "c": 100, "d": 100},
+            },
         ],
     }
 
@@ -297,9 +321,7 @@ class TestFuzzyProcessingPipelineProcessing:
         with pytest.raises(FuzzyPipelineError, match="Unknown sensor type"):
             pipeline.process_reading(reading, sensor_type="pressure")
 
-    def test_process_reading_raises_on_non_numeric_value(
-        self, tmp_path: Path
-    ) -> None:
+    def test_process_reading_raises_on_non_numeric_value(self, tmp_path: Path) -> None:
         from src.data_processing.fuzzy_pipeline import FuzzyPipelineError
 
         pipeline = self._create_initialized_pipeline(tmp_path)
@@ -359,9 +381,7 @@ class TestFuzzyProcessingPipelineStateCache:
         assert result is not None
         assert result.sensor_id == "temp_1"
 
-    def test_get_sensor_state_returns_none_if_not_cached(
-        self, tmp_path: Path
-    ) -> None:
+    def test_get_sensor_state_returns_none_if_not_cached(self, tmp_path: Path) -> None:
         pipeline = self._create_initialized_pipeline(tmp_path)
 
         result = pipeline.get_sensor_state("nonexistent")
@@ -449,9 +469,7 @@ class TestFuzzyProcessingPipelineStateCache:
 
         assert len(callback_calls) == 0
 
-    def test_callback_exception_does_not_break_processing(
-        self, tmp_path: Path
-    ) -> None:
+    def test_callback_exception_does_not_break_processing(self, tmp_path: Path) -> None:
         pipeline = self._create_initialized_pipeline(tmp_path)
 
         def bad_callback(sensor_id: str, desc: LinguisticDescription) -> None:

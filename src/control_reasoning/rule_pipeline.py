@@ -39,20 +39,16 @@ class ControlReasoningLayerInterface(ABC):
     def evaluate_rules(
         self,
         sensor_states: dict[str, LinguisticDescription],
-    ) -> list[DeviceCommand]:
-        ...
+    ) -> list[DeviceCommand]: ...
 
     @abstractmethod
-    def add_rule(self, rule: NaturalLanguageRule) -> None:
-        ...
+    def add_rule(self, rule: NaturalLanguageRule) -> None: ...
 
     @abstractmethod
-    def remove_rule(self, rule_id: str) -> bool:
-        ...
+    def remove_rule(self, rule_id: str) -> bool: ...
 
     @abstractmethod
-    def get_rules(self) -> list[NaturalLanguageRule]:
-        ...
+    def get_rules(self) -> list[NaturalLanguageRule]: ...
 
 
 @dataclass(frozen=True)
@@ -202,7 +198,10 @@ class RuleProcessingPipeline(ControlReasoningLayerInterface):
                 eval_result = self._evaluate_single_rule(rule, sensor_states)
                 evaluations.append(eval_result)
 
-                if eval_result.generation_result and eval_result.generation_result.success:
+                if (
+                    eval_result.generation_result
+                    and eval_result.generation_result.success
+                ):
                     cmd = eval_result.generation_result.command
                     if cmd:
                         pending_commands.append(cmd)
@@ -226,7 +225,9 @@ class RuleProcessingPipeline(ControlReasoningLayerInterface):
                 validated_commands.append(cmd)
             else:
                 for error in validation_result.errors:
-                    errors.append(f"Validation failed for {cmd.command_id}: {error.message}")
+                    errors.append(
+                        f"Validation failed for {cmd.command_id}: {error.message}"
+                    )
 
         return PipelineResult(
             evaluations=tuple(evaluations),

@@ -108,7 +108,9 @@ class TestGetLogger:
         manager.shutdown()
 
     @pytest.mark.unit
-    def test_get_logger_different_categories_cached_separately(self, log_dir: Path) -> None:
+    def test_get_logger_different_categories_cached_separately(
+        self, log_dir: Path
+    ) -> None:
         from src.configuration.logging_manager import LogCategory, LoggingManager
 
         manager = LoggingManager(log_dir=log_dir, console_output=False)
@@ -335,6 +337,7 @@ class TestCleanupOldLogs:
         old_file.write_text('{"test": true}')
         old_time = time.time() - (40 * 24 * 60 * 60)
         import os
+
         os.utime(old_file, (old_time, old_time))
 
         manager = LoggingManager(log_dir=log_dir, retention_days=30)

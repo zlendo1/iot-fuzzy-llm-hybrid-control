@@ -504,10 +504,12 @@ class TestCommandValidatorRateLimit:
 
         actuator1 = _create_actuator(device_id="actuator_001")
         actuator2 = _create_actuator(device_id="actuator_002")
-        registry = _create_registry({
-            "actuator_001": actuator1,
-            "actuator_002": actuator2,
-        })
+        registry = _create_registry(
+            {
+                "actuator_001": actuator1,
+                "actuator_002": actuator2,
+            }
+        )
         validator = CommandValidator(registry=registry, rate_limit=2)
 
         for i in range(2):
@@ -544,19 +546,27 @@ class TestCommandValidatorRateLimit:
 
         actuator1 = _create_actuator(device_id="actuator_001")
         actuator2 = _create_actuator(device_id="actuator_002")
-        registry = _create_registry({
-            "actuator_001": actuator1,
-            "actuator_002": actuator2,
-        })
+        registry = _create_registry(
+            {
+                "actuator_001": actuator1,
+                "actuator_002": actuator2,
+            }
+        )
         validator = CommandValidator(registry=registry, rate_limit=1)
 
         validator.validate(_create_command(device_id="actuator_001"))
-        validator.validate(_create_command(command_id="cmd_002", device_id="actuator_002"))
+        validator.validate(
+            _create_command(command_id="cmd_002", device_id="actuator_002")
+        )
 
         validator.clear_rate_limit_history("actuator_001")
 
-        result1 = validator.validate(_create_command(command_id="cmd_003", device_id="actuator_001"))
-        result2 = validator.validate(_create_command(command_id="cmd_004", device_id="actuator_002"))
+        result1 = validator.validate(
+            _create_command(command_id="cmd_003", device_id="actuator_001")
+        )
+        result2 = validator.validate(
+            _create_command(command_id="cmd_004", device_id="actuator_002")
+        )
 
         assert result1.valid is True
         assert result2.valid is False

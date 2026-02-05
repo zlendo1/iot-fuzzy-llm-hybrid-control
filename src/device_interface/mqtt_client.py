@@ -93,9 +93,7 @@ class MQTTClient:
         self._client.on_message = self._on_message
 
         if self._config.username:
-            self._client.username_pw_set(
-                self._config.username, self._config.password
-            )
+            self._client.username_pw_set(self._config.username, self._config.password)
 
         if self._config.lwt_topic:
             self._client.will_set(

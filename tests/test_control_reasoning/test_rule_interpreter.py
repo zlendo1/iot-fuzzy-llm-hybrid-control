@@ -346,7 +346,10 @@ class TestRuleInterpreterFindCandidates:
         candidates = interpreter.find_candidate_rules([desc])
         assert len(candidates) == 1
         assert candidates[0].rule_id == "r1"
-        assert "hot" in candidates[0].matched_terms or "temperature" in candidates[0].matched_terms
+        assert (
+            "hot" in candidates[0].matched_terms
+            or "temperature" in candidates[0].matched_terms
+        )
 
     @pytest.mark.unit
     def test_find_candidates_no_match(self) -> None:

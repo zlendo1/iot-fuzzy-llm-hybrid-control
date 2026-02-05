@@ -168,7 +168,9 @@ class TestResponseParserActionParsing:
         from src.control_reasoning.response_parser import ResponseParser, ResponseType
 
         parser = ResponseParser()
-        result = parser.parse("ACTION: light_001, set_color, hue=180, saturation=100, brightness=80")
+        result = parser.parse(
+            "ACTION: light_001, set_color, hue=180, saturation=100, brightness=80"
+        )
 
         assert result.response_type == ResponseType.ACTION
         assert result.action is not None
@@ -286,7 +288,9 @@ class TestResponseParserNoAction:
         from src.control_reasoning.response_parser import ResponseParser, ResponseType
 
         parser = ResponseParser()
-        result = parser.parse("NO_ACTION: Temperature is comfortable.\nNo cooling needed.")
+        result = parser.parse(
+            "NO_ACTION: Temperature is comfortable.\nNo cooling needed."
+        )
 
         assert result.response_type == ResponseType.NO_ACTION
         assert "Temperature is comfortable" in result.reason  # type: ignore[operator]

@@ -199,7 +199,9 @@ class RuleManager:
         with self._lock:
             return [r for r in self._rules.values() if r.enabled]
 
-    def get_rules_by_priority(self, descending: bool = True) -> list[NaturalLanguageRule]:
+    def get_rules_by_priority(
+        self, descending: bool = True
+    ) -> list[NaturalLanguageRule]:
         with self._lock:
             return sorted(
                 self._rules.values(),

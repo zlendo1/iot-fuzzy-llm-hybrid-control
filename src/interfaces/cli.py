@@ -313,9 +313,18 @@ def rule() -> None:
 
 @rule.command("add")
 @click.argument("text")
-@click.option("--id", "rule_id", default=None, help="Rule ID (auto-generated if not provided).")
-@click.option("--priority", type=int, default=50, help="Rule priority (1-100, higher = more important).")
-@click.option("--tag", "-t", multiple=True, help="Tags for the rule (stored in metadata).")
+@click.option(
+    "--id", "rule_id", default=None, help="Rule ID (auto-generated if not provided)."
+)
+@click.option(
+    "--priority",
+    type=int,
+    default=50,
+    help="Rule priority (1-100, higher = more important).",
+)
+@click.option(
+    "--tag", "-t", multiple=True, help="Tags for the rule (stored in metadata)."
+)
 @pass_context
 @handle_errors
 def rule_add(
@@ -386,7 +395,9 @@ def rule_list(ctx: CLIContext, enabled_only: bool, tag: str | None) -> None:
     headers = ["ID", "Enabled", "Priority", "Text", "Tags"]
     rows = []
     for r in rules:
-        text_preview = r.rule_text[:40] + "..." if len(r.rule_text) > 40 else r.rule_text
+        text_preview = (
+            r.rule_text[:40] + "..." if len(r.rule_text) > 40 else r.rule_text
+        )
         tags = r.metadata.get("tags", [])
         tags_str = ", ".join(tags) if tags else ""
         rows.append(
@@ -491,7 +502,11 @@ def rule_delete(ctx: CLIContext, rule_id: str, yes: bool) -> None:
         sys.exit(1)
 
     if not yes:
-        text_preview = rule_obj.rule_text[:50] + "..." if len(rule_obj.rule_text) > 50 else rule_obj.rule_text
+        text_preview = (
+            rule_obj.rule_text[:50] + "..."
+            if len(rule_obj.rule_text) > 50
+            else rule_obj.rule_text
+        )
         click.echo(f"Rule to delete: {text_preview}")
         if not click.confirm("Are you sure you want to delete this rule?"):
             click.echo("Cancelled.")
@@ -845,9 +860,7 @@ def log_tail(ctx: CLIContext, lines: int, category: str) -> None:
                 "ERROR": "red",
             }.get(level, "white")
 
-            click.echo(
-                f"{timestamp} [{click.style(level, fg=level_color)}] {message}"
-            )
+            click.echo(f"{timestamp} [{click.style(level, fg=level_color)}] {message}")
         except json.JSONDecodeError:
             click.echo(line.strip())
 

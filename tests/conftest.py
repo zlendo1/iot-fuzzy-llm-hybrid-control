@@ -106,10 +106,26 @@ def sample_temperature_mf() -> dict[str, Any]:
         "universe_of_discourse": {"min": -10.0, "max": 50.0},
         "confidence_threshold": 0.1,
         "linguistic_variables": [
-            {"term": "cold", "function_type": "trapezoidal", "parameters": {"a": -10.0, "b": -10.0, "c": 10.0, "d": 18.0}},
-            {"term": "comfortable", "function_type": "triangular", "parameters": {"a": 16.0, "b": 22.0, "c": 26.0}},
-            {"term": "warm", "function_type": "triangular", "parameters": {"a": 24.0, "b": 28.0, "c": 32.0}},
-            {"term": "hot", "function_type": "trapezoidal", "parameters": {"a": 30.0, "b": 35.0, "c": 50.0, "d": 50.0}},
+            {
+                "term": "cold",
+                "function_type": "trapezoidal",
+                "parameters": {"a": -10.0, "b": -10.0, "c": 10.0, "d": 18.0},
+            },
+            {
+                "term": "comfortable",
+                "function_type": "triangular",
+                "parameters": {"a": 16.0, "b": 22.0, "c": 26.0},
+            },
+            {
+                "term": "warm",
+                "function_type": "triangular",
+                "parameters": {"a": 24.0, "b": 28.0, "c": 32.0},
+            },
+            {
+                "term": "hot",
+                "function_type": "trapezoidal",
+                "parameters": {"a": 30.0, "b": 35.0, "c": 50.0, "d": 50.0},
+            },
         ],
     }
 
@@ -122,9 +138,21 @@ def sample_humidity_mf() -> dict[str, Any]:
         "universe_of_discourse": {"min": 0.0, "max": 100.0},
         "confidence_threshold": 0.1,
         "linguistic_variables": [
-            {"term": "dry", "function_type": "trapezoidal", "parameters": {"a": 0.0, "b": 0.0, "c": 20.0, "d": 35.0}},
-            {"term": "comfortable", "function_type": "triangular", "parameters": {"a": 30.0, "b": 50.0, "c": 70.0}},
-            {"term": "humid", "function_type": "trapezoidal", "parameters": {"a": 65.0, "b": 80.0, "c": 100.0, "d": 100.0}},
+            {
+                "term": "dry",
+                "function_type": "trapezoidal",
+                "parameters": {"a": 0.0, "b": 0.0, "c": 20.0, "d": 35.0},
+            },
+            {
+                "term": "comfortable",
+                "function_type": "triangular",
+                "parameters": {"a": 30.0, "b": 50.0, "c": 70.0},
+            },
+            {
+                "term": "humid",
+                "function_type": "trapezoidal",
+                "parameters": {"a": 65.0, "b": 80.0, "c": 100.0, "d": 100.0},
+            },
         ],
     }
 
@@ -136,7 +164,12 @@ def sample_mf_schema() -> dict[str, Any]:
         "$id": "membership_functions.schema.json",
         "title": "Membership Function Configuration",
         "type": "object",
-        "required": ["sensor_type", "unit", "universe_of_discourse", "linguistic_variables"],
+        "required": [
+            "sensor_type",
+            "unit",
+            "universe_of_discourse",
+            "linguistic_variables",
+        ],
         "properties": {
             "sensor_type": {"type": "string"},
             "unit": {"type": "string"},
@@ -185,7 +218,9 @@ def config_directory(
     (config_dir / "llm_config.json").write_text(json.dumps(sample_llm_config))
     (config_dir / "devices.json").write_text(json.dumps(sample_devices_config))
 
-    (schemas_dir / "membership_functions.schema.json").write_text(json.dumps(sample_mf_schema))
+    (schemas_dir / "membership_functions.schema.json").write_text(
+        json.dumps(sample_mf_schema)
+    )
 
     (mf_dir / "temperature.json").write_text(json.dumps(sample_temperature_mf))
     (mf_dir / "humidity.json").write_text(json.dumps(sample_humidity_mf))

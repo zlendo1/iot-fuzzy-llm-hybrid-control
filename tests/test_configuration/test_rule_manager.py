@@ -114,9 +114,7 @@ class TestAddRule:
 
         manager = RuleManager(rules_file=rules_file, auto_save=False)
 
-        rule = manager.add_rule(
-            "rule_001", "Rule text", metadata={"tags": ["climate"]}
-        )
+        rule = manager.add_rule("rule_001", "Rule text", metadata={"tags": ["climate"]})
 
         assert rule.metadata == {"tags": ["climate"]}
 

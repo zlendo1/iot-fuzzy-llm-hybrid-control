@@ -1,8 +1,8 @@
-import pytest
-import threading
 import time
 from pathlib import Path
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 
 @pytest.mark.unit

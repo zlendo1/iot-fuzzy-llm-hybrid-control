@@ -111,7 +111,9 @@ class SensorReading:
                 )
                 raw_timestamp = data.get("timestamp", data.get("time"))
                 timestamp: str = (
-                    raw_timestamp if isinstance(raw_timestamp, str) else format_timestamp()
+                    raw_timestamp
+                    if isinstance(raw_timestamp, str)
+                    else format_timestamp()
                 )
                 unit = data.get("unit", unit)
                 quality_str = data.get("quality", "good")

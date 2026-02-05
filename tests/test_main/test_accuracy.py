@@ -215,13 +215,14 @@ class TestResponseParserAccuracy:
             is_correct = True
 
             if case.expected_action:
-                if result.response_type != ResponseType.ACTION:
-                    is_correct = False
-                elif result.action is None:
-                    is_correct = False
-                elif case.expected_device and result.action.device_id != case.expected_device:
-                    is_correct = False
-                elif case.expected_command and result.action.command != case.expected_command:
+                if (
+                    result.response_type != ResponseType.ACTION
+                    or result.action is None
+                    or case.expected_device
+                    and result.action.device_id != case.expected_device
+                    or case.expected_command
+                    and result.action.command != case.expected_command
+                ):
                     is_correct = False
             else:
                 if result.response_type != ResponseType.NO_ACTION:
@@ -354,8 +355,16 @@ Respond with exactly one of the above formats."""
 
         valid_cases = [
             {"device_id": "ac_1", "command": "turn_on", "parameters": {}},
-            {"device_id": "light_2", "command": "set_brightness", "parameters": {"level": 50}},
-            {"device_id": "thermostat", "command": "set_temp", "parameters": {"temp": 22, "mode": "cool"}},
+            {
+                "device_id": "light_2",
+                "command": "set_brightness",
+                "parameters": {"level": 50},
+            },
+            {
+                "device_id": "thermostat",
+                "command": "set_temp",
+                "parameters": {"temp": 22, "mode": "cool"},
+            },
         ]
 
         invalid_cases: list[dict[str, Any]] = [
@@ -538,13 +547,14 @@ class TestAccuracyMetrics:
 
             passed = True
             if case.expected_action:
-                if result.response_type != ResponseType.ACTION:
-                    passed = False
-                elif result.action is None:
-                    passed = False
-                elif case.expected_device and result.action.device_id != case.expected_device:
-                    passed = False
-                elif case.expected_command and result.action.command != case.expected_command:
+                if (
+                    result.response_type != ResponseType.ACTION
+                    or result.action is None
+                    or case.expected_device
+                    and result.action.device_id != case.expected_device
+                    or case.expected_command
+                    and result.action.command != case.expected_command
+                ):
                     passed = False
             else:
                 if result.response_type != ResponseType.NO_ACTION:
@@ -573,19 +583,25 @@ class TestAccuracyMetrics:
         no_action_cases = [c for c in DIVERSE_LLM_RESPONSES if not c.expected_action]
 
         action_correct = sum(
-            1 for c in action_cases
+            1
+            for c in action_cases
             if parser.parse(c.llm_response).response_type == ResponseType.ACTION
         )
 
         no_action_correct = sum(
-            1 for c in no_action_cases
+            1
+            for c in no_action_cases
             if parser.parse(c.llm_response).response_type == ResponseType.NO_ACTION
         )
 
         if action_cases:
             action_accuracy = action_correct / len(action_cases)
-            assert action_accuracy >= 0.85, f"ACTION accuracy {action_accuracy:.2%} below 85%"
+            assert action_accuracy >= 0.85, (
+                f"ACTION accuracy {action_accuracy:.2%} below 85%"
+            )
 
         if no_action_cases:
             no_action_accuracy = no_action_correct / len(no_action_cases)
-            assert no_action_accuracy >= 0.85, f"NO_ACTION accuracy {no_action_accuracy:.2%} below 85%"
+            assert no_action_accuracy >= 0.85, (
+                f"NO_ACTION accuracy {no_action_accuracy:.2%} below 85%"
+            )

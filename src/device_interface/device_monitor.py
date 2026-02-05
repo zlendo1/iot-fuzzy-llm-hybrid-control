@@ -198,9 +198,7 @@ class DeviceMonitor:
                             age,
                         )
                 except (ValueError, TypeError):
-                    logger.warning(
-                        "Could not parse last_seen for device %s", device_id
-                    )
+                    logger.warning("Could not parse last_seen for device %s", device_id)
 
     def _notify_status_change(
         self,

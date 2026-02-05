@@ -8,19 +8,19 @@ import pytest
 def orchestrator_dirs(tmp_path: Path) -> dict[str, Path]:
     config_dir = tmp_path / "config"
     config_dir.mkdir()
-    
+
     schemas_dir = config_dir / "schemas"
     schemas_dir.mkdir()
-    
+
     mf_dir = config_dir / "membership_functions"
     mf_dir.mkdir()
-    
+
     rules_dir = tmp_path / "rules"
     rules_dir.mkdir()
-    
+
     logs_dir = tmp_path / "logs"
     logs_dir.mkdir()
-    
+
     return {
         "config": config_dir,
         "schemas": schemas_dir,
@@ -33,7 +33,7 @@ def orchestrator_dirs(tmp_path: Path) -> dict[str, Path]:
 @pytest.fixture
 def populated_config(orchestrator_dirs: dict[str, Path]) -> dict[str, Path]:
     config_dir = orchestrator_dirs["config"]
-    
+
     mqtt_config = {
         "broker": {
             "host": "localhost",
@@ -42,7 +42,7 @@ def populated_config(orchestrator_dirs: dict[str, Path]) -> dict[str, Path]:
         },
     }
     (config_dir / "mqtt_config.json").write_text(json.dumps(mqtt_config))
-    
+
     llm_config = {
         "llm": {
             "provider": "ollama",
@@ -51,7 +51,7 @@ def populated_config(orchestrator_dirs: dict[str, Path]) -> dict[str, Path]:
         },
     }
     (config_dir / "llm_config.json").write_text(json.dumps(llm_config))
-    
+
     devices_config = {
         "devices": [
             {
@@ -75,7 +75,7 @@ def populated_config(orchestrator_dirs: dict[str, Path]) -> dict[str, Path]:
         ],
     }
     (config_dir / "devices.json").write_text(json.dumps(devices_config))
-    
+
     temperature_mf = {
         "sensor_type": "temperature",
         "unit": "celsius",
@@ -101,7 +101,7 @@ def populated_config(orchestrator_dirs: dict[str, Path]) -> dict[str, Path]:
     (orchestrator_dirs["membership_functions"] / "temperature.json").write_text(
         json.dumps(temperature_mf)
     )
-    
+
     return orchestrator_dirs
 
 
@@ -121,8 +121,13 @@ class TestSystemOrchestratorInit:
         assert orchestrator.logs_dir == orchestrator_dirs["logs"]
 
     @pytest.mark.unit
-    def test_init_state_is_uninitialized(self, orchestrator_dirs: dict[str, Path]) -> None:
-        from src.configuration.system_orchestrator import SystemOrchestrator, SystemState
+    def test_init_state_is_uninitialized(
+        self, orchestrator_dirs: dict[str, Path]
+    ) -> None:
+        from src.configuration.system_orchestrator import (
+            SystemOrchestrator,
+            SystemState,
+        )
 
         orchestrator = SystemOrchestrator(
             config_dir=orchestrator_dirs["config"],
@@ -150,7 +155,10 @@ class TestInitialization:
     def test_initialize_succeeds_with_valid_config(
         self, populated_config: dict[str, Path]
     ) -> None:
-        from src.configuration.system_orchestrator import SystemOrchestrator, SystemState
+        from src.configuration.system_orchestrator import (
+            SystemOrchestrator,
+            SystemState,
+        )
 
         orchestrator = SystemOrchestrator(
             config_dir=populated_config["config"],
@@ -251,9 +259,7 @@ class TestInitialization:
         orchestrator.shutdown()
 
     @pytest.mark.unit
-    def test_initialize_records_steps(
-        self, populated_config: dict[str, Path]
-    ) -> None:
+    def test_initialize_records_steps(self, populated_config: dict[str, Path]) -> None:
         from src.configuration.system_orchestrator import SystemOrchestrator
 
         orchestrator = SystemOrchestrator(
@@ -293,7 +299,10 @@ class TestInitializationFailures:
     def test_initialize_fails_on_missing_config(
         self, orchestrator_dirs: dict[str, Path]
     ) -> None:
-        from src.configuration.system_orchestrator import SystemOrchestrator, SystemState
+        from src.configuration.system_orchestrator import (
+            SystemOrchestrator,
+            SystemState,
+        )
 
         orchestrator = SystemOrchestrator(
             config_dir=orchestrator_dirs["config"],
@@ -309,7 +318,9 @@ class TestInitializationFailures:
 
 class TestIsReady:
     @pytest.mark.unit
-    def test_is_ready_false_before_init(self, orchestrator_dirs: dict[str, Path]) -> None:
+    def test_is_ready_false_before_init(
+        self, orchestrator_dirs: dict[str, Path]
+    ) -> None:
         from src.configuration.system_orchestrator import SystemOrchestrator
 
         orchestrator = SystemOrchestrator(
@@ -319,9 +330,7 @@ class TestIsReady:
         assert orchestrator.is_ready is False
 
     @pytest.mark.unit
-    def test_is_ready_true_after_init(
-        self, populated_config: dict[str, Path]
-    ) -> None:
+    def test_is_ready_true_after_init(self, populated_config: dict[str, Path]) -> None:
         from src.configuration.system_orchestrator import SystemOrchestrator
 
         orchestrator = SystemOrchestrator(
@@ -338,10 +347,11 @@ class TestIsReady:
 
 class TestShutdown:
     @pytest.mark.unit
-    def test_shutdown_changes_state(
-        self, populated_config: dict[str, Path]
-    ) -> None:
-        from src.configuration.system_orchestrator import SystemOrchestrator, SystemState
+    def test_shutdown_changes_state(self, populated_config: dict[str, Path]) -> None:
+        from src.configuration.system_orchestrator import (
+            SystemOrchestrator,
+            SystemState,
+        )
 
         orchestrator = SystemOrchestrator(
             config_dir=populated_config["config"],
@@ -355,9 +365,7 @@ class TestShutdown:
         assert orchestrator.state == SystemState.STOPPED
 
     @pytest.mark.unit
-    def test_shutdown_idempotent(
-        self, populated_config: dict[str, Path]
-    ) -> None:
+    def test_shutdown_idempotent(self, populated_config: dict[str, Path]) -> None:
         from src.configuration.system_orchestrator import SystemOrchestrator
 
         orchestrator = SystemOrchestrator(
@@ -367,7 +375,7 @@ class TestShutdown:
         )
 
         orchestrator.initialize(skip_mqtt=True, skip_ollama=True)
-        
+
         result1 = orchestrator.shutdown()
         result2 = orchestrator.shutdown()
 
@@ -458,7 +466,10 @@ class TestReinitializeAfterStop:
     def test_can_reinitialize_after_shutdown(
         self, populated_config: dict[str, Path]
     ) -> None:
-        from src.configuration.system_orchestrator import SystemOrchestrator, SystemState
+        from src.configuration.system_orchestrator import (
+            SystemOrchestrator,
+            SystemState,
+        )
 
         orchestrator = SystemOrchestrator(
             config_dir=populated_config["config"],

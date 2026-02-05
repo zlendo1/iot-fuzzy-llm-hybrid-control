@@ -140,12 +140,12 @@ class FuzzyProcessingPipeline(DataProcessingLayerInterface):
     def _load_schema(self) -> None:
         """Load JSON schema for configuration validation."""
         if not self._schema_path.exists():
-            raise FuzzyPipelineError(
-                f"Schema file not found: {self._schema_path}"
-            )
+            raise FuzzyPipelineError(f"Schema file not found: {self._schema_path}")
 
         self._schema = load_json(self._schema_path)
-        logger.debug("Loaded membership function schema", extra={"path": str(self._schema_path)})
+        logger.debug(
+            "Loaded membership function schema", extra={"path": str(self._schema_path)}
+        )
 
     def _load_configurations(self) -> int:
         """Load all membership function configurations from directory.
@@ -219,7 +219,9 @@ class FuzzyProcessingPipeline(DataProcessingLayerInterface):
             FuzzyPipelineError: If sensor type not configured or value invalid
         """
         if not self._initialized:
-            raise FuzzyPipelineError("Pipeline not initialized. Call initialize() first.")
+            raise FuzzyPipelineError(
+                "Pipeline not initialized. Call initialize() first."
+            )
 
         value = reading.value
         if not isinstance(value, (int, float)):
@@ -269,8 +271,7 @@ class FuzzyProcessingPipeline(DataProcessingLayerInterface):
         self._state_cache[sensor_id] = description
 
         state_changed = (
-            old_state is None
-            or old_state.dominant_term != description.dominant_term
+            old_state is None or old_state.dominant_term != description.dominant_term
         )
 
         if state_changed:

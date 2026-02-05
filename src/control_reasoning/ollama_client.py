@@ -229,7 +229,10 @@ class OllamaClient:
                 self._active_model = model
                 logger.info(
                     "Verified Ollama model",
-                    extra={"model": model, "is_fallback": model != self._config.model.name},
+                    extra={
+                        "model": model,
+                        "is_fallback": model != self._config.model.name,
+                    },
                 )
                 return model
 

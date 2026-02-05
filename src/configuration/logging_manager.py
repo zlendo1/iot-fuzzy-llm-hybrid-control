@@ -113,7 +113,9 @@ class LoggingManager:
             console_handler.setFormatter(logging.Formatter(console_format))
             self._handlers["console"] = console_handler
 
-    def get_logger(self, name: str, category: LogCategory = LogCategory.SYSTEM) -> logging.Logger:
+    def get_logger(
+        self, name: str, category: LogCategory = LogCategory.SYSTEM
+    ) -> logging.Logger:
         with self._lock:
             cache_key = f"{name}:{category.value}"
             if cache_key in self._loggers:
@@ -132,9 +134,11 @@ class LoggingManager:
 
             error_handler = self._handlers.get(LogCategory.ERRORS.value)
             if error_handler and category != LogCategory.ERRORS:
+
                 class ErrorFilter(logging.Filter):
                     def filter(self, record: logging.LogRecord) -> bool:
                         return record.levelno >= logging.ERROR
+
                 error_handler_copy = logging.handlers.RotatingFileHandler(
                     self.log_dir / "errors.json",
                     maxBytes=self.max_bytes,
@@ -180,7 +184,11 @@ class LoggingManager:
             **extra,
         }
         level = logging.INFO if success else logging.WARNING
-        logger.log(level, f"Command {command_id}: {action} on {device_id}", extra={"extra_data": data})
+        logger.log(
+            level,
+            f"Command {command_id}: {action} on {device_id}",
+            extra={"extra_data": data},
+        )
 
     def log_sensor_reading(
         self,
@@ -196,7 +204,9 @@ class LoggingManager:
             "unit": unit,
             **extra,
         }
-        logger.info(f"Sensor {sensor_id}: {value} {unit or ''}", extra={"extra_data": data})
+        logger.info(
+            f"Sensor {sensor_id}: {value} {unit or ''}", extra={"extra_data": data}
+        )
 
     def log_rule_evaluation(
         self,
@@ -212,7 +222,10 @@ class LoggingManager:
             "triggered": triggered,
             **extra,
         }
-        logger.info(f"Rule {rule_id}: matched={matched}, triggered={triggered}", extra={"extra_data": data})
+        logger.info(
+            f"Rule {rule_id}: matched={matched}, triggered={triggered}",
+            extra={"extra_data": data},
+        )
 
     def log_error(
         self,
@@ -225,7 +238,9 @@ class LoggingManager:
         if exception:
             data["exception_type"] = type(exception).__name__
             data["exception_message"] = str(exception)
-        logger.error(message, exc_info=exception is not None, extra={"extra_data": data})
+        logger.error(
+            message, exc_info=exception is not None, extra={"extra_data": data}
+        )
 
     def cleanup_old_logs(self) -> int:
         cutoff_time = time.time() - (self.retention_days * 24 * 60 * 60)
@@ -246,10 +261,7 @@ class LoggingManager:
         return self.log_dir / f"{category.value}.json"
 
     def get_log_files(self) -> dict[str, Path]:
-        return {
-            category.value: self.get_log_file(category)
-            for category in LogCategory
-        }
+        return {category.value: self.get_log_file(category) for category in LogCategory}
 
     def set_level(self, level: str) -> None:
         with self._lock:

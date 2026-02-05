@@ -447,9 +447,7 @@ class TestRuleProcessingPipelineProcess:
 
         pipeline = RuleProcessingPipeline()
         pipeline.initialize()
-        rule = _create_rule(
-            rule_text="If humidity is high, turn on dehumidifier"
-        )
+        rule = _create_rule(rule_text="If humidity is high, turn on dehumidifier")
         pipeline.add_rule(rule)
 
         sensor_states = {"temp_001": _create_linguistic_description()}
@@ -801,9 +799,7 @@ class TestRuleProcessingPipelineWithOllamaConfig:
         )
         config = PipelineConfig(ollama_config=ollama_config)
 
-        with patch(
-            "src.control_reasoning.rule_pipeline.OllamaClient"
-        ) as MockClient:
+        with patch("src.control_reasoning.rule_pipeline.OllamaClient") as MockClient:
             pipeline = RuleProcessingPipeline(config=config)
             MockClient.assert_called_once_with(ollama_config)
             assert pipeline.ollama_client is not None

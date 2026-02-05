@@ -510,7 +510,9 @@ class TestFuzzyProcessingE2E:
         app = Application(config)
         app.start()
 
-        cold_reading = SensorReading(sensor_id="temp_living_room", value=5.0, unit="celsius")
+        cold_reading = SensorReading(
+            sensor_id="temp_living_room", value=5.0, unit="celsius"
+        )
         app._on_sensor_reading(cold_reading)
 
         state = app.orchestrator.fuzzy_pipeline.get_current_state()
@@ -519,7 +521,9 @@ class TestFuzzyProcessingE2E:
         term_names = [t.term for t in description.terms if t.degree > 0]
         assert "cold" in term_names
 
-        hot_reading = SensorReading(sensor_id="temp_living_room", value=40.0, unit="celsius")
+        hot_reading = SensorReading(
+            sensor_id="temp_living_room", value=40.0, unit="celsius"
+        )
         app._on_sensor_reading(hot_reading)
 
         state = app.orchestrator.fuzzy_pipeline.get_current_state()

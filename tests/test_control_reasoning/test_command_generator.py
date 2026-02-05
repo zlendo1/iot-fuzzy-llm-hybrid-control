@@ -508,10 +508,12 @@ class TestCommandGeneratorBatch:
 
         actuator1 = _create_actuator(device_id="light_001", capabilities=("turn_on",))
         actuator2 = _create_actuator(device_id="fan_001", capabilities=("turn_off",))
-        registry = _create_registry({
-            "light_001": actuator1,
-            "fan_001": actuator2,
-        })
+        registry = _create_registry(
+            {
+                "light_001": actuator1,
+                "fan_001": actuator2,
+            }
+        )
         generator = CommandGenerator(registry=registry)
         actions = [
             ActionSpec(device_id="light_001", command="turn_on"),

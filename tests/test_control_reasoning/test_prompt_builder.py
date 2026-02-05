@@ -11,7 +11,9 @@ class TestPromptTemplate:
     def test_template_from_string(self) -> None:
         from src.control_reasoning.prompt_builder import PromptTemplate
 
-        template = PromptTemplate.from_string("State: {sensor_state}\nRule: {rule_text}")
+        template = PromptTemplate.from_string(
+            "State: {sensor_state}\nRule: {rule_text}"
+        )
         assert "{sensor_state}" in template.template
         assert "{rule_text}" in template.template
 
@@ -26,21 +28,27 @@ class TestPromptTemplate:
         assert "Sensors: {sensor_state}" in template.template
 
     @pytest.mark.unit
-    def test_template_validate_returns_true_when_both_placeholders_present(self) -> None:
+    def test_template_validate_returns_true_when_both_placeholders_present(
+        self,
+    ) -> None:
         from src.control_reasoning.prompt_builder import PromptTemplate
 
         template = PromptTemplate(template="{sensor_state} and {rule_text}")
         assert template.validate() is True
 
     @pytest.mark.unit
-    def test_template_validate_returns_false_when_sensor_placeholder_missing(self) -> None:
+    def test_template_validate_returns_false_when_sensor_placeholder_missing(
+        self,
+    ) -> None:
         from src.control_reasoning.prompt_builder import PromptTemplate
 
         template = PromptTemplate(template="Only {rule_text}")
         assert template.validate() is False
 
     @pytest.mark.unit
-    def test_template_validate_returns_false_when_rule_placeholder_missing(self) -> None:
+    def test_template_validate_returns_false_when_rule_placeholder_missing(
+        self,
+    ) -> None:
         from src.control_reasoning.prompt_builder import PromptTemplate
 
         template = PromptTemplate(template="Only {sensor_state}")

@@ -12,7 +12,12 @@ def test_mqtt_client_config_from_dict() -> None:
         "client": {"id": "test-client", "clean_session": False, "protocol_version": 4},
         "auth": {"username": "user", "password": "pass"},
         "reconnect": {"enabled": True, "min_delay": 2.0, "max_delay": 120.0},
-        "lwt": {"topic": "status/test", "payload": "disconnected", "qos": 2, "retain": False},
+        "lwt": {
+            "topic": "status/test",
+            "payload": "disconnected",
+            "qos": 2,
+            "retain": False,
+        },
     }
 
     config = MQTTClientConfig.from_dict(data)

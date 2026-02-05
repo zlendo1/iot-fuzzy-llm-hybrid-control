@@ -105,7 +105,10 @@ class CommandGenerator:
         if not isinstance(device, Actuator):
             logger.warning(
                 "Cannot send command to non-actuator device",
-                extra={"device_id": action.device_id, "device_type": device.device_type.value},
+                extra={
+                    "device_id": action.device_id,
+                    "device_type": device.device_type.value,
+                },
             )
             return GenerationResult.fail(
                 f"Device '{action.device_id}' is not an actuator"

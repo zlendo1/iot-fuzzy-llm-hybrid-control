@@ -28,7 +28,9 @@ def perf_config_dir(
     (config_dir / "mqtt_config.json").write_text(json.dumps(sample_mqtt_config))
     (config_dir / "llm_config.json").write_text(json.dumps(sample_llm_config))
     (config_dir / "devices.json").write_text(json.dumps(sample_devices_config))
-    (schemas_dir / "membership_functions.schema.json").write_text(json.dumps(sample_mf_schema))
+    (schemas_dir / "membership_functions.schema.json").write_text(
+        json.dumps(sample_mf_schema)
+    )
     (mf_dir / "temperature.json").write_text(json.dumps(sample_temperature_mf))
     (mf_dir / "humidity.json").write_text(json.dumps(sample_humidity_mf))
 
@@ -72,7 +74,9 @@ class TestFuzzyProcessingPerformance:
 
         from src.device_interface.messages import SensorReading
 
-        reading = SensorReading(sensor_id="temp_living_room", value=25.0, unit="celsius")
+        reading = SensorReading(
+            sensor_id="temp_living_room", value=25.0, unit="celsius"
+        )
 
         start = time.perf_counter()
         orchestrator.fuzzy_pipeline.process_reading(reading, "temperature")
@@ -141,7 +145,9 @@ class TestSensorToDescriptionPerformance:
         app = Application(config)
         app.start()
 
-        reading = SensorReading(sensor_id="temp_living_room", value=30.0, unit="celsius")
+        reading = SensorReading(
+            sensor_id="temp_living_room", value=30.0, unit="celsius"
+        )
 
         start = time.perf_counter()
         app._on_sensor_reading(reading)
@@ -305,7 +311,9 @@ class TestEndToEndPerformance:
         app = Application(config)
         app.start()
 
-        reading = SensorReading(sensor_id="temp_living_room", value=38.0, unit="celsius")
+        reading = SensorReading(
+            sensor_id="temp_living_room", value=38.0, unit="celsius"
+        )
 
         start = time.perf_counter()
         app._on_sensor_reading(reading)
@@ -338,7 +346,9 @@ class TestCachePerformance:
         )
         orchestrator.initialize(skip_mqtt=True, skip_ollama=True)
 
-        reading = SensorReading(sensor_id="temp_living_room", value=25.0, unit="celsius")
+        reading = SensorReading(
+            sensor_id="temp_living_room", value=25.0, unit="celsius"
+        )
 
         start = time.perf_counter()
         orchestrator.fuzzy_pipeline.process_reading(reading, "temperature")

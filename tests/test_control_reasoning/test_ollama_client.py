@@ -474,7 +474,9 @@ class TestOllamaClientHealthCheck:
         mock_response = MagicMock()
         mock_response.status_code = 200
 
-        with patch.object(client._session, "get", return_value=mock_response) as mock_get:
+        with patch.object(
+            client._session, "get", return_value=mock_response
+        ) as mock_get:
             client.is_healthy()
             # Should use min(5.0, timeout) = 5.0
             mock_get.assert_called_once_with("http://localhost:11434", timeout=5.0)
@@ -663,7 +665,9 @@ class TestOllamaClientGenerate:
         mock_response.status_code = 200
         mock_response.json.return_value = {"response": "test", "model": "tinyllama"}
 
-        with patch.object(client._session, "post", return_value=mock_response) as mock_post:
+        with patch.object(
+            client._session, "post", return_value=mock_response
+        ) as mock_post:
             client.generate("test prompt")
             call_kwargs = mock_post.call_args.kwargs
             assert call_kwargs["json"]["model"] == "tinyllama"
@@ -680,7 +684,9 @@ class TestOllamaClientGenerate:
         mock_response.status_code = 200
         mock_response.json.return_value = {"response": "test", "model": "phi3"}
 
-        with patch.object(client._session, "post", return_value=mock_response) as mock_post:
+        with patch.object(
+            client._session, "post", return_value=mock_response
+        ) as mock_post:
             client.generate("test prompt", model="phi3")
             call_kwargs = mock_post.call_args.kwargs
             assert call_kwargs["json"]["model"] == "phi3"
@@ -697,7 +703,9 @@ class TestOllamaClientGenerate:
         mock_response.status_code = 200
         mock_response.json.return_value = {"response": "test", "model": "qwen3:0.6b"}
 
-        with patch.object(client._session, "post", return_value=mock_response) as mock_post:
+        with patch.object(
+            client._session, "post", return_value=mock_response
+        ) as mock_post:
             client.generate("test prompt")
             call_kwargs = mock_post.call_args.kwargs
             assert call_kwargs["json"]["model"] == "qwen3:0.6b"
@@ -713,7 +721,9 @@ class TestOllamaClientGenerate:
         mock_response.status_code = 200
         mock_response.json.return_value = {"response": "test", "model": "qwen3:0.6b"}
 
-        with patch.object(client._session, "post", return_value=mock_response) as mock_post:
+        with patch.object(
+            client._session, "post", return_value=mock_response
+        ) as mock_post:
             client.generate("test prompt", system_prompt="You are a helpful assistant.")
             call_kwargs = mock_post.call_args.kwargs
             assert call_kwargs["json"]["system"] == "You are a helpful assistant."
@@ -729,7 +739,9 @@ class TestOllamaClientGenerate:
         mock_response.status_code = 200
         mock_response.json.return_value = {"response": "test", "model": "qwen3:0.6b"}
 
-        with patch.object(client._session, "post", return_value=mock_response) as mock_post:
+        with patch.object(
+            client._session, "post", return_value=mock_response
+        ) as mock_post:
             client.generate("test prompt")
             call_kwargs = mock_post.call_args.kwargs
             assert "system" not in call_kwargs["json"]
@@ -745,7 +757,9 @@ class TestOllamaClientGenerate:
         mock_response.status_code = 200
         mock_response.json.return_value = {"response": "test", "model": "qwen3:0.6b"}
 
-        with patch.object(client._session, "post", return_value=mock_response) as mock_post:
+        with patch.object(
+            client._session, "post", return_value=mock_response
+        ) as mock_post:
             client.generate("test prompt")
             call_kwargs = mock_post.call_args.kwargs
             options = call_kwargs["json"]["options"]
@@ -766,7 +780,9 @@ class TestOllamaClientGenerate:
         mock_response.status_code = 200
         mock_response.json.return_value = {"response": "test", "model": "qwen3:0.6b"}
 
-        with patch.object(client._session, "post", return_value=mock_response) as mock_post:
+        with patch.object(
+            client._session, "post", return_value=mock_response
+        ) as mock_post:
             client.generate("test prompt")
             call_kwargs = mock_post.call_args.kwargs
             assert call_kwargs["json"]["stream"] is False

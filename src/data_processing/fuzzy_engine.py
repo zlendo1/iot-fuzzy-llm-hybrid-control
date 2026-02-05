@@ -91,7 +91,9 @@ class FuzzificationResult:
 
 class _LRUCache:
     def __init__(self, max_size: int, ttl_seconds: float) -> None:
-        self._cache: OrderedDict[tuple[str, float], tuple[FuzzificationResult, float]] = OrderedDict()
+        self._cache: OrderedDict[
+            tuple[str, float], tuple[FuzzificationResult, float]
+        ] = OrderedDict()
         self._max_size = max_size
         self._ttl_seconds = ttl_seconds
 
@@ -198,7 +200,10 @@ class FuzzyEngine:
         readings: list[tuple[str, float]],
         use_cache: bool = True,
     ) -> list[FuzzificationResult]:
-        return [self.fuzzify(sensor_type, value, use_cache) for sensor_type, value in readings]
+        return [
+            self.fuzzify(sensor_type, value, use_cache)
+            for sensor_type, value in readings
+        ]
 
     def clear_cache(self) -> None:
         self._cache.invalidate()

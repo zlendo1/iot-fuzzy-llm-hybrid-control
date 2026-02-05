@@ -190,11 +190,7 @@ class RuleInterpreter:
         return sorted(self.enabled_rules, key=lambda r: r.priority)
 
     def get_rules_by_tag(self, tag: str) -> list[NaturalLanguageRule]:
-        return [
-            r
-            for r in self._rules.values()
-            if tag in r.metadata.get("tags", [])
-        ]
+        return [r for r in self._rules.values() if tag in r.metadata.get("tags", [])]
 
     def record_rule_trigger(self, rule_id: str) -> bool:
         rule = self._rules.get(rule_id)

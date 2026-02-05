@@ -238,7 +238,8 @@ class CommandValidator:
         device_id = command.device_id
 
         self._command_history[device_id] = [
-            ts for ts in self._command_history[device_id]
+            ts
+            for ts in self._command_history[device_id]
             if now - ts < self._rate_window
         ]
 
@@ -277,7 +278,8 @@ class CommandValidator:
     def get_rate_limit_status(self, device_id: str) -> dict[str, Any]:
         now = time.time()
         history = [
-            ts for ts in self._command_history.get(device_id, [])
+            ts
+            for ts in self._command_history.get(device_id, [])
             if now - ts < self._rate_window
         ]
         return {

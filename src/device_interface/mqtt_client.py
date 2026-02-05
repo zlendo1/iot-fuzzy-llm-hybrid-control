@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import threading
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -41,9 +42,13 @@ class MQTTClientConfig:
         reconnect = data.get("reconnect", {})
         lwt = data.get("lwt", {})
 
+        host = os.environ.get("MQTT_HOST") or broker.get("host", "localhost")
+        port_str = os.environ.get("MQTT_PORT")
+        port = int(port_str) if port_str else broker.get("port", 1883)
+
         return cls(
-            host=broker.get("host", "localhost"),
-            port=broker.get("port", 1883),
+            host=host,
+            port=port,
             keepalive=broker.get("keepalive", 60),
             client_id=client.get("id"),
             clean_session=client.get("clean_session", True),
@@ -81,11 +86,15 @@ class MQTTClient:
         protocol = self._get_protocol_version()
         callback_api_version = mqtt.CallbackAPIVersion.VERSION2
 
+        # For MQTTv5, clean_session must be None in constructor;
+        # clean_start is passed to connect() instead
+        clean_session = None if protocol == mqtt.MQTTv5 else self._config.clean_session
+
         self._client = mqtt.Client(
             callback_api_version=callback_api_version,
             client_id=self._config.client_id or "",
             protocol=protocol,
-            clean_session=self._config.clean_session,
+            clean_session=clean_session,
         )
 
         self._client.on_connect = self._on_connect
@@ -103,12 +112,17 @@ class MQTTClient:
                 self._config.lwt_retain,
             )
 
+        # For MQTTv5, pass clean_start to connect()
+        connect_kwargs: dict[str, Any] = {
+            "host": self._config.host,
+            "port": self._config.port,
+            "keepalive": self._config.keepalive,
+        }
+        if protocol == mqtt.MQTTv5:
+            connect_kwargs["clean_start"] = self._config.clean_session
+
         try:
-            self._client.connect(
-                self._config.host,
-                self._config.port,
-                self._config.keepalive,
-            )
+            self._client.connect(**connect_kwargs)
             self._client.loop_start()
         except Exception as e:
             self._client = None

@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "llm.schema.json",
+  "title": "LLM Configuration",
+  "description": "Schema for LLM/Ollama service configuration",
+  "type": "object",
+  "required": ["llm"],
+  "properties": {
+    "llm": {
+      "type": "object",
+      "required": ["provider", "connection", "model"],
+      "properties": {
+        "provider": {
+          "type": "string",
+          "enum": ["ollama"],
+          "description": "LLM provider (currently only ollama supported)"
+        },
+        "connection": {
+          "$ref": "#/$defs/connection"
+        },
+        "model": {
+          "$ref": "#/$defs/model"
+        },
+        "inference": {
+          "$ref": "#/$defs/inference"
+        },
+        "context": {
+          "$ref": "#/$defs/context"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "connection": {
+      "type": "object",
+      "required": ["host", "port"],
+      "properties": {
+        "host": {
+          "type": "string",
+          "description": "Ollama service host"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "Ollama service port"
+        },
+        "timeout_seconds": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 300,
+          "default": 30,
+          "description": "Request timeout in seconds"
+        }
+      },
+      "additionalProperties": false
+    },
+    "model": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*(?::[a-z0-9._-]+)?$",
+          "description": "Primary model name (e.g., qwen3:0.6b)"
+        },
+        "fallback_models": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._-]*(?::[a-z0-9._-]+)?$"
+          },
+          "description": "Fallback models if primary unavailable"
+        }
+      },
+      "additionalProperties": false
+    },
+    "inference": {
+      "type": "object",
+      "properties": {
+        "temperature": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 2,
+          "default": 0.3,
+          "description": "Sampling temperature (lower = more deterministic)"
+        },
+        "max_tokens": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4096,
+          "default": 512,
+          "description": "Maximum tokens in response"
+        },
+        "top_p": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.9,
+          "description": "Nucleus sampling parameter"
+        },
+        "top_k": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 40,
+          "description": "Top-k sampling parameter"
+        },
+        "repeat_penalty": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 2,
+          "default": 1.1,
+          "description": "Repetition penalty"
+        }
+      },
+      "additionalProperties": false
+    },
+    "context": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable conversation context"
+        },
+        "max_history": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 20,
+          "default": 5,
+          "description": "Maximum conversation history to retain"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

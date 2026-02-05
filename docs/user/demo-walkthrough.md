@@ -45,7 +45,17 @@ docker-compose ps
 # app         running (healthy)
 ```
 
-### Step 2: CLI Status Check
+### Step 2: Enter Application Shell
+
+```bash
+# Enter the app container shell for running CLI commands
+make shell
+
+# You are now inside the container at /app
+# All subsequent python commands run from here
+```
+
+### Step 3: CLI Status Check
 
 ```bash
 # Check system status via CLI
@@ -54,7 +64,7 @@ python -m src.main status
 # Expected: Shows connected devices, loaded rules, LLM status
 ```
 
-### Step 3: List Demo Rules
+### Step 4: List Demo Rules
 
 ```bash
 # List all configured rules
@@ -63,7 +73,7 @@ python -m src.main rule list
 # Expected: 10 rules displayed with IDs and status
 ```
 
-### Step 4: Climate Control Demo (DEMO-004)
+### Step 5: Climate Control Demo (DEMO-004)
 
 **Scenario**: Living room is hot (32°C) and humid (78%)
 
@@ -91,7 +101,7 @@ mosquitto_pub -h localhost -t home/living_room/humidity \
 mosquitto_sub -h localhost -t home/living_room/ac/set
 ```
 
-### Step 5: Lighting Control Demo (DEMO-005)
+### Step 6: Lighting Control Demo (DEMO-005)
 
 **Scenario**: Motion detected in dark hallway
 
@@ -111,7 +121,7 @@ mosquitto_pub -h localhost -t home/hallway/motion \
 # - LLM: ACTION: light_hallway, turn_on
 ```
 
-### Step 6: Heating Control Demo (DEMO-006)
+### Step 7: Heating Control Demo (DEMO-006)
 
 **Scenario**: Bedroom is cold (15°C)
 
@@ -126,7 +136,7 @@ mosquitto_pub -h localhost -t home/bedroom/temperature \
 # - LLM: ACTION: heater_bedroom, turn_on, temperature=21
 ```
 
-### Step 7: Blind Control Demo (DEMO-007)
+### Step 8: Blind Control Demo (DEMO-007)
 
 **Scenario**: Very bright sunlight (40000 lux)
 
@@ -141,7 +151,7 @@ mosquitto_pub -h localhost -t home/living_room/light_level \
 # - LLM: ACTION: blinds_living_room, set_position, position=50
 ```
 
-### Step 8: Rule Management Demo
+### Step 9: Rule Management Demo
 
 ```bash
 # Add a new rule
@@ -158,7 +168,7 @@ python -m src.main rule enable climate_002
 python -m src.main rule show climate_001
 ```
 
-### Step 9: Sensor Status Demo
+### Step 10: Sensor Status Demo
 
 ```bash
 # Show current sensor readings
@@ -168,7 +178,7 @@ python -m src.main sensor status
 # Example: temp_living_room: 32.0°C → "temperature is hot (0.85)"
 ```
 
-### Step 10: Configuration Validation
+### Step 11: Configuration Validation
 
 ```bash
 # Validate all configuration files

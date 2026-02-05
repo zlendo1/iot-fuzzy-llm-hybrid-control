@@ -61,8 +61,15 @@ make shell
 # Check system status via CLI
 python -m src.interfaces status
 
-# Expected: Shows system state and component availability
+# Expected: Shows component availability from configuration files
 ```
+
+> [!NOTE]
+> The CLI creates its own local orchestrator instance to validate
+> configurations. It does not connect to the running application process. Status
+> shows "UNINITIALIZED" because the CLI's orchestrator hasn't been started—this
+> is expected behavior. The actual application runs separately in the
+> container's main process.
 
 ### Step 4: List Demo Rules
 

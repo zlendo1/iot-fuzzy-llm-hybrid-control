@@ -142,7 +142,13 @@ iot-fuzzy-llm -v status
 iot-fuzzy-llm --format json status
 ```
 
-**Status Output:**
+> [!NOTE]
+> The `status` command first attempts to connect to a running application via
+> `http://localhost:8080/status` (port configurable with `IOT_STATUS_PORT`). If
+> the endpoint is unreachable, it falls back to a standalone orchestrator
+> instance to validate configurations.
+
+**Status Output (after start):**
 
 ```
 System State: RUNNING

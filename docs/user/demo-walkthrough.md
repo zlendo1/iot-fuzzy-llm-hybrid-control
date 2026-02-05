@@ -77,14 +77,19 @@ python -m src.interfaces rule list
 
 **Scenario**: Living room is hot (32°C) and humid (78%)
 
+> [!NOTE]
+> The `mosquitto_pub` commands below should be run from a **separate terminal**
+> on the host (requires `mosquitto-clients` package), or from the mosquitto
+> container using `docker exec iot-mosquitto mosquitto_pub ...`
+
 ```bash
-# Simulate hot temperature reading
+# Simulate hot temperature reading (from host or mosquitto container)
 mosquitto_pub -h localhost -t home/living_room/temperature \
-  -m '{"value": 32.0, "unit": "celsius", "timestamp": "2025-02-05T14:00:00Z"}'
+  -m '{"value": 32.0, "unit": "celsius"}'
 
 # Simulate high humidity reading
 mosquitto_pub -h localhost -t home/living_room/humidity \
-  -m '{"value": 78.0, "unit": "percent", "timestamp": "2025-02-05T14:00:00Z"}'
+  -m '{"value": 78.0, "unit": "percent"}'
 
 # Expected system response:
 # - Fuzzy engine converts 32°C → "temperature is hot (0.85)"
@@ -97,7 +102,7 @@ mosquitto_pub -h localhost -t home/living_room/humidity \
 **Verification**:
 
 ```bash
-# Subscribe to AC command topic
+# Subscribe to AC command topic (in another terminal)
 mosquitto_sub -h localhost -t home/living_room/ac/set
 ```
 
@@ -108,7 +113,7 @@ mosquitto_sub -h localhost -t home/living_room/ac/set
 ```bash
 # Simulate dark light level (50 lux)
 mosquitto_pub -h localhost -t home/living_room/light_level \
-  -m '{"value": 50.0, "unit": "lux"}'
+  -m '{"value": 50.0}'
 
 # Simulate motion in hallway
 mosquitto_pub -h localhost -t home/hallway/motion \
@@ -128,7 +133,7 @@ mosquitto_pub -h localhost -t home/hallway/motion \
 ```bash
 # Simulate cold bedroom temperature
 mosquitto_pub -h localhost -t home/bedroom/temperature \
-  -m '{"value": 15.0, "unit": "celsius"}'
+  -m '{"value": 15.0}'
 
 # Expected:
 # - Fuzzy engine: "temperature is cold (0.75)"
@@ -143,7 +148,7 @@ mosquitto_pub -h localhost -t home/bedroom/temperature \
 ```bash
 # Simulate very bright light
 mosquitto_pub -h localhost -t home/living_room/light_level \
-  -m '{"value": 40000.0, "unit": "lux"}'
+  -m '{"value": 40000.0}'
 
 # Expected:
 # - Fuzzy engine: "light_level is very_bright (0.90)"
@@ -155,7 +160,7 @@ mosquitto_pub -h localhost -t home/living_room/light_level \
 
 ```bash
 # Add a new rule
-python -m src.interfaces rule add "night_mode" \
+python -m src.interfaces rule add --id night_mode \
   "If no motion detected for 30 minutes after 11pm, turn off all lights"
 
 # Disable a rule

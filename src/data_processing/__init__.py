@@ -1,3 +1,11 @@
+from src.data_processing.fuzzy_engine import (
+    FuzzificationResult,
+    FuzzyEngine,
+    FuzzyEngineError,
+    LinguisticVariable,
+    SensorTypeConfig,
+    UniverseOfDiscourse,
+)
 from src.data_processing.membership_functions import (
     GaussianMF,
     MembershipFunction,
@@ -16,4 +24,10 @@ __all__ = [
     "SigmoidMF",
     "MembershipFunctionError",
     "create_membership_function",
+    "UniverseOfDiscourse",
+    "LinguisticVariable",
+    "SensorTypeConfig",
+    "FuzzificationResult",
+    "FuzzyEngine",
+    "FuzzyEngineError",
 ]

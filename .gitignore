@@ -191,6 +191,9 @@ cython_debug/
 # Ruff stuff:
 .ruff_cache/
 
+# Runtime log files (keep README)
+logs/*.json
+
 # PyPI configuration file
 .pypirc
 

@@ -166,6 +166,8 @@ addopts = [
 markers = [
     "unit: Unit tests (no external dependencies)",
     "integration: Integration tests (require external services)",
+    "performance: Performance tests (verify latency targets from ADD Section 8.1)",
+    "stress: Stress/load tests (verify system limits)",
     "slow: Slow tests (skipped in quick runs)",
 ]
 filterwarnings = [

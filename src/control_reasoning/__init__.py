@@ -4,6 +4,12 @@ from src.control_reasoning.command_generator import (
     DeviceCommand,
     GenerationResult,
 )
+from src.control_reasoning.command_validator import (
+    CommandValidator,
+    ValidationError,
+    ValidationResult,
+    ValidationStep,
+)
 from src.control_reasoning.ollama_client import (
     OllamaClient,
     OllamaConfig,
@@ -39,6 +45,7 @@ __all__ = [
     "BuiltPrompt",
     "CommandGenerator",
     "CommandStatus",
+    "CommandValidator",
     "DeviceCommand",
     "GenerationResult",
     "NaturalLanguageRule",
@@ -60,4 +67,7 @@ __all__ = [
     "ResponseType",
     "RuleInterpreter",
     "RuleMatch",
+    "ValidationError",
+    "ValidationResult",
+    "ValidationStep",
 ]

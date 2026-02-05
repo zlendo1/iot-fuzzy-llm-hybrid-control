@@ -45,6 +45,10 @@
       "mqtt": {
         "topic": "home/bedroom/temperature",
         "qos": 1
+      },
+      "constraints": {
+        "min": -40,
+        "max": 85
       }
     },
     {
@@ -57,6 +61,52 @@
       "mqtt": {
         "topic": "home/hallway/motion",
         "qos": 1
+      }
+    },
+    {
+      "id": "motion_living_room",
+      "name": "Living Room Motion Sensor",
+      "type": "sensor",
+      "device_class": "motion",
+      "location": "living_room",
+      "value_type": "bool",
+      "mqtt": {
+        "topic": "home/living_room/motion",
+        "qos": 1
+      }
+    },
+    {
+      "id": "light_level_living_room",
+      "name": "Living Room Light Level Sensor",
+      "type": "sensor",
+      "device_class": "light_level",
+      "location": "living_room",
+      "unit": "lux",
+      "value_type": "float",
+      "mqtt": {
+        "topic": "home/living_room/light_level",
+        "qos": 1
+      },
+      "constraints": {
+        "min": 0,
+        "max": 100000
+      }
+    },
+    {
+      "id": "temp_office",
+      "name": "Office Temperature Sensor",
+      "type": "sensor",
+      "device_class": "temperature",
+      "location": "office",
+      "unit": "°C",
+      "value_type": "float",
+      "mqtt": {
+        "topic": "home/office/temperature",
+        "qos": 1
+      },
+      "constraints": {
+        "min": -40,
+        "max": 85
       }
     },
     {
@@ -75,6 +125,42 @@
         "min": 16,
         "max": 30,
         "step": 0.5
+      }
+    },
+    {
+      "id": "heater_bedroom",
+      "name": "Bedroom Heater",
+      "type": "actuator",
+      "device_class": "heater",
+      "location": "bedroom",
+      "capabilities": ["set_temperature", "turn_on", "turn_off"],
+      "mqtt": {
+        "topic": "home/bedroom/heater/state",
+        "command_topic": "home/bedroom/heater/set",
+        "qos": 1
+      },
+      "constraints": {
+        "min": 15,
+        "max": 28,
+        "step": 1
+      }
+    },
+    {
+      "id": "heater_office",
+      "name": "Office Heater",
+      "type": "actuator",
+      "device_class": "heater",
+      "location": "office",
+      "capabilities": ["set_temperature", "turn_on", "turn_off"],
+      "mqtt": {
+        "topic": "home/office/heater/state",
+        "command_topic": "home/office/heater/set",
+        "qos": 1
+      },
+      "constraints": {
+        "min": 15,
+        "max": 28,
+        "step": 1
       }
     },
     {
@@ -105,6 +191,40 @@
         "topic": "home/hallway/light/state",
         "command_topic": "home/hallway/light/set",
         "qos": 1
+      }
+    },
+    {
+      "id": "blinds_living_room",
+      "name": "Living Room Blinds",
+      "type": "actuator",
+      "device_class": "blinds",
+      "location": "living_room",
+      "capabilities": ["open", "close", "set_position"],
+      "mqtt": {
+        "topic": "home/living_room/blinds/state",
+        "command_topic": "home/living_room/blinds/set",
+        "qos": 1
+      },
+      "constraints": {
+        "min": 0,
+        "max": 100
+      }
+    },
+    {
+      "id": "blinds_bedroom",
+      "name": "Bedroom Blinds",
+      "type": "actuator",
+      "device_class": "blinds",
+      "location": "bedroom",
+      "capabilities": ["open", "close", "set_position"],
+      "mqtt": {
+        "topic": "home/bedroom/blinds/state",
+        "command_topic": "home/bedroom/blinds/set",
+        "qos": 1
+      },
+      "constraints": {
+        "min": 0,
+        "max": 100
       }
     }
   ]

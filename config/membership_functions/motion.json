@@ -1,0 +1,18 @@
+{
+  "sensor_type": "motion",
+  "unit": "binary",
+  "universe_of_discourse": { "min": 0.0, "max": 1.0 },
+  "confidence_threshold": 0.1,
+  "linguistic_variables": [
+    {
+      "term": "no_motion",
+      "function_type": "trapezoidal",
+      "parameters": { "a": 0.0, "b": 0.0, "c": 0.3, "d": 0.5 }
+    },
+    {
+      "term": "motion_detected",
+      "function_type": "trapezoidal",
+      "parameters": { "a": 0.5, "b": 0.7, "c": 1.0, "d": 1.0 }
+    }
+  ]
+}

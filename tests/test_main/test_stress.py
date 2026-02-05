@@ -1,4 +1,4 @@
-"""Stress and load tests for system limits (Phase 7.4).
+"""Stress and load tests for system capacity limits.
 
 These tests verify the system can handle the capacity limits specified in
 ADD Section 8.1:

@@ -45,6 +45,13 @@ from src.control_reasoning.rule_interpreter import (
     RuleInterpreter,
     RuleMatch,
 )
+from src.control_reasoning.rule_pipeline import (
+    ControlReasoningLayerInterface,
+    EvaluationResult,
+    PipelineConfig,
+    PipelineResult,
+    RuleProcessingPipeline,
+)
 
 __all__ = [
     "ActionSpec",
@@ -54,7 +61,9 @@ __all__ = [
     "CommandValidator",
     "ConflictInfo",
     "ConflictResolver",
+    "ControlReasoningLayerInterface",
     "DeviceCommand",
+    "EvaluationResult",
     "GenerationResult",
     "NaturalLanguageRule",
     "OllamaClient",
@@ -69,6 +78,8 @@ __all__ = [
     "OllamaResponse",
     "OllamaTimeoutError",
     "ParsedResponse",
+    "PipelineConfig",
+    "PipelineResult",
     "PromptBuilder",
     "PromptTemplate",
     "ResolutionResult",
@@ -77,6 +88,7 @@ __all__ = [
     "ResponseType",
     "RuleInterpreter",
     "RuleMatch",
+    "RuleProcessingPipeline",
     "ValidationError",
     "ValidationResult",
     "ValidationStep",

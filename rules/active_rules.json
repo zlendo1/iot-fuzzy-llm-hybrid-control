@@ -1,0 +1,124 @@
+{
+  "rules": [
+    {
+      "rule_id": "climate_001",
+      "rule_text": "If the living room temperature is hot and humidity is high, turn on the air conditioner and set it to cooling mode at 22 degrees",
+      "priority": 1,
+      "enabled": true,
+      "created_timestamp": "2025-02-05T12:00:00Z",
+      "metadata": {
+        "tags": ["climate", "cooling", "comfort"],
+        "category": "climate_control",
+        "description": "Activates AC when conditions are uncomfortably hot and humid"
+      }
+    },
+    {
+      "rule_id": "climate_002",
+      "rule_text": "If the living room temperature is warm and humidity is comfortable, no action is needed",
+      "priority": 2,
+      "enabled": true,
+      "created_timestamp": "2025-02-05T12:00:00Z",
+      "metadata": {
+        "tags": ["climate", "comfort"],
+        "category": "climate_control",
+        "description": "Prevents unnecessary AC activation when conditions are acceptable"
+      }
+    },
+    {
+      "rule_id": "lighting_001",
+      "rule_text": "When motion is detected in the hallway and the light level is dark, turn on the hallway light",
+      "priority": 1,
+      "enabled": true,
+      "created_timestamp": "2025-02-05T12:00:00Z",
+      "metadata": {
+        "tags": ["lighting", "motion", "safety"],
+        "category": "lighting_control",
+        "description": "Automatic lighting for safety when someone walks through dark hallway"
+      }
+    },
+    {
+      "rule_id": "lighting_002",
+      "rule_text": "When motion is detected in the living room and the light level is dim, turn on the living room light and set brightness to 70 percent",
+      "priority": 2,
+      "enabled": true,
+      "created_timestamp": "2025-02-05T12:00:00Z",
+      "metadata": {
+        "tags": ["lighting", "motion", "comfort"],
+        "category": "lighting_control",
+        "description": "Comfortable lighting when someone enters a dim room"
+      }
+    },
+    {
+      "rule_id": "heating_001",
+      "rule_text": "If the bedroom temperature is cold, turn on the bedroom heater and set temperature to 21 degrees",
+      "priority": 1,
+      "enabled": true,
+      "created_timestamp": "2025-02-05T12:00:00Z",
+      "metadata": {
+        "tags": ["heating", "comfort", "bedroom"],
+        "category": "heating_control",
+        "description": "Maintains comfortable sleeping temperature in bedroom"
+      }
+    },
+    {
+      "rule_id": "heating_002",
+      "rule_text": "If the office temperature is cold, turn on the office heater and set temperature to 22 degrees",
+      "priority": 1,
+      "enabled": true,
+      "created_timestamp": "2025-02-05T12:00:00Z",
+      "metadata": {
+        "tags": ["heating", "comfort", "office"],
+        "category": "heating_control",
+        "description": "Maintains comfortable working temperature in office"
+      }
+    },
+    {
+      "rule_id": "blinds_001",
+      "rule_text": "When the living room light level is very bright, close the living room blinds to 50 percent position",
+      "priority": 1,
+      "enabled": true,
+      "created_timestamp": "2025-02-05T12:00:00Z",
+      "metadata": {
+        "tags": ["blinds", "lighting", "comfort"],
+        "category": "blind_control",
+        "description": "Reduces glare by partially closing blinds when sunlight is intense"
+      }
+    },
+    {
+      "rule_id": "blinds_002",
+      "rule_text": "When the living room light level is dark and no motion is detected, open the living room blinds fully",
+      "priority": 2,
+      "enabled": true,
+      "created_timestamp": "2025-02-05T12:00:00Z",
+      "metadata": {
+        "tags": ["blinds", "lighting", "energy"],
+        "category": "blind_control",
+        "description": "Maximizes natural light when room is unoccupied and dark"
+      }
+    },
+    {
+      "rule_id": "energy_001",
+      "rule_text": "If no motion is detected in the living room for a while and the light is on, turn off the living room light to save energy",
+      "priority": 3,
+      "enabled": true,
+      "created_timestamp": "2025-02-05T12:00:00Z",
+      "metadata": {
+        "tags": ["energy", "lighting", "automation"],
+        "category": "energy_saving",
+        "description": "Energy saving by turning off lights in unoccupied rooms"
+      }
+    },
+    {
+      "rule_id": "comfort_001",
+      "rule_text": "If the living room temperature is comfortable and humidity is comfortable, no action is needed as conditions are optimal",
+      "priority": 5,
+      "enabled": true,
+      "created_timestamp": "2025-02-05T12:00:00Z",
+      "metadata": {
+        "tags": ["comfort", "climate"],
+        "category": "comfort_monitoring",
+        "description": "Confirms optimal conditions require no intervention"
+      }
+    }
+  ]
+}

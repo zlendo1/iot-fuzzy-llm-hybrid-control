@@ -1,3 +1,5 @@
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/zlendo1/iot-fuzzy-llm-hybrid-control)
+
 # Fuzzy-LLM Hybrid IoT Management System
 
 A thesis project implementing a novel approach to IoT device management that

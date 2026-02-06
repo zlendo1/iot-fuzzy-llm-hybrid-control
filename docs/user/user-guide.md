@@ -283,12 +283,12 @@ iot-fuzzy-llm --format json device list
 **Example Output:**
 
 ```
-ID                  | Name                   | Type     | Class       | Location
---------------------+------------------------+----------+-------------+-----------
-living_room_temp    | Living Room Temp       | sensor   | temperature | Living Room
-living_room_ac      | Living Room AC         | actuator | thermostat  | Living Room
-hallway_motion      | Hallway Motion         | sensor   | motion      | Hallway
-hallway_light       | Hallway Light          | actuator | switch      | Hallway
+ID                      | Name                           | Type     | Class       | Location
+------------------------+--------------------------------+----------+-------------+------------
+temp_living_room        | Living Room Temperature Sensor | sensor   | temperature | living_room
+motion_hallway          | Hallway Motion Sensor          | sensor   | motion      | hallway
+ac_living_room          | Living Room Air Conditioner    | actuator | thermostat  | living_room
+light_hallway           | Hallway Light                  | actuator | light       | hallway
 
 Total: 4 device(s)
 ```
@@ -333,11 +333,11 @@ iot-fuzzy-llm --format json sensor list
 **Example Output:**
 
 ```
-ID                  | Name                   | Class       | Location     | Unit
---------------------+------------------------+-------------+--------------+-------
-living_room_temp    | Living Room Temp       | temperature | Living Room  | celsius
-living_room_humid   | Living Room Humidity   | humidity    | Living Room  | percent
-hallway_motion      | Hallway Motion         | motion      | Hallway      | -
+ID                      | Name                           | Class       | Location    | Unit
+------------------------+--------------------------------+-------------+-------------+-----
+temp_living_room        | Living Room Temperature Sensor | temperature | living_room | °C
+humidity_living_room    | Living Room Humidity Sensor    | humidity    | living_room | %
+motion_hallway          | Hallway Motion Sensor          | motion      | hallway     | -
 
 Total: 3 sensor(s)
 ```
@@ -531,9 +531,9 @@ iot-fuzzy-llm device list
 ```
 
 ```
-ID               | Name              | Type     | Class       | Location
------------------+-------------------+----------+-------------+------------
-living_room_temp | Living Room Temp  | sensor   | temperature | Living Room
+ID                      | Name                           | Type     | Class       | Location
+------------------------+--------------------------------+----------+-------------+------------
+temp_living_room        | Living Room Temperature Sensor | sensor   | temperature | living_room
 ```
 
 ### JSON Format

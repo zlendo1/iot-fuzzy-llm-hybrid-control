@@ -318,18 +318,28 @@ iot-fuzzy-llm sensor status
 **Verification**: Confirm 7 sensors are displayed with their configuration:
 
 ```
-Sensors (7 total)
-=================
+Living Room Temperature Sensor (temp_living_room)
+  Class: temperature
+  Location: living_room
+  Unit: °C
+  Status: registered
+  MQTT Topic: home/living_room/temperature
 
-ID                  Type         Location      Unit     MQTT Topic
-------------------  -----------  ------------  -------  --------------------------
-temp_living_room    temperature  Living Room   celsius  home/living_room/temperature
-temp_bedroom        temperature  Bedroom       celsius  home/bedroom/temperature
-temp_office         temperature  Office        celsius  home/office/temperature
-humidity_living     humidity     Living Room   percent  home/living_room/humidity
-motion_hallway      motion       Hallway       -        home/hallway/motion
-motion_living       motion       Living Room   -        home/living_room/motion
-light_living        light_level  Living Room   lux      home/living_room/light_level
+Living Room Humidity Sensor (humidity_living_room)
+  Class: humidity
+  Location: living_room
+  Unit: %
+  Status: registered
+  MQTT Topic: home/living_room/humidity
+
+Bedroom Temperature Sensor (temp_bedroom)
+  Class: temperature
+  Location: bedroom
+  Unit: °C
+  Status: registered
+  MQTT Topic: home/bedroom/temperature
+
+...
 ```
 
 ### Step 10: Configuration Validation

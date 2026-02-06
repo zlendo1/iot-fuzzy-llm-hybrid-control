@@ -645,7 +645,7 @@ def sensor_list(ctx: CLIContext) -> None:
         rows.append(
             [
                 s.id,
-                s.name[:25] if len(s.name) > 25 else s.name,
+                s.name,
                 s.device_class,
                 s.location or "-",
                 s.unit or "-",
@@ -763,7 +763,7 @@ def device_list(ctx: CLIContext) -> None:
         rows.append(
             [
                 d.id,
-                d.name[:25] if len(d.name) > 25 else d.name,
+                d.name,
                 d.device_type.value,
                 d.device_class,
                 d.location or "-",

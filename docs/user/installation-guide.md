@@ -67,14 +67,17 @@ dependencies automatically.
 git clone https://github.com/your-org/iot-fuzzy-llm.git
 cd iot-fuzzy-llm
 
-# 2. Start all services
-docker compose up -d
+# 2. Build Docker images
+make build
 
-# 3. Wait for services to be healthy (1-2 minutes for model download)
-docker compose ps
+# 3. Start all services
+make up
 
-# 4. View logs
-docker compose logs -f
+# 4. Wait for services to be healthy (1-2 minutes for model download)
+make ps
+
+# 5. View logs
+make logs
 ```
 
 ### What Gets Started
@@ -104,32 +107,7 @@ LOG_LEVEL=INFO
 
 ### Common Docker Commands
 
-```bash
-# Start services
-docker compose up -d
-
-# Stop services
-docker compose down
-
-# View logs
-docker compose logs -f
-
-# View app logs only
-docker compose logs -f app
-
-# Restart services
-docker compose restart
-
-# Open shell in app container
-docker compose exec app bash
-
-# Pull a different model
-OLLAMA_MODEL=qwen3:1.7b docker compose exec ollama ollama pull qwen3:1.7b
-```
-
-### Using the Makefile
-
-The project includes a Makefile for convenience:
+All Docker operations are available through the Makefile:
 
 ```bash
 # Show all available commands
@@ -144,11 +122,29 @@ make up
 # Stop services
 make down
 
-# View logs
+# Restart services
+make restart
+
+# View logs (all services)
 make logs
 
-# Pull LLM model
+# View app logs only
+make logs-app
+
+# Show running containers
+make ps
+
+# Open shell in app container
+make shell
+
+# Open shell in MQTT container
+make shell-mqtt
+
+# Pull LLM model (default: qwen3:0.6b)
 make pull-model
+
+# Pull a specific model
+OLLAMA_MODEL=qwen3:1.7b make pull-model
 
 # List available models
 make list-models
@@ -161,82 +157,71 @@ ______________________________________________________________________
 For development, run the application locally while using Docker for
 dependencies.
 
-### Step 1: Clone and Setup Virtual Environment
+### Step 1: Clone Repository
 
 ```bash
-# Clone repository
 git clone https://github.com/your-org/iot-fuzzy-llm.git
 cd iot-fuzzy-llm
-
-# Create virtual environment
-python -m venv .venv
-
-# Activate virtual environment
-source .venv/bin/activate  # Linux/macOS
-# or
-.venv\Scripts\activate     # Windows
 ```
 
 ### Step 2: Install Python Dependencies
 
-```bash
-# Install runtime dependencies
-pip install -r requirements.txt
+The Makefile handles virtual environment creation and dependency installation:
 
-# Install development dependencies
-pip install -r requirements-dev.txt
+```bash
+make install
 ```
 
-**Runtime Dependencies (requirements.txt):**
+This creates a `.venv` virtual environment and installs all runtime and
+development dependencies from `requirements.txt` and `requirements-dev.txt`.
 
-| Package    | Version | Purpose                  |
-| ---------- | ------- | ------------------------ |
-| paho-mqtt  | 2.1.0   | MQTT client              |
-| requests   | 2.32.5  | HTTP client for Ollama   |
-| numpy      | 2.4.2   | Numerical computation    |
-| jsonschema | 4.26.0  | Configuration validation |
-| click      | 8.3.1   | CLI framework            |
+After installation, activate the virtual environment by following the
+instructions provided in output.
 
-### Step 3: Start Dependencies with Docker
+### Step 3: Run the Application
 
 ```bash
-# Start only MQTT broker and Ollama
-docker compose up -d mosquitto ollama
-
-# Or use Makefile
-make dev-deps
-```
-
-### Step 4: Run the Application
-
-```bash
-# Using CLI
-python -m src.interfaces.cli start
-
-# Or use the entry point
+# Using the CLI command (requires Step 2)
 iot-fuzzy-llm start
+
+# Or using Python module directly
+python -m src.interfaces.cli start
 ```
 
 ### Development Workflow
+
+All development commands are available through the Makefile:
 
 ```bash
 # Run tests
 make test
 
+# Run unit tests only
+make test-unit
+
+# Run integration tests only
+make test-int
+
 # Run with coverage
 make coverage
 
-# Run linters
+# Generate HTML coverage report
+make coverage-html
+
+# Run linters (ruff + mypy)
 make lint
 
 # Format code
 make format
 
-# Type checking
+# Type checking only
 make typecheck
 
-# All checks
+# All checks (lint + test)
 make check
+
+# Clean build artifacts
+make clean
 ```
 
 ______________________________________________________________________
@@ -254,6 +239,9 @@ source .venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
+
+# Install the CLI (required to use 'iot-fuzzy-llm' command)
+pip install -e .
 ```
 
 ### Step 2: Install Mosquitto MQTT Broker
@@ -421,16 +409,17 @@ ______________________________________________________________________
 
 ```bash
 # Check container status
-docker compose ps
+make ps
 
 # View container logs
+make logs
+
+# Or view specific service logs
 docker compose logs mosquitto
 docker compose logs ollama
-docker compose logs app
 
 # Restart services
-docker compose down
-docker compose up -d
+make restart
 ```
 
 **Port conflicts:**

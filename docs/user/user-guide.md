@@ -605,17 +605,8 @@ The planned web interface is a **Streamlit-based browser dashboard** that
 operates **in parallel with the CLI** — it is an additional interface, not a
 replacement. Both interfaces will be supported simultaneously.
 
-**To start the web interface (once available):**
-
-```bash
-# Start the web interface
-streamlit run src/interfaces/web_ui.py
-
-# Or via the CLI
-iot-fuzzy-llm web start
-```
-
-The dashboard will be accessible at `http://localhost:8501` by default.
+The dashboard will be accessible at `http://localhost:8501` by default (once
+available).
 
 ### 11.2 Real-Time Monitoring [PLANNED]
 

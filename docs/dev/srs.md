@@ -48,7 +48,6 @@ The thesis prototype implements the following core requirements:
 The following features are documented for extensibility but are **not required**
 for thesis evaluation:
 
-- Web-based user interface (UI-MODE-002) — **moved to MVP [PLANNED]**
 - REST API interface (UI-MODE-003)
 - HTTP REST and serial device protocols (FR-DC-004 partial)
 - Multi-node distributed deployment

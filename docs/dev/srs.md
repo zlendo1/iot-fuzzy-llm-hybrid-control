@@ -33,22 +33,22 @@ on edge devices without external network dependencies.
 
 The thesis prototype implements the following core requirements:
 
-| Category         | MVP Features                                                       |
-| ---------------- | ------------------------------------------------------------------ |
-| Fuzzy Logic      | JSON-based membership functions, linguistic variables              |
-| LLM Integration  | Ollama-based offline inference (lightweight edge models, CPU-only) |
-| Rule Processing  | Free-form natural language rules, LLM interpretation               |
-| Device Interface | MQTT communication via Mosquitto broker                            |
-| User Interface   | Command-line interface for rule management                         |
-| Deployment       | Docker Compose containerization for edge devices                   |
-| Demonstration    | Smart home automation scenario                                     |
+| Category         | MVP Features                                                        |
+| ---------------- | ------------------------------------------------------------------- |
+| Fuzzy Logic      | JSON-based membership functions, linguistic variables               |
+| LLM Integration  | Ollama-based offline inference (lightweight edge models, CPU-only)  |
+| Rule Processing  | Free-form natural language rules, LLM interpretation                |
+| Device Interface | MQTT communication via Mosquitto broker                             |
+| User Interface   | Command-line interface for rule management; web interface [PLANNED] |
+| Deployment       | Docker Compose containerization for edge devices                    |
+| Demonstration    | Smart home automation scenario                                      |
 
 ### 1.2.2 Out of Scope (Future Work)
 
 The following features are documented for extensibility but are **not required**
 for thesis evaluation:
 
-- Web-based user interface (UI-MODE-002)
+- Web-based user interface (UI-MODE-002) — **moved to MVP [PLANNED]**
 - REST API interface (UI-MODE-003)
 - HTTP REST and serial device protocols (FR-DC-004 partial)
 - Multi-node distributed deployment
@@ -457,6 +457,49 @@ debugging purposes.
 **Input:** Executed commands\
 **Output:** Persistent command log\
 **Rationale:** Troubleshooting and system analysis
+
+#### FR-DC-008: Payload Format Customization [PLANNED]
+
+> **⚠️ BREAKING CHANGE** — This requirement introduces a breaking change to
+> device configuration. Existing `devices.json` configurations will require
+> migration. See the migration guide in
+> [docs/user/configuration-guide.md](../user/configuration-guide.md).
+
+The system shall allow users to define custom JSON payload schemas per device,
+replacing the current fixed payload format. Each device entry shall support a
+`payload_schema` field specifying expected field names and value types for both
+incoming sensor readings and outgoing actuator commands.
+
+**Priority:** High\
+**Input:** Per-device `payload_schema` configuration\
+**Output:** Correct parsing and construction of device-specific MQTT payloads\
+**Rationale:** Enables interoperability with third-party IoT devices that use
+non-standard payload formats without requiring code changes
+
+#### FR-DC-009: Topic Pattern Customization [PLANNED]
+
+The system shall allow users to define custom MQTT topic patterns per device in
+`devices.json`, replacing the current hardcoded topic convention. Users shall be
+able to specify arbitrary topic hierarchies that match their existing MQTT
+broker setup.
+
+**Priority:** High\
+**Input:** Per-device topic pattern configuration\
+**Output:** MQTT subscriptions and publications using the configured patterns\
+**Rationale:** Enables integration with pre-existing IoT infrastructure that
+uses custom topic hierarchies
+
+#### FR-DC-010: Configuration Migration Support [PLANNED]
+
+The system shall provide a migration utility or documented process for updating
+existing `devices.json` configurations to the new payload schema and topic
+pattern format introduced by FR-DC-008 and FR-DC-009.
+
+**Priority:** High\
+**Input:** Existing `devices.json` in legacy format\
+**Output:** Updated `devices.json` compatible with the new format\
+**Rationale:** Backwards compatibility path for existing deployments during the
+breaking change transition
 
 ### 3.5 Configuration Management
 
@@ -915,10 +958,10 @@ management.
 - Configuration validation
 - Log viewing
 
-#### UI-MODE-002: Web Interface (Optional — Future Work)
+#### UI-MODE-002: Web Interface [PLANNED]
 
-An optional web-based interface for user-friendly rule management and system
-monitoring. **Not required for thesis evaluation.**
+A planned web-based interface for user-friendly rule management and system
+monitoring. **Moved to MVP scope — not yet implemented.**
 
 **Capabilities:**
 
@@ -926,6 +969,9 @@ monitoring. **Not required for thesis evaluation.**
 - Real-time sensor status display
 - Rule execution history
 - Device status visualization
+- Direct JSON configuration editing in-browser
+- Visual membership function editor (drag-point graph interface)
+- Log viewing and filtering
 
 #### UI-MODE-003: API Interface (Optional — Future Work)
 
@@ -962,6 +1008,10 @@ ______________________________________________________________________
 - FR-CM-001: JSON Schema Definition
 - FR-CM-002: Configuration File Loading
 - FR-UI-001: Rule Definition Interface (CLI)
+- UI-MODE-002: Web Interface [PLANNED]
+- FR-DC-008: Payload Format Customization [PLANNED]
+- FR-DC-009: Topic Pattern Customization [PLANNED]
+- FR-DC-010: Configuration Migration Support [PLANNED]
 
 ### 8.2 Medium Priority (Important for Usability — Thesis Scope)
 
@@ -987,7 +1037,6 @@ ______________________________________________________________________
 - FR-DC-007: Command Logging
 - FR-CM-004: Default Configurations
 - FR-UI-004: Configuration Interface
-- UI-MODE-002: Web Interface
 - UI-MODE-003: REST API Interface
 
 ______________________________________________________________________

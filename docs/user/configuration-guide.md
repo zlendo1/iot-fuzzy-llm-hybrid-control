@@ -19,6 +19,8 @@ ______________________________________________________________________
 5. [Membership Functions](#5-membership-functions)
 6. [Environment Variables](#6-environment-variables)
 7. [Runtime Configuration](#7-runtime-configuration)
+8. [Planned MQTT Flexibility [PLANNED]](#8-planned-mqtt-flexibility-planned)
+9. [Device Management Guide](#9-device-management-guide)
 
 ______________________________________________________________________
 
@@ -557,3 +559,239 @@ ______________________________________________________________________
 - [User Guide](user-guide.md) - CLI usage instructions
 - [Installation Guide](installation-guide.md) - Installation instructions
 - [Example Rules](example-rules.md) - Natural language rule examples
+
+______________________________________________________________________
+
+## 8. Planned MQTT Flexibility [PLANNED]
+
+> **⚠️ BREAKING CHANGE** — The features described in this section are **not yet
+> implemented**. When implemented, they will require migration of existing
+> `devices.json` configurations. Follow the migration guide in
+> [Section 8.3](#83-migration-guide-planned) before upgrading.
+>
+> See
+> [Architecture Design Document](../dev/add.md#111-mqtt-flexibility-architecture-planned)
+> and [SRS requirements FR-DC-008/009/010](../dev/srs.md) for design details.
+
+### 8.1 MQTT Payload Format Customization [PLANNED]
+
+Currently, the system assumes a fixed JSON payload format for sensor readings
+and actuator commands. The planned payload format customization feature will
+allow you to specify a custom JSON schema per device, enabling integration with
+third-party IoT devices that publish data in non-standard formats.
+
+When implemented, each device entry in `devices.json` will support a
+`payload_schema` field:
+
+```json
+{
+  "id": "living_room_temp",
+  "type": "sensor",
+  "mqtt": {
+    "topic": "home/living_room/temperature",
+    "qos": 1,
+    "payload_schema": {
+      "value_field": "temperature",
+      "unit_field": "unit",
+      "timestamp_field": "ts"
+    }
+  }
+}
+```
+
+This tells the system which JSON fields to read from incoming MQTT messages,
+rather than relying on fixed field names.
+
+### 8.2 MQTT Topic Pattern Customization [PLANNED]
+
+Currently, MQTT topics are specified directly per device in `devices.json`. The
+planned topic pattern customization feature will allow defining reusable topic
+patterns at the system level, which individual devices can reference.
+
+When implemented, you will be able to define custom topic templates in
+`mqtt_config.json`:
+
+```json
+{
+  "topic_patterns": {
+    "default_sensor": "{location}/{room}/{device_class}",
+    "default_actuator": "{location}/{room}/{device_class}/set"
+  }
+}
+```
+
+And reference them in device definitions:
+
+```json
+{
+  "id": "living_room_temp",
+  "type": "sensor",
+  "mqtt": {
+    "topic_pattern": "default_sensor",
+    "pattern_vars": {
+      "location": "home",
+      "room": "living_room",
+      "device_class": "temperature"
+    }
+  }
+}
+```
+
+### 8.3 Migration Guide [PLANNED]
+
+> This migration guide applies when upgrading from the current fixed-format MQTT
+> implementation to the new flexible format. **No migration is needed today** —
+> this guide will be required when the feature is released.
+
+#### What Changes
+
+The MQTT flexibility update is a **BREAKING CHANGE**. The following will change:
+
+| Aspect           | Current (Fixed Format)    | New (Flexible Format)                      |
+| ---------------- | ------------------------- | ------------------------------------------ |
+| Sensor payload   | Fixed field names assumed | `payload_schema` field required per device |
+| Topic structure  | Hardcoded in `mqtt.topic` | Can use patterns from `mqtt_config.json`   |
+| Actuator payload | Fixed command format      | `payload_schema` defines command fields    |
+
+#### Migration Steps
+
+1. **Back up your configuration:**
+
+   ```bash
+   cp config/devices.json config/devices.json.pre-migration-backup
+   cp config/mqtt_config.json config/mqtt_config.json.pre-migration-backup
+   ```
+
+2. **Add `payload_schema` to each sensor device** — specify which JSON field in
+   the MQTT message contains the sensor value, unit, and timestamp.
+
+3. **Add `payload_schema` to each actuator device** — specify the field names
+   for command type and value.
+
+4. **Verify your configuration:**
+
+   ```bash
+   python -m json.tool config/devices.json
+   iot-fuzzy-llm config validate
+   ```
+
+5. **Test with a single device** before migrating the full configuration.
+
+#### Help
+
+If you encounter issues during migration, consult the
+[Demo Troubleshooting Guide](demo-troubleshooting.md) or review the schema
+documentation in [Schema Reference](schema-reference.md).
+
+______________________________________________________________________
+
+## 9. Device Management Guide
+
+### 9.1 Adding a New Device
+
+**Step 1:** Open `config/devices.json` in your editor.
+
+**Step 2:** Add a new entry to the `"devices"` array. Use the appropriate
+template for your device type:
+
+**For a sensor:**
+
+```json
+{
+  "id": "my_new_sensor",
+  "name": "My New Sensor",
+  "type": "sensor",
+  "device_class": "temperature",
+  "location": "My Room",
+  "unit": "celsius",
+  "value_type": "float",
+  "mqtt": {
+    "topic": "home/my_room/temperature",
+    "qos": 1
+  },
+  "constraints": {
+    "min": -10.0,
+    "max": 50.0
+  }
+}
+```
+
+**For an actuator:**
+
+```json
+{
+  "id": "my_new_actuator",
+  "name": "My New Actuator",
+  "type": "actuator",
+  "device_class": "switch",
+  "location": "My Room",
+  "capabilities": ["turn_on", "turn_off"],
+  "mqtt": {
+    "topic": "home/my_room/switch/status",
+    "command_topic": "home/my_room/switch/set",
+    "qos": 1
+  }
+}
+```
+
+**Step 3:** Validate and reload:
+
+```bash
+python -m json.tool config/devices.json
+iot-fuzzy-llm config validate
+iot-fuzzy-llm config reload
+```
+
+**Step 4:** If adding a sensor, create the matching membership functions file:
+
+```bash
+# Create config/membership_functions/my_device_class.json
+# See Section 5 (Membership Functions) for the format
+```
+
+**Step 5:** Verify the device is registered:
+
+```bash
+iot-fuzzy-llm device list
+```
+
+### 9.2 Removing a Device
+
+**Step 1:** Check if any rules reference the device:
+
+```bash
+iot-fuzzy-llm rule list | grep "my_device_id"
+```
+
+**Step 2:** Remove or update any dependent rules:
+
+```bash
+iot-fuzzy-llm rule remove <rule-id>
+```
+
+**Step 3:** Remove the device entry from `config/devices.json`.
+
+**Step 4:** Reload the configuration:
+
+```bash
+iot-fuzzy-llm config reload
+```
+
+**Step 5:** Confirm removal:
+
+```bash
+iot-fuzzy-llm device list
+```
+
+### 9.3 Changing Device Configuration
+
+To update a device (e.g., change its MQTT topic or constraints):
+
+1. Edit `config/devices.json` directly
+2. Run `iot-fuzzy-llm config validate` to check for errors
+3. Run `iot-fuzzy-llm config reload` to apply without restart
+4. Verify with `iot-fuzzy-llm device list --verbose`
+
+> **Note:** Automatic backups are created before each configuration change. See
+> [Section 7: Runtime Configuration](#7-runtime-configuration) for recovery
+> instructions.

@@ -23,6 +23,8 @@ ______________________________________________________________________
   - [FuzzificationResult](#fuzzificationresult)
 - [Device Interface Layer](#device-interface-layer)
   - [DeviceRegistry](#deviceregistry)
+- [Web Interface Layer [PLANNED]](#web-interface-layer-planned)
+  - [Planned Components](#planned-components-planned)
 
 ______________________________________________________________________
 
@@ -779,3 +781,60 @@ ______________________________________________________________________
 - [User Guide](user-guide.md) - CLI usage and workflows
 - [Configuration Guide](configuration-guide.md) - Configuration options
 - [Schema Reference](schema-reference.md) - JSON schema documentation
+
+______________________________________________________________________
+
+## Web Interface Layer [PLANNED]
+
+> **API documentation pending implementation.**
+>
+> The Streamlit-based Web Interface is a planned feature (UI-MODE-002 in
+> [docs/dev/srs.md](../dev/srs.md)). No public Python API exists yet for this
+> layer — it will be documented here when the implementation is complete.
+>
+> See [docs/dev/add.md Section 3.3.5](../dev/add.md) for architecture design and
+> [User Guide Section 11](user-guide.md#11-web-interface-planned) for planned
+> user-facing functionality.
+
+### Planned Components [PLANNED]
+
+The following component areas are planned for the Web Interface Layer. API
+details will be added when implementation is available.
+
+#### StreamlitDashboard [PLANNED]
+
+Main application entry point for the Streamlit web interface.
+
+- **Pending implementation** — API documentation not yet available.
+
+#### MonitoringPanel [PLANNED]
+
+Real-time monitoring dashboard for sensor readings, rule evaluations, device
+commands, and system health.
+
+- **Pending implementation** — API documentation not yet available.
+
+#### RuleManagementPanel [PLANNED]
+
+Interface for viewing, adding, editing, and enabling/disabling natural language
+rules.
+
+- **Pending implementation** — API documentation not yet available.
+
+#### ConfigurationEditor [PLANNED]
+
+In-browser JSON configuration editor with schema validation and reload support.
+
+- **Pending implementation** — API documentation not yet available.
+
+#### MembershipFunctionEditor [PLANNED]
+
+Visual drag-point graph editor for adjusting fuzzy membership functions.
+
+- **Pending implementation** — API documentation not yet available.
+
+#### LogViewer [PLANNED]
+
+Live log streaming panel with filtering and search capabilities.
+
+- **Pending implementation** — API documentation not yet available.

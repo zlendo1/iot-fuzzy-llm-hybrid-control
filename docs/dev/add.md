@@ -54,19 +54,19 @@ This architecture document describes both the thesis prototype (MVP) and
 potential future extensions. The following table clarifies which components are
 required for thesis evaluation:
 
-| Component                 | Thesis MVP | Future Work |
-| ------------------------- | :--------: | :---------: |
-| Fuzzy Logic Module        |     X      |             |
-| Ollama LLM Integration    |     X      |             |
-| MQTT Device Communication |     X      |             |
-| Command-Line Interface    |     X      |             |
-| JSON Configuration        |     X      |             |
-| Smart Home Demo Scenario  |     X      |             |
-| Docker Containerization   |     X      |             |
-| Web-Based User Interface  |            |      X      |
-| REST API Interface        |            |      X      |
-| Multi-Protocol Support    |            |      X      |
-| Distributed Deployment    |            |      X      |
+| Component                 | Thesis MVP  | Future Work |
+| ------------------------- | :---------: | :---------: |
+| Fuzzy Logic Module        |      X      |             |
+| Ollama LLM Integration    |      X      |             |
+| MQTT Device Communication |      X      |             |
+| Command-Line Interface    |      X      |             |
+| JSON Configuration        |      X      |             |
+| Smart Home Demo Scenario  |      X      |             |
+| Docker Containerization   |      X      |             |
+| Web-Based User Interface  | X [PLANNED] |             |
+| REST API Interface        |             |      X      |
+| Multi-Protocol Support    |             |      X      |
+| Distributed Deployment    |             |      X      |
 
 **Performance targets for thesis prototype:**
 
@@ -261,9 +261,15 @@ initialization, runtime, and shutdown across all layers.
 
 - **CLI Interface (MVP)** — Primary interaction tool for system administration,
   rule management, and status monitoring. Required for thesis evaluation.
-- **Web UI (Future Work)** — Browser-based interface providing visual rule
-  editing, real-time sensor status, and execution history. Not required for
-  thesis.
+- **Streamlit Web UI [PLANNED]** — Browser-based dashboard that operates **in
+  parallel with the CLI** in the User Interface Layer (not a replacement).
+  Planned features include: real-time monitoring of sensor readings, rule
+  evaluations, device commands, and system health; a system control panel for
+  start/stop and configuration management; rule management (add, edit,
+  enable/disable rules); direct JSON configuration editing in-browser; a visual
+  membership function editor with a drag-point graph interface for adjusting
+  fuzzy sets without editing JSON; and log viewing with filtering. Not yet
+  implemented — see [new-additions.md](new-additions.md) for roadmap.
 - **REST API (Future Work)** — HTTP API for programmatic system access and
   third-party integration. Not required for thesis.
 
@@ -820,7 +826,7 @@ ______________________________________________________________________
 | HTTP Client | requests               | REST communication with Ollama API.                   |
 | Numerical   | NumPy                  | Vectorized membership function computation.           |
 | Validation  | jsonschema             | JSON configuration schema validation.                 |
-| Web UI      | Flask (optional)       | Lightweight HTTP server for web interface.            |
+| Web UI      | Streamlit [PLANNED]    | Browser-based dashboard for monitoring and control.   |
 | Testing     | pytest                 | Unit and integration testing framework.               |
 
 ### Appendix B: Ollama API Reference
@@ -858,3 +864,47 @@ The system uses the following topic hierarchy for device communication.
 | Observer             | Event bus notifies components of state changes (e.g., sensor updates triggering rule evaluation) without tight coupling. |
 | Builder              | Linguistic Descriptor Builder assembles complex description strings from structured fuzzy logic output.                  |
 | Singleton            | Configuration Manager and Logging Manager maintain single instances accessible system-wide.                              |
+
+______________________________________________________________________
+
+## 11. Planned Extensions
+
+### 11.1 MQTT Flexibility Architecture [PLANNED]
+
+> **⚠️ BREAKING CHANGE** — The features described in this section will require
+> migration of existing `devices.json` configurations. A migration guide will be
+> provided in
+> [docs/user/configuration-guide.md](../user/configuration-guide.md).
+
+The current MQTT implementation uses a fixed payload format and a conventional
+topic hierarchy (see Appendix C). The planned MQTT Flexibility refactor will
+allow users to fully customize both the payload schema and the topic pattern per
+device, removing the dependency on hardcoded conventions.
+
+#### 11.1.1 Payload Format Customization
+
+Each device entry in `devices.json` will support a `payload_schema` field that
+specifies the expected JSON field names and value types for incoming sensor
+readings and outgoing actuator commands. This allows the system to interoperate
+with third-party IoT devices that publish data in non-standard formats, without
+requiring any code changes.
+
+The MQTT Client and Device Registry will be extended to use these per-device
+schemas when parsing incoming messages and when constructing outgoing command
+payloads.
+
+#### 11.1.2 Topic Pattern Customization
+
+The current hardcoded topic convention (`home/{zone}/{sensor_type}`) will be
+replaced with a user-defined topic pattern per device, also configured in
+`devices.json`. Users will be able to define arbitrary topic hierarchies that
+match their existing MQTT broker setup, enabling integration with pre-existing
+IoT infrastructure.
+
+#### 11.1.3 Migration Note
+
+Existing `devices.json` files that rely on the implicit topic convention and
+fixed payload format **will not be compatible** with this change and will
+require explicit topic and payload schema fields to be added per device. The
+migration guide in the configuration documentation will provide step-by-step
+instructions and examples for updating existing configurations.

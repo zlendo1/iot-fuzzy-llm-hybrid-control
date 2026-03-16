@@ -1,12 +1,27 @@
-# New Additions 13/03/2026
+# New Additions — 13 March 2026
+
+Two planned features added to the thesis scope. Details in the documents linked
+below.
 
 ______________________________________________________________________
 
-1. Web user interface (Streamlit UI)
-   1. Giving real-time info for existing system
-   2. Edit configuration for devices, sensors, etc (as in CLI) (including fuzzy
-      functions and LLM prompt)
-2. Refactor sensor/actuator interraction with system
-   1. Make it easier to change the form it takes in MQTT
-   2. Add documentation on how to add or remove devices and how to change their
-      configuration
+## Features
+
+### 1. Streamlit Web UI [PLANNED]
+
+Browser-based dashboard running **in parallel with the CLI**.
+
+- **Architecture**: [add.md — Section 3.3.5](add.md)
+- **Requirements**: [srs.md — UI-MODE-002](srs.md)
+- **Usage guide**: [user/user-guide.md — Section 11](../user/user-guide.md)
+- **API reference**:
+  [user/api-reference.md — Web Interface Layer](../user/api-reference.md)
+
+### 2. MQTT Flexibility Refactor [PLANNED — BREAKING CHANGE]
+
+Custom payload schemas and topic patterns per device.
+
+- **Architecture**: [add.md — Section 11.1](add.md)
+- **Requirements**: [srs.md — FR-DC-008, FR-DC-009, FR-DC-010](srs.md)
+- **Migration guide**:
+  [user/configuration-guide.md — Section 8](../user/configuration-guide.md)

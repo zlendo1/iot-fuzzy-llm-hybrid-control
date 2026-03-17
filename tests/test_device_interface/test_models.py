@@ -149,3 +149,123 @@ def test_device_is_frozen() -> None:
 
     with pytest.raises(AttributeError):
         sensor.id = "new_id"  # type: ignore[misc]
+
+
+# PayloadSchema tests
+@pytest.mark.unit
+def test_payload_schema_default() -> None:
+    from src.device_interface.models import PayloadSchema
+
+    schema = PayloadSchema.default()
+
+    assert schema.value_field == "value"
+    assert schema.timestamp_field is None
+    assert schema.unit_field is None
+
+
+@pytest.mark.unit
+def test_payload_schema_custom_fields() -> None:
+    from src.device_interface.models import PayloadSchema
+
+    schema = PayloadSchema(
+        value_field="reading",
+        timestamp_field="ts",
+        unit_field="unit",
+    )
+
+    assert schema.value_field == "reading"
+    assert schema.timestamp_field == "ts"
+    assert schema.unit_field == "unit"
+
+
+@pytest.mark.unit
+def test_payload_schema_empty_value_field_raises_validation_error() -> None:
+    from src.common.exceptions import ValidationError
+    from src.device_interface.models import PayloadSchema
+
+    with pytest.raises(ValidationError):
+        PayloadSchema(value_field="", timestamp_field=None, unit_field=None)
+
+
+@pytest.mark.unit
+def test_payload_schema_is_frozen() -> None:
+    from src.device_interface.models import PayloadSchema
+
+    schema = PayloadSchema.default()
+
+    with pytest.raises(AttributeError):
+        schema.value_field = "new_value"  # type: ignore[misc]
+
+
+# TopicPattern tests
+@pytest.mark.unit
+def test_topic_pattern_valid() -> None:
+    from src.device_interface.models import TopicPattern
+
+    pattern = TopicPattern(
+        pattern="home/{zone}/{device}",
+        variables=("zone", "device"),
+    )
+
+    assert pattern.pattern == "home/{zone}/{device}"
+    assert pattern.variables == ("zone", "device")
+
+
+@pytest.mark.unit
+def test_topic_pattern_single_variable() -> None:
+    from src.device_interface.models import TopicPattern
+
+    pattern = TopicPattern(
+        pattern="devices/{id}/status",
+        variables=("id",),
+    )
+
+    assert pattern.pattern == "devices/{id}/status"
+    assert pattern.variables == ("id",)
+
+
+@pytest.mark.unit
+def test_topic_pattern_no_variables() -> None:
+    from src.device_interface.models import TopicPattern
+
+    pattern = TopicPattern(
+        pattern="global/status",
+        variables=(),
+    )
+
+    assert pattern.pattern == "global/status"
+    assert pattern.variables == ()
+
+
+@pytest.mark.unit
+def test_topic_pattern_missing_variable_in_pattern_raises_validation_error() -> None:
+    from src.common.exceptions import ValidationError
+    from src.device_interface.models import TopicPattern
+
+    with pytest.raises(ValidationError):
+        TopicPattern(
+            pattern="home/{zone}/status",
+            variables=("zone", "device"),
+        )
+
+
+@pytest.mark.unit
+def test_topic_pattern_is_frozen() -> None:
+    from src.device_interface.models import TopicPattern
+
+    pattern = TopicPattern(
+        pattern="home/{zone}/{device}",
+        variables=("zone", "device"),
+    )
+
+    with pytest.raises(AttributeError):
+        pattern.pattern = "new/pattern"  # type: ignore[misc]
+
+
+# LEGACY_VALUE_FIELDS constant tests
+@pytest.mark.unit
+def test_legacy_value_fields_constant() -> None:
+    from src.device_interface.models import LEGACY_VALUE_FIELDS
+
+    assert LEGACY_VALUE_FIELDS == ["value", "reading", "v"]
+    assert isinstance(LEGACY_VALUE_FIELDS, list)

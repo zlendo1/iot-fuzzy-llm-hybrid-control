@@ -7,17 +7,18 @@ ______________________________________________________________________
 
 ## Features
 
-### 1. Streamlit Web UI [PLANNED]
+### 1. Streamlit Web UI
 
 Browser-based dashboard running **in parallel with the CLI**.
 
 - **Architecture**: [add.md — Section 3.3.5](add.md)
 - **Requirements**: [srs.md — UI-MODE-002](srs.md)
 - **Usage guide**: [user/user-guide.md — Section 11](../user/user-guide.md)
+- **Full documentation**: [user/web-ui-guide.md](../user/web-ui-guide.md)
 - **API reference**:
   [user/api-reference.md — Web Interface Layer](../user/api-reference.md)
 
-### 2. MQTT Flexibility Refactor [PLANNED — BREAKING CHANGE]
+### 2. MQTT Flexibility Refactor
 
 Custom payload schemas and topic patterns per device.
 
@@ -25,3 +26,5 @@ Custom payload schemas and topic patterns per device.
 - **Requirements**: [srs.md — FR-DC-008, FR-DC-009, FR-DC-010](srs.md)
 - **Migration guide**:
   [user/configuration-guide.md — Section 8](../user/configuration-guide.md)
+- **Full documentation**:
+  [user/mqtt-flexibility-guide.md](../user/mqtt-flexibility-guide.md)

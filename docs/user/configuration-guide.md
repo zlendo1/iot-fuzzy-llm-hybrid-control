@@ -19,7 +19,7 @@ ______________________________________________________________________
 5. [Membership Functions](#5-membership-functions)
 6. [Environment Variables](#6-environment-variables)
 7. [Runtime Configuration](#7-runtime-configuration)
-8. [Planned MQTT Flexibility [PLANNED]](#8-planned-mqtt-flexibility-planned)
+8. [MQTT Flexibility](#8-mqtt-flexibility)
 9. [Device Management Guide](#9-device-management-guide)
 
 ______________________________________________________________________
@@ -562,26 +562,29 @@ ______________________________________________________________________
 
 ______________________________________________________________________
 
-## 8. Planned MQTT Flexibility [PLANNED]
+## 8. MQTT Flexibility
 
-> **⚠️ BREAKING CHANGE** — The features described in this section are **not yet
-> implemented**. When implemented, they will require migration of existing
-> `devices.json` configurations. Follow the migration guide in
-> [Section 8.3](#83-migration-guide-planned) before upgrading.
+> See [MQTT Flexibility Guide](mqtt-flexibility-guide.md) for full
+> documentation.
+
+The MQTT Flexibility features allow you to customize payload schemas and topic
+patterns per device, enabling integration with third-party IoT devices and
+pre-existing MQTT infrastructure.
+
+> **⚠️ BREAKING CHANGE** — If upgrading from a pre-flexibility configuration,
+> existing `devices.json` configurations will require migration. Follow the
+> migration guide in [Section 8.3](#83-migration-guide) before upgrading.
 >
 > See
-> [Architecture Design Document](../dev/add.md#111-mqtt-flexibility-architecture-planned)
+> [Architecture Design Document](../dev/add.md#111-mqtt-flexibility-architecture)
 > and [SRS requirements FR-DC-008/009/010](../dev/srs.md) for design details.
 
-### 8.1 MQTT Payload Format Customization [PLANNED]
+### 8.1 MQTT Payload Format Customization
 
-Currently, the system assumes a fixed JSON payload format for sensor readings
-and actuator commands. The planned payload format customization feature will
-allow you to specify a custom JSON schema per device, enabling integration with
-third-party IoT devices that publish data in non-standard formats.
-
-When implemented, each device entry in `devices.json` will support a
-`payload_schema` field:
+Each device entry in `devices.json` supports a `payload_schema` field that
+specifies the expected JSON field names and value types for incoming sensor
+readings and outgoing actuator commands. This allows the system to interoperate
+with third-party IoT devices that publish data in non-standard formats.
 
 ```json
 {
@@ -602,14 +605,13 @@ When implemented, each device entry in `devices.json` will support a
 This tells the system which JSON fields to read from incoming MQTT messages,
 rather than relying on fixed field names.
 
-### 8.2 MQTT Topic Pattern Customization [PLANNED]
+### 8.2 MQTT Topic Pattern Customization
 
-Currently, MQTT topics are specified directly per device in `devices.json`. The
-planned topic pattern customization feature will allow defining reusable topic
-patterns at the system level, which individual devices can reference.
+MQTT topics can be specified directly per device in `devices.json`, or you can
+define reusable topic patterns at the system level which individual devices
+reference.
 
-When implemented, you will be able to define custom topic templates in
-`mqtt_config.json`:
+Define custom topic templates in `mqtt_config.json`:
 
 ```json
 {
@@ -637,11 +639,15 @@ And reference them in device definitions:
 }
 ```
 
-### 8.3 Migration Guide [PLANNED]
+### 8.3 Migration Guide
 
-> This migration guide applies when upgrading from the current fixed-format MQTT
-> implementation to the new flexible format. **No migration is needed today** —
-> this guide will be required when the feature is released.
+> This migration guide applies when upgrading from a pre-flexibility
+> `devices.json` configuration to the new flexible format. Run the automated
+> migration command:
+>
+> ```bash
+> python -m src.interfaces config migrate
+> ```
 
 #### What Changes
 

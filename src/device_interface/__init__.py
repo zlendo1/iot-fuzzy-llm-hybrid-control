@@ -23,7 +23,9 @@ from src.device_interface.models import (
     ValueType,
 )
 from src.device_interface.mqtt_client import MQTTClient, MQTTClientConfig
+from src.device_interface.payload_formatter import PayloadFormatter
 from src.device_interface.registry import DeviceRegistry
+from src.device_interface.topic_resolver import TopicPatternResolver
 
 __all__ = [
     "Actuator",
@@ -41,8 +43,10 @@ __all__ = [
     "MQTTClientConfig",
     "MQTTCommunicationManager",
     "MQTTConfig",
+    "PayloadFormatter",
     "ReadingQuality",
     "Sensor",
     "SensorReading",
+    "TopicPatternResolver",
     "ValueType",
 ]

@@ -22,7 +22,7 @@ ______________________________________________________________________
 08. [Log Viewing](#8-log-viewing)
 09. [Common Workflows](#9-common-workflows)
 10. [Output Formats](#10-output-formats)
-11. [Web Interface [PLANNED]](#11-web-interface-planned)
+11. [Web Interface](#11-web-interface)
 
 ______________________________________________________________________
 
@@ -590,27 +590,34 @@ ______________________________________________________________________
 
 ______________________________________________________________________
 
-## 11. Web Interface [PLANNED]
+## 11. Web Interface
 
-> **This section describes a planned feature that is not yet implemented.** The
-> Streamlit-based web interface is scheduled for a future release. The
-> command-line interface (Sections 1–10) remains the primary interaction method.
->
-> See [docs/dev/add.md Section 3.3.5](../dev/add.md) for architecture details
-> and [docs/dev/srs.md UI-MODE-002](../dev/srs.md) for requirements.
+> See [Web UI Guide](web-ui-guide.md) for full documentation.
+
+The web interface is a **Streamlit-based browser dashboard** that operates **in
+parallel with the CLI** — it is an additional interface, not a replacement. Both
+interfaces are supported simultaneously.
+
+The dashboard is accessible at `http://localhost:8501` by default.
 
 ### 11.1 Overview
 
-The planned web interface is a **Streamlit-based browser dashboard** that
-operates **in parallel with the CLI** — it is an additional interface, not a
-replacement. Both interfaces will be supported simultaneously.
+Launch the web interface with:
 
-The dashboard will be accessible at `http://localhost:8501` by default (once
-available).
+```bash
+streamlit run src/interfaces/web/streamlit_app.py
+```
 
-### 11.2 Real-Time Monitoring [PLANNED]
+Or, when using Docker:
 
-The monitoring dashboard will display live updates for:
+```bash
+docker compose up -d
+# Web UI available at http://localhost:8501
+```
+
+### 11.2 Real-Time Monitoring
+
+The monitoring dashboard displays live updates for:
 
 - **Sensor Readings** — Current values and fuzzy membership scores for all
   configured sensors, updated in real time as MQTT messages arrive.
@@ -621,18 +628,18 @@ The monitoring dashboard will display live updates for:
 - **System Health** — Connection status for MQTT broker and Ollama service,
   memory usage, and processing latency.
 
-### 11.3 System Control [PLANNED]
+### 11.3 System Control
 
-The control panel will allow you to:
+The control panel allows you to:
 
 - Start and stop the IoT management system
 - Trigger manual rule evaluation cycles
 - Reload configuration without restarting
 - View and manage active MQTT subscriptions
 
-### 11.4 Rule Management [PLANNED]
+### 11.4 Rule Management
 
-The rule management interface will provide:
+The rule management interface provides:
 
 - A table view of all rules (enabled/disabled status, creation date, last
   triggered)
@@ -640,9 +647,9 @@ The rule management interface will provide:
 - Enable, disable, or delete existing rules with one click
 - View the LLM interpretation and action extracted for each rule
 
-### 11.5 Configuration Editing [PLANNED]
+### 11.5 Configuration Editing
 
-The configuration editor will allow **direct JSON editing in-browser**:
+The configuration editor allows **direct JSON editing in-browser**:
 
 - Edit `devices.json`, `mqtt_config.json`, `llm_config.json` in a syntax-
   highlighted JSON editor
@@ -650,9 +657,9 @@ The configuration editor will allow **direct JSON editing in-browser**:
 - One-click configuration reload after saving
 - Revision history with restore capability
 
-### 11.6 Visual Membership Function Editor [PLANNED]
+### 11.6 Visual Membership Function Editor
 
-The membership function editor will provide a **drag-point graph interface** for
+The membership function editor provides a **drag-point graph interface** for
 adjusting fuzzy sets:
 
 - Visual graph showing all linguistic terms for a sensor type (e.g., cold,
@@ -662,9 +669,9 @@ adjusting fuzzy sets:
 - Save changes directly to the membership functions JSON file without manual
   editing
 
-### 11.7 Log Viewing [PLANNED]
+### 11.7 Log Viewing
 
-The log viewer will provide:
+The log viewer provides:
 
 - Live-streaming log output with colour-coded severity levels
 - Filtering by log level (DEBUG, INFO, WARNING, ERROR)

@@ -1,5 +1,5 @@
-.PHONY: help build up down restart logs logs-app ps shell shell-mqtt \
-        install dev dev-deps \
+.PHONY: help build up down restart logs logs-app logs-web ps shell shell-mqtt shell-web \
+        install dev dev-deps dev-web \
         test test-unit test-int coverage coverage-html \
         lint format check typecheck \
         clean clean-docker clean-all reset \
@@ -27,14 +27,17 @@ help:
 	@echo "  make restart        Restart all services"
 	@echo "  make logs           Tail logs from all services"
 	@echo "  make logs-app       Tail logs from app service only"
+	@echo "  make logs-web       Tail logs from web UI service only"
 	@echo "  make ps             Show running containers"
 	@echo "  make shell          Open shell in app container"
 	@echo "  make shell-mqtt     Open shell in mosquitto container"
+	@echo "  make shell-web      Open shell in web UI container"
 	@echo ""
 	@echo "Development Commands:"
 	@echo "  make install        Install Python dependencies locally"
 	@echo "  make dev            Run app locally (outside Docker)"
 	@echo "  make dev-deps       Start only mosquitto and ollama in Docker"
+	@echo "  make dev-web        Run Streamlit web UI locally"
 	@echo ""
 	@echo "Testing Commands:"
 	@echo "  make test           Run all tests"
@@ -86,6 +89,12 @@ shell:
 shell-mqtt:
 	$(DOCKER_COMPOSE) exec mosquitto sh
 
+logs-web:
+	$(DOCKER_COMPOSE) logs -f web
+
+shell-web:
+	$(DOCKER_COMPOSE) exec web bash
+
 
 $(VENV):
 	$(PYTHON) -m venv $(VENV)
@@ -103,6 +112,9 @@ dev: $(VENV)
 
 dev-deps:
 	$(DOCKER_COMPOSE) up -d mosquitto ollama
+
+dev-web: $(VENV)
+	$(VENV_BIN)/streamlit run src/interfaces/web/streamlit_app.py
 
 
 test: $(VENV)

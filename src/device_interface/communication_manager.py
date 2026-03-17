@@ -19,13 +19,14 @@ from src.device_interface.messages import (
     DeviceCommand,
     SensorReading,
 )
-from src.device_interface.models import Actuator, Sensor
+from src.device_interface.models import Actuator, Sensor, TopicPattern
 from src.device_interface.mqtt_client import (
     MessageCallback,
     MQTTClient,
     MQTTClientConfig,
 )
 from src.device_interface.registry import DeviceRegistry
+from src.device_interface.topic_resolver import TopicPatternResolver
 
 logger = get_logger(__name__)
 
@@ -94,6 +95,7 @@ class MQTTCommunicationManager(DeviceInterfaceProtocol):
         self._reading_callbacks: list[SensorReadingCallback] = []
         self._lock = threading.RLock()
         self._started = False
+        self._topic_resolver = TopicPatternResolver()
 
     @property
     def is_started(self) -> bool:
@@ -120,6 +122,15 @@ class MQTTCommunicationManager(DeviceInterfaceProtocol):
         self._registry.load(self._devices_config_file)
 
         mqtt_config_data = self._config_loader.load(self._mqtt_config_file)
+        topic_patterns_data = mqtt_config_data.get("topic_patterns", {})
+        topic_patterns: dict[str, TopicPattern] = {
+            key: TopicPattern(
+                pattern=value["pattern"],
+                variables=tuple(value.get("variables", [])),
+            )
+            for key, value in topic_patterns_data.items()
+        }
+        self._topic_resolver = TopicPatternResolver(topic_patterns or None)
         mqtt_config = MQTTClientConfig.from_dict(mqtt_config_data)
         self._mqtt_client = MQTTClient(mqtt_config)
 
@@ -182,6 +193,11 @@ class MQTTCommunicationManager(DeviceInterfaceProtocol):
             logger.error("No command topic for device %s", command.device_id)
             return False
 
+        mqtt_client = self._mqtt_client
+        if mqtt_client is None:
+            logger.error("MQTT client not initialized")
+            return False
+
         if (
             device.constraints
             and command.value is not None
@@ -195,7 +211,7 @@ class MQTTCommunicationManager(DeviceInterfaceProtocol):
             return False
 
         try:
-            self._mqtt_client.publish(  # type: ignore[union-attr]
+            mqtt_client.publish(
                 device.mqtt.command_topic,
                 command.to_mqtt_payload(),
                 qos=device.mqtt.qos,
@@ -239,12 +255,17 @@ class MQTTCommunicationManager(DeviceInterfaceProtocol):
                 logger.warning("Sensor %s has no MQTT config", sensor.id)
                 continue
 
+            topic = sensor.mqtt.topic
+            if topic is None:
+                topic = self._topic_resolver.resolve_sensor_topic(sensor)
+            assert topic is not None
+
             self._mqtt_client.subscribe(
-                sensor.mqtt.topic,
+                topic,
                 self._create_sensor_callback(sensor),
                 qos=sensor.mqtt.qos,
             )
-            logger.debug("Subscribed to sensor %s on %s", sensor.id, sensor.mqtt.topic)
+            logger.debug("Subscribed to sensor %s on %s", sensor.id, topic)
 
         logger.info("Subscribed to %d sensor topics", len(sensors))
 
@@ -262,11 +283,16 @@ class MQTTCommunicationManager(DeviceInterfaceProtocol):
         _qos: int,
     ) -> None:
         try:
+            payload_schema = None
+            if sensor.mqtt is not None:
+                payload_schema = sensor.mqtt.payload_mapping
+
             reading = SensorReading.from_mqtt_payload(
                 sensor_id=sensor.id,
                 payload=payload,
                 topic=topic,
                 unit=sensor.unit,
+                payload_schema=payload_schema,
             )
 
             with self._lock:

@@ -54,19 +54,19 @@ This architecture document describes both the thesis prototype (MVP) and
 potential future extensions. The following table clarifies which components are
 required for thesis evaluation:
 
-| Component                 | Thesis MVP  | Future Work |
-| ------------------------- | :---------: | :---------: |
-| Fuzzy Logic Module        |      X      |             |
-| Ollama LLM Integration    |      X      |             |
-| MQTT Device Communication |      X      |             |
-| Command-Line Interface    |      X      |             |
-| JSON Configuration        |      X      |             |
-| Smart Home Demo Scenario  |      X      |             |
-| Docker Containerization   |      X      |             |
-| Web-Based User Interface  | X [PLANNED] |             |
-| REST API Interface        |             |      X      |
-| Multi-Protocol Support    |             |      X      |
-| Distributed Deployment    |             |      X      |
+| Component                 | Thesis MVP | Future Work |
+| ------------------------- | :--------: | :---------: |
+| Fuzzy Logic Module        |     X      |             |
+| Ollama LLM Integration    |     X      |             |
+| MQTT Device Communication |     X      |             |
+| Command-Line Interface    |     X      |             |
+| JSON Configuration        |     X      |             |
+| Smart Home Demo Scenario  |     X      |             |
+| Docker Containerization   |     X      |             |
+| Web-Based User Interface  |     X      |             |
+| REST API Interface        |            |      X      |
+| Multi-Protocol Support    |            |      X      |
+| Distributed Deployment    |            |      X      |
 
 **Performance targets for thesis prototype:**
 
@@ -261,15 +261,16 @@ initialization, runtime, and shutdown across all layers.
 
 - **CLI Interface (MVP)** — Primary interaction tool for system administration,
   rule management, and status monitoring. Required for thesis evaluation.
-- **Streamlit Web UI [PLANNED]** — Browser-based dashboard that operates **in
-  parallel with the CLI** in the User Interface Layer (not a replacement).
-  Planned features include: real-time monitoring of sensor readings, rule
-  evaluations, device commands, and system health; a system control panel for
-  start/stop and configuration management; rule management (add, edit,
-  enable/disable rules); direct JSON configuration editing in-browser; a visual
-  membership function editor with a drag-point graph interface for adjusting
-  fuzzy sets without editing JSON; and log viewing with filtering. Not yet
-  implemented — see [new-additions.md](new-additions.md) for roadmap.
+- **Streamlit Web UI** — Browser-based dashboard that operates **in parallel
+  with the CLI** in the User Interface Layer (not a replacement). Features
+  include: real-time monitoring of sensor readings, rule evaluations, device
+  commands, and system health; a system control panel for start/stop and
+  configuration management; rule management (add, edit, enable/disable rules);
+  direct JSON configuration editing in-browser; a visual membership function
+  editor with a drag-point graph interface for adjusting fuzzy sets without
+  editing JSON; and log viewing with filtering. See
+  [new-additions.md](new-additions.md) and
+  [user/web-ui-guide.md](../user/web-ui-guide.md) for details.
 - **REST API (Future Work)** — HTTP API for programmatic system access and
   third-party integration. Not required for thesis.
 
@@ -826,7 +827,7 @@ ______________________________________________________________________
 | HTTP Client | requests               | REST communication with Ollama API.                   |
 | Numerical   | NumPy                  | Vectorized membership function computation.           |
 | Validation  | jsonschema             | JSON configuration schema validation.                 |
-| Web UI      | Streamlit [PLANNED]    | Browser-based dashboard for monitoring and control.   |
+| Web UI      | Streamlit              | Browser-based dashboard for monitoring and control.   |
 | Testing     | pytest                 | Unit and integration testing framework.               |
 
 ### Appendix B: Ollama API Reference
@@ -869,12 +870,12 @@ ______________________________________________________________________
 
 ## 11. Planned Extensions
 
-### 11.1 MQTT Flexibility Architecture [PLANNED]
+### 11.1 MQTT Flexibility Architecture
 
-> **⚠️ BREAKING CHANGE** — The features described in this section will require
-> migration of existing `devices.json` configurations. A migration guide will be
-> provided in
-> [docs/user/configuration-guide.md](../user/configuration-guide.md).
+> **⚠️ BREAKING CHANGE** — This feature requires migration of existing
+> `devices.json` configurations. See the migration guide in
+> [docs/user/configuration-guide.md](../user/configuration-guide.md) and the
+> automated `python -m src.interfaces config migrate` command.
 
 The current MQTT implementation uses a fixed payload format and a conventional
 topic hierarchy (see Appendix C). The planned MQTT Flexibility refactor will

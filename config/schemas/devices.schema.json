@@ -90,7 +90,7 @@
     },
     "mqtt_config": {
       "type": "object",
-      "required": ["topic"],
+      "required": [],
       "properties": {
         "topic": {
           "type": "string",
@@ -108,6 +108,26 @@
         "retain": {
           "type": "boolean",
           "default": false
+        },
+        "payload_mapping": {
+          "type": "object",
+          "description": "Optional custom field mapping for MQTT payload parsing",
+          "required": ["value_field"],
+          "properties": {
+            "value_field": {
+              "type": "string",
+              "description": "JSON field name containing the sensor value"
+            },
+            "timestamp_field": {
+              "type": "string",
+              "description": "JSON field name for timestamp (optional)"
+            },
+            "unit_field": {
+              "type": "string",
+              "description": "JSON field name for unit override (optional)"
+            }
+          },
+          "additionalProperties": false
         }
       }
     },

@@ -177,3 +177,90 @@ def test_device_command_to_mqtt_payload() -> None:
 
     assert data["device_id"] == "ac-001"
     assert data["command_type"] == "set"
+
+
+@pytest.mark.unit
+def test_from_mqtt_payload_with_custom_schema() -> None:
+    from src.device_interface.messages import SensorReading
+    from src.device_interface.models import PayloadSchema
+
+    payload = b'{"reading": 30.0}'
+    schema = PayloadSchema(value_field="reading")
+
+    reading = SensorReading.from_mqtt_payload(
+        sensor_id="temp-001",
+        payload=payload,
+        topic="home/living/temp",
+        payload_schema=schema,
+    )
+
+    assert reading.value == 30.0
+
+
+@pytest.mark.unit
+def test_from_mqtt_payload_custom_schema_unit_field() -> None:
+    from src.device_interface.messages import SensorReading
+    from src.device_interface.models import PayloadSchema
+
+    payload = b'{"value": 30.0, "measurement_unit": "celsius"}'
+    schema = PayloadSchema(value_field="value", unit_field="measurement_unit")
+
+    reading = SensorReading.from_mqtt_payload(
+        sensor_id="temp-001",
+        payload=payload,
+        topic="home/living/temp",
+        payload_schema=schema,
+    )
+
+    assert reading.unit == "celsius"
+
+
+@pytest.mark.unit
+def test_from_mqtt_payload_custom_schema_timestamp_field() -> None:
+    from src.device_interface.messages import SensorReading
+    from src.device_interface.models import PayloadSchema
+
+    payload = b'{"value": 30.0, "ts": "2026-01-01T12:00:00"}'
+    schema = PayloadSchema(value_field="value", timestamp_field="ts")
+
+    reading = SensorReading.from_mqtt_payload(
+        sensor_id="temp-001",
+        payload=payload,
+        topic="home/living/temp",
+        payload_schema=schema,
+    )
+
+    assert reading.timestamp == "2026-01-01T12:00:00"
+
+
+@pytest.mark.unit
+def test_from_mqtt_payload_no_schema_backward_compat() -> None:
+    from src.device_interface.messages import SensorReading
+
+    payload = b'{"value": 25.0}'
+
+    reading = SensorReading.from_mqtt_payload(
+        sensor_id="temp-001",
+        payload=payload,
+        topic="home/living/temp",
+    )
+
+    assert reading.value == 25.0
+
+
+@pytest.mark.unit
+def test_from_mqtt_payload_schema_missing_value_raises() -> None:
+    from src.common.exceptions import ValidationError
+    from src.device_interface.messages import SensorReading
+    from src.device_interface.models import PayloadSchema
+
+    payload = b'{"temperature": 25.0}'
+    schema = PayloadSchema(value_field="reading")
+
+    with pytest.raises(ValidationError):
+        SensorReading.from_mqtt_payload(
+            sensor_id="temp-001",
+            payload=payload,
+            topic="home/living/temp",
+            payload_schema=schema,
+        )

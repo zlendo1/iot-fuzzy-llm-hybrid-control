@@ -23,8 +23,8 @@ ______________________________________________________________________
   - [FuzzificationResult](#fuzzificationresult)
 - [Device Interface Layer](#device-interface-layer)
   - [DeviceRegistry](#deviceregistry)
-- [Web Interface Layer [PLANNED]](#web-interface-layer-planned)
-  - [Planned Components](#planned-components-planned)
+- [Web Interface Layer](#web-interface-layer)
+  - [Streamlit Components](#streamlit-components)
 
 ______________________________________________________________________
 
@@ -784,57 +784,57 @@ ______________________________________________________________________
 
 ______________________________________________________________________
 
-## Web Interface Layer [PLANNED]
+## Web Interface Layer
 
-> **API documentation pending implementation.**
+> See [Web UI Guide](web-ui-guide.md) for full usage documentation.
 >
-> The Streamlit-based Web Interface is a planned feature (UI-MODE-002 in
-> [docs/dev/srs.md](../dev/srs.md)). No public Python API exists yet for this
-> layer — it will be documented here when the implementation is complete.
+> The Streamlit-based Web Interface provides a browser-based dashboard
+> (UI-MODE-002 in [docs/dev/srs.md](../dev/srs.md)). Launch with:
+> `streamlit run src/interfaces/web/streamlit_app.py`
 >
 > See [docs/dev/add.md Section 3.3.5](../dev/add.md) for architecture design and
-> [User Guide Section 11](user-guide.md#11-web-interface-planned) for planned
-> user-facing functionality.
+> [User Guide Section 11](user-guide.md#11-web-interface) for user-facing
+> functionality.
 
-### Planned Components [PLANNED]
+### Streamlit Components
 
-The following component areas are planned for the Web Interface Layer. API
-details will be added when implementation is available.
+The following components make up the Web Interface Layer.
 
-#### StreamlitDashboard [PLANNED]
+#### StreamlitDashboard
 
 Main application entry point for the Streamlit web interface.
 
-- **Pending implementation** — API documentation not yet available.
+- **Module**: `src.interfaces.web.streamlit_app`
+- **Entry point**: `streamlit run src/interfaces/web/streamlit_app.py`
 
-#### MonitoringPanel [PLANNED]
+#### MonitoringPanel
 
 Real-time monitoring dashboard for sensor readings, rule evaluations, device
 commands, and system health.
 
-- **Pending implementation** — API documentation not yet available.
+- **Page**: Dashboard (`pages/1_Dashboard.py`)
 
-#### RuleManagementPanel [PLANNED]
+#### RuleManagementPanel
 
 Interface for viewing, adding, editing, and enabling/disabling natural language
 rules.
 
-- **Pending implementation** — API documentation not yet available.
+- **Page**: Rules (`pages/3_Rules.py`)
 
-#### ConfigurationEditor [PLANNED]
+#### ConfigurationEditor
 
 In-browser JSON configuration editor with schema validation and reload support.
 
-- **Pending implementation** — API documentation not yet available.
+- **Page**: Configuration (`pages/4_Configuration.py`)
 
-#### MembershipFunctionEditor [PLANNED]
+#### MembershipFunctionEditor
 
 Visual drag-point graph editor for adjusting fuzzy membership functions.
 
-- **Pending implementation** — API documentation not yet available.
+- **Page**: Membership Editor (`pages/5_Membership_Editor.py`)
 
-#### LogViewer [PLANNED]
+#### LogViewer
 
 Live log streaming panel with filtering and search capabilities.
 
-- **Pending implementation** — API documentation not yet available.
+- **Page**: Logs (`pages/6_Logs.py`)

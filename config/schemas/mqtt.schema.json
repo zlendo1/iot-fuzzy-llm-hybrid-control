@@ -126,6 +126,25 @@
           "default": true
         }
       }
+    },
+    "topic_patterns": {
+      "type": "object",
+      "description": "MQTT topic patterns with placeholder variables for device attributes",
+      "properties": {
+        "sensors": {
+          "type": "string",
+          "description": "Topic pattern for sensor subscriptions (e.g., 'home/{location}/{device_class}')"
+        },
+        "actuators": {
+          "type": "string",
+          "description": "Topic pattern for actuator commands (e.g., 'home/{location}/{device_class}/set')"
+        },
+        "commands": {
+          "type": "string",
+          "description": "Topic pattern for direct commands (e.g., 'home/{location}/{device_class}/cmd')"
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

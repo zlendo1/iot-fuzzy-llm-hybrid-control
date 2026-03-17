@@ -1,0 +1,93 @@
+{
+  "state": "running",
+  "is_running": true,
+  "stats": {
+    "readings_processed": 0,
+    "rules_evaluated": 0,
+    "commands_generated": 0,
+    "commands_sent": 0,
+    "errors": 0,
+    "uptime_seconds": 5.03177285194397
+  },
+  "orchestrator": {
+    "state": "ready",
+    "is_ready": true,
+    "initialization_steps": [
+      {
+        "name": "load_config",
+        "description": "Load and validate all configuration files",
+        "completed": true,
+        "error": null
+      },
+      {
+        "name": "init_logging",
+        "description": "Initialize LoggingManager",
+        "completed": true,
+        "error": null
+      },
+      {
+        "name": "populate_registry",
+        "description": "Populate DeviceRegistry from device configuration",
+        "completed": true,
+        "error": null
+      },
+      {
+        "name": "connect_mqtt",
+        "description": "Connect MQTT client and subscribe to sensor topics",
+        "completed": true,
+        "error": null
+      },
+      {
+        "name": "verify_ollama",
+        "description": "Verify Ollama connectivity and model availability",
+        "completed": true,
+        "error": null
+      },
+      {
+        "name": "load_membership_functions",
+        "description": "Load and validate membership functions",
+        "completed": true,
+        "error": null
+      },
+      {
+        "name": "load_rules",
+        "description": "Load all persisted rules and index them",
+        "completed": true,
+        "error": null
+      },
+      {
+        "name": "init_rule_pipeline",
+        "description": "Initialize RuleProcessingPipeline",
+        "completed": true,
+        "error": null
+      },
+      {
+        "name": "start_device_monitor",
+        "description": "Start DeviceMonitor for tracking device availability",
+        "completed": true,
+        "error": null
+      },
+      {
+        "name": "init_interfaces",
+        "description": "Initialize user interfaces",
+        "completed": true,
+        "error": null
+      },
+      {
+        "name": "enter_ready",
+        "description": "Enter ready state and begin normal operation",
+        "completed": true,
+        "error": null
+      }
+    ],
+    "components": {
+      "config_manager": true,
+      "logging_manager": true,
+      "rule_manager": true,
+      "device_registry": true,
+      "fuzzy_pipeline": true,
+      "mqtt_manager": true,
+      "device_monitor": true
+    }
+  }
+}

@@ -36,6 +36,10 @@ class _StatusRequestHandler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:  # noqa: N802
         path = self.path.split("?", 1)[0].rstrip("/")
+        if path == "/shutdown":
+            self._send_response(405, {"error": "method_not_allowed"})
+            return
+
         if path != "/status":
             self._send_response(404, {"error": "not_found"})
             return
@@ -45,14 +49,19 @@ class _StatusRequestHandler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:  # noqa: N802
         path = self.path.split("?", 1)[0].rstrip("/")
-        if path != "/start":
-            self._send_response(404, {"error": "not_found"})
+        if path == "/start":
+            if self._app.start_evaluation_loop():
+                self._send_response(200, {"status": "evaluation_loop_started"})
+            else:
+                self._send_response(400, {"error": "evaluation_loop_already_running"})
             return
 
-        if self._app.start_evaluation_loop():
-            self._send_response(200, {"status": "evaluation_loop_started"})
-        else:
-            self._send_response(400, {"error": "evaluation_loop_already_running"})
+        if path == "/shutdown":
+            self._send_response(200, {"status": "shutdown_initiated"})
+            self._app.stop()
+            return
+
+        self._send_response(404, {"error": "not_found"})
 
     def _send_response(self, status_code: int, payload: dict[str, Any]) -> None:
         body = json.dumps(payload).encode("utf-8")

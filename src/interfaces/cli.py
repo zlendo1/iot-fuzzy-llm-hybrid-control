@@ -868,6 +868,112 @@ def config_validate(ctx: CLIContext) -> None:
         sys.exit(1)
 
 
+@config.command("migrate")
+@click.option(
+    "--dry-run", is_flag=True, help="Show what would change without modifying files."
+)
+@pass_context
+@handle_errors
+def config_migrate(ctx: CLIContext, dry_run: bool) -> None:
+    """Migrate configuration files to the latest schema format.
+
+    Detects devices.json devices missing payload_mapping under their mqtt key
+    and mqtt_config.json missing the topic_patterns key.
+    Creates .bak backups before modifying any file.
+    """
+    import shutil
+
+    changes_needed: list[str] = []
+
+    devices_file = ctx.config_dir / "devices.json"
+    devices_needing_payload_mapping: list[str] = []
+
+    if devices_file.exists():
+        with open(devices_file) as f:
+            devices_data: dict[str, Any] = json.load(f)
+
+        for dev in devices_data.get("devices", []):
+            dev_id: str = dev.get("id", "<unknown>")
+            if "mqtt" in dev and "payload_mapping" not in dev["mqtt"]:
+                devices_needing_payload_mapping.append(dev_id)
+
+        for dev_id in devices_needing_payload_mapping:
+            if dry_run:
+                click.echo(f"Would add payload_mapping to device: {dev_id}")
+            else:
+                click.echo(f"Added payload_mapping to device: {dev_id}")
+            changes_needed.append(dev_id)
+
+        if not dry_run and devices_needing_payload_mapping:
+            shutil.copy2(devices_file, Path(str(devices_file) + ".bak"))
+            for dev in devices_data.get("devices", []):
+                if dev.get("id") in devices_needing_payload_mapping:
+                    dev["mqtt"]["payload_mapping"] = {"value_field": "value"}
+            with open(devices_file, "w") as fw:
+                json.dump(devices_data, fw, indent=2)
+
+        logger.info(
+            "Checked devices.json for payload_mapping",
+            extra={"count": len(devices_needing_payload_mapping), "dry_run": dry_run},
+        )
+    else:
+        click.echo(
+            ctx.formatter.warning("devices.json not found — skipping device migration.")
+        )
+
+    mqtt_file = ctx.config_dir / "mqtt_config.json"
+
+    if mqtt_file.exists():
+        with open(mqtt_file) as f:
+            mqtt_data: dict[str, Any] = json.load(f)
+
+        if "topic_patterns" not in mqtt_data:
+            if dry_run:
+                click.echo("Would add topic_patterns to mqtt_config.json")
+            else:
+                click.echo("Added topic_patterns to mqtt_config.json")
+            changes_needed.append("mqtt_config.json:topic_patterns")
+
+            if not dry_run:
+                shutil.copy2(mqtt_file, Path(str(mqtt_file) + ".bak"))
+                mqtt_data["topic_patterns"] = {}
+                with open(mqtt_file, "w") as fw:
+                    json.dump(mqtt_data, fw, indent=2)
+
+        logger.info(
+            "Checked mqtt_config.json for topic_patterns",
+            extra={
+                "needs_migration": "topic_patterns" not in mqtt_data,
+                "dry_run": dry_run,
+            },
+        )
+    else:
+        click.echo(
+            ctx.formatter.warning(
+                "mqtt_config.json not found — skipping MQTT config migration."
+            )
+        )
+
+    if not changes_needed:
+        click.echo(
+            ctx.formatter.success(
+                "All configuration files are already up-to-date. No changes needed."
+            )
+        )
+    elif dry_run:
+        click.echo(
+            ctx.formatter.info(
+                f"Dry-run complete. {len(changes_needed)} change(s) would be applied."
+            )
+        )
+    else:
+        click.echo(
+            ctx.formatter.success(
+                f"Migration complete. {len(changes_needed)} change(s) applied."
+            )
+        )
+
+
 @config.command("reload")
 @pass_context
 @handle_errors

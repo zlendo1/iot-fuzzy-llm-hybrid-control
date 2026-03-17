@@ -9,9 +9,12 @@ from __future__ import annotations
 import json
 from dataclasses import asdict, dataclass, field
 from enum import Enum
-from typing import Any
+from typing import Any, Optional
 
+from src.common.exceptions import ValidationError
 from src.common.utils import format_timestamp, generate_id
+from src.device_interface.models import PayloadSchema
+from src.device_interface.payload_formatter import PayloadFormatter
 
 
 class ReadingQuality(Enum):
@@ -94,6 +97,7 @@ class SensorReading:
         payload: bytes,
         topic: str,
         unit: str | None = None,
+        payload_schema: Optional[PayloadSchema] = None,
     ) -> SensorReading:
         """Create a SensorReading from raw MQTT payload.
 
@@ -105,17 +109,27 @@ class SensorReading:
         try:
             data = json.loads(payload_str)
             if isinstance(data, dict):
-                raw_value = data.get("value", data.get("reading", data.get("v")))
-                value: float | int | bool | str = (
-                    raw_value if raw_value is not None else payload_str
-                )
-                raw_timestamp = data.get("timestamp", data.get("time"))
-                timestamp: str = (
+                formatter = PayloadFormatter(schema=payload_schema)
+                try:
+                    value = formatter.extract_value(data)
+                except ValidationError:
+                    if payload_schema is not None:
+                        raise
+                    value = payload_str
+
+                raw_timestamp = None
+                dt = formatter.extract_timestamp(data)
+                if dt is not None:
+                    raw_timestamp = dt.isoformat()
+                elif payload_schema is None:
+                    raw_timestamp = data.get("timestamp", data.get("time"))
+
+                timestamp = (
                     raw_timestamp
                     if isinstance(raw_timestamp, str)
                     else format_timestamp()
                 )
-                unit = data.get("unit", unit)
+                unit = formatter.extract_unit(data) or data.get("unit", unit)
                 quality_str = data.get("quality", "good")
             else:
                 value = data if isinstance(data, (float, int, bool, str)) else str(data)

@@ -76,6 +76,36 @@ services:
       retries: 3
       start_period: 30s
 
+  web:
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
+    container_name: iot-web
+    restart: unless-stopped
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+    volumes:
+      - ./config:/app/config:ro
+      - ./rules:/app/rules:ro
+    networks:
+      - iot-network
+    ports:
+      - "${WEB_PORT:-8501}:8501"
+    environment:
+      - MQTT_HOST=mosquitto
+      - MQTT_PORT=1883
+      - OLLAMA_HOST=ollama
+      - OLLAMA_PORT=11434
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    command: ["streamlit", "run", "src/interfaces/web/streamlit_app.py", "--server.port=8501", "--server.address=0.0.0.0", "--server.headless=true"]
+
 networks:
   iot-network:
     driver: bridge

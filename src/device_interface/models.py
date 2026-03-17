@@ -25,14 +25,19 @@ class MQTTConfig:
     command_topic: str | None = None
     qos: int = 1
     retain: bool = False
+    payload_mapping: PayloadSchema | None = None
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> MQTTConfig:
+        payload_mapping = data.get("payload_mapping")
         return cls(
             topic=data.get("topic"),
             command_topic=data.get("command_topic"),
             qos=data.get("qos", 1),
             retain=data.get("retain", False),
+            payload_mapping=(
+                PayloadSchema(**payload_mapping) if payload_mapping else None
+            ),
         )
 
 

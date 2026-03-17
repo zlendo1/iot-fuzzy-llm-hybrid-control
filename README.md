@@ -20,8 +20,10 @@ natural language rules and generate device commands.
 - Fuzzy logic preprocessing for semantic sensor interpretation
 - Local LLM inference via Ollama (no cloud dependency)
 - Privacy by design - all processing stays on-device
-- MQTT-based IoT device communication
+- MQTT-based IoT device communication with custom payload schemas and topic
+  patterns
 - Configurable membership functions for any sensor type
+- Streamlit Web UI for browser-based monitoring and control
 
 ## Architecture
 
@@ -56,11 +58,17 @@ docker compose up -d
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -e ".[web]"
 
 # Start MQTT broker and Ollama separately
 # Then run:
 python -m src.main
+```
+
+### Web UI
+
+```bash
+streamlit run src/interfaces/web/streamlit_app.py
 ```
 
 ## Project Structure
@@ -85,7 +93,7 @@ iot-master/
 │   ├── data_processing/ # Fuzzy engine, linguistic descriptors
 │   ├── device_interface/ # MQTT client, device registry
 │   └── interfaces/      # CLI interface
-└── tests/               # Test suite (806 tests, 83% coverage)
+└── tests/               # Test suite (836+ tests, 83% coverage)
 ```
 
 ## Documentation

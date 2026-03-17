@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Optional
-
 from src.device_interface.models import Device, TopicPattern
 
 DEFAULT_SENSOR_PATTERN = TopicPattern(
@@ -19,7 +17,7 @@ DEFAULT_COMMAND_PATTERN = TopicPattern(
 
 
 class TopicPatternResolver:
-    def __init__(self, patterns: Optional[dict[str, TopicPattern]] = None) -> None:
+    def __init__(self, patterns: dict[str, TopicPattern] | None = None) -> None:
         self._patterns = patterns or {}
 
     def resolve_sensor_topic(self, device: Device) -> str:

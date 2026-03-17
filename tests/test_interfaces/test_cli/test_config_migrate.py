@@ -219,8 +219,8 @@ class TestConfigMigrateDryRun:
         self,
         cli_runner: CliRunner,
         temp_dirs: dict[str, Path],
-        devices_needing_migration: Path,
-        mqtt_config_needing_migration: Path,
+        devices_needing_migration: Path,  # noqa: ARG002
+        mqtt_config_needing_migration: Path,  # noqa: ARG002
     ) -> None:
         from src.interfaces.cli import cli
 
@@ -243,7 +243,7 @@ class TestConfigMigrateDryRun:
         self,
         cli_runner: CliRunner,
         temp_dirs: dict[str, Path],
-        devices_needing_migration: Path,
+        devices_needing_migration: Path,  # noqa: ARG002
     ) -> None:
         from src.interfaces.cli import cli
 
@@ -271,8 +271,8 @@ class TestConfigMigrateDryRun:
         self,
         cli_runner: CliRunner,
         temp_dirs: dict[str, Path],
-        devices_already_migrated: Path,
-        mqtt_config_already_migrated: Path,
+        devices_already_migrated: Path,  # noqa: ARG002
+        mqtt_config_already_migrated: Path,  # noqa: ARG002
     ) -> None:
         from src.interfaces.cli import cli
 
@@ -409,8 +409,8 @@ class TestConfigMigrateActual:
         self,
         cli_runner: CliRunner,
         temp_dirs: dict[str, Path],
-        devices_needing_migration: Path,
-        mqtt_config_needing_migration: Path,
+        devices_needing_migration: Path,  # noqa: ARG002
+        mqtt_config_needing_migration: Path,  # noqa: ARG002
     ) -> None:
         from src.interfaces.cli import cli
 
@@ -511,7 +511,7 @@ class TestConfigMigrateMissingFiles:
         self,
         cli_runner: CliRunner,
         temp_dirs: dict[str, Path],
-        devices_needing_migration: Path,
+        devices_needing_migration: Path,  # noqa: ARG002
     ) -> None:
         from src.interfaces.cli import cli
 

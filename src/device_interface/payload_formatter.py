@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from src.common.exceptions import ValidationError
 from src.common.logging import get_logger
@@ -11,7 +11,7 @@ logger = get_logger(__name__)
 
 
 class PayloadFormatter:
-    def __init__(self, schema: Optional[PayloadSchema] = None) -> None:
+    def __init__(self, schema: PayloadSchema | None = None) -> None:
         self._schema = schema
 
     def extract_value(self, payload: dict[str, Any]) -> float:
@@ -28,7 +28,7 @@ class PayloadFormatter:
                 return float(raw)
         raise ValidationError(f"No value field found. Tried: {LEGACY_VALUE_FIELDS}")
 
-    def extract_timestamp(self, payload: dict[str, Any]) -> Optional[datetime]:
+    def extract_timestamp(self, payload: dict[str, Any]) -> datetime | None:
         if self._schema is None or self._schema.timestamp_field is None:
             return None
         raw = payload.get(self._schema.timestamp_field)
@@ -45,7 +45,7 @@ class PayloadFormatter:
                 return None
         return None
 
-    def extract_unit(self, payload: dict[str, Any]) -> Optional[str]:
+    def extract_unit(self, payload: dict[str, Any]) -> str | None:
         if self._schema is None or self._schema.unit_field is None:
             return None
         raw = payload.get(self._schema.unit_field)

@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 from dataclasses import asdict, dataclass, field
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from src.common.exceptions import ValidationError
 from src.common.utils import format_timestamp, generate_id
@@ -97,7 +97,7 @@ class SensorReading:
         payload: bytes,
         topic: str,
         unit: str | None = None,
-        payload_schema: Optional[PayloadSchema] = None,
+        payload_schema: PayloadSchema | None = None,
     ) -> SensorReading:
         """Create a SensorReading from raw MQTT payload.
 

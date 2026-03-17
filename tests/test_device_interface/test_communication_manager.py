@@ -210,7 +210,7 @@ def test_start_initializes_topic_resolver_without_patterns(
         def __init__(self, _config: object) -> None:
             self.is_connected = True
 
-        def connect(self, timeout: float = 10.0) -> None:
+        def connect(self, timeout: float = 10.0) -> None:  # noqa: ARG002
             return None
 
     class DummyDeviceMonitor:

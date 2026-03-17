@@ -185,8 +185,9 @@ class TestStreamlitAppStructure:
 
     def test_main_is_callable_with_no_args(self) -> None:
         """Verify main() function can be called with no arguments."""
-        from src.interfaces.web import streamlit_app  # type: ignore
         import inspect
+
+        from src.interfaces.web import streamlit_app  # type: ignore
 
         sig = inspect.signature(streamlit_app.main)
         assert len(sig.parameters) == 0

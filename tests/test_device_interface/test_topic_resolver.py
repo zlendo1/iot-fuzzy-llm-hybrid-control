@@ -1,5 +1,6 @@
-import pytest
 from importlib import import_module
+
+import pytest
 
 from src.device_interface.models import (
     Actuator,

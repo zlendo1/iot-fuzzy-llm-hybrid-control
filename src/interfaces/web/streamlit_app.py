@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import streamlit as st
 
-
 PAGES = [
     st.Page(
         "src/interfaces/web/pages/dashboard.py",

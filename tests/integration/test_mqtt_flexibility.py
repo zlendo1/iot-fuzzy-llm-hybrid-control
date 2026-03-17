@@ -7,7 +7,7 @@ from typing import Any
 import pytest
 
 from src.device_interface.messages import SensorReading
-from src.device_interface.models import PayloadSchema, Sensor, TopicPattern
+from src.device_interface.models import Sensor, TopicPattern
 from src.device_interface.topic_resolver import TopicPatternResolver
 
 

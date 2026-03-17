@@ -4,6 +4,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
+from src.common.exceptions import ValidationError
+
 
 class DeviceType(Enum):
     SENSOR = "sensor"
@@ -19,7 +21,7 @@ class ValueType(Enum):
 
 @dataclass(frozen=True)
 class MQTTConfig:
-    topic: str
+    topic: str | None = None
     command_topic: str | None = None
     qos: int = 1
     retain: bool = False
@@ -27,7 +29,7 @@ class MQTTConfig:
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> MQTTConfig:
         return cls(
-            topic=data["topic"],
+            topic=data.get("topic"),
             command_topic=data.get("command_topic"),
             qos=data.get("qos", 1),
             retain=data.get("retain", False),
@@ -135,3 +137,34 @@ class Actuator(Device):
 
     def has_capability(self, capability: str) -> bool:
         return capability in self.capabilities
+
+
+LEGACY_VALUE_FIELDS: list[str] = ["value", "reading", "v"]
+
+
+@dataclass(frozen=True)
+class PayloadSchema:
+    value_field: str
+    timestamp_field: str | None = None
+    unit_field: str | None = None
+
+    def __post_init__(self) -> None:
+        if not self.value_field:
+            raise ValidationError("PayloadSchema.value_field must not be empty")
+
+    @classmethod
+    def default(cls) -> PayloadSchema:
+        return cls(value_field="value")
+
+
+@dataclass(frozen=True)
+class TopicPattern:
+    pattern: str
+    variables: tuple[str, ...]
+
+    def __post_init__(self) -> None:
+        for var in self.variables:
+            if f"{{{var}}}" not in self.pattern:
+                raise ValidationError(
+                    f"Variable '{var}' not found in pattern '{self.pattern}'"
+                )

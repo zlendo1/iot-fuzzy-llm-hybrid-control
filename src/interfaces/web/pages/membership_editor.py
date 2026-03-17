@@ -7,7 +7,6 @@ from pathlib import Path
 
 import streamlit as st
 
-from src.interfaces.web.bridge import get_bridge
 from src.interfaces.web.components.common import render_error_message, render_header
 from src.interfaces.web.session import init_session_state
 
@@ -42,12 +41,6 @@ def _save_membership_data(sensor_type: str, payload: dict[str, object]) -> None:
 def render() -> None:
     init_session_state()
     render_header("Membership Editor")
-
-    try:
-        get_bridge()
-    except RuntimeError as exc:
-        render_error_message(str(exc))
-        return
 
     sensor_type = st.selectbox("Sensor type", SENSOR_TYPES)
 

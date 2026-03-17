@@ -22,10 +22,15 @@ def render() -> None:
     render_header("Dashboard")
 
     try:
-        get_bridge()
+        bridge = get_bridge()
     except RuntimeError as exc:
         render_error_message(str(exc))
         return
+
+    if not bridge.is_app_running():
+        st.warning("⚠️ Application is not running. Start the system to see live data.")
+        st.info("Run `docker compose up -d` or `python -m src.main` to start.")
+        st.stop()
 
     auto_refresh = st.toggle("Auto-refresh (1s)", value=False)
     col1, col2 = st.columns(2)

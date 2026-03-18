@@ -465,3 +465,23 @@ def _add_rule_to_file(rule_id: str, rule_text: str) -> bool:
 - Full web UI startup test with app not running
 - Page navigation across all pages
 - Evidence collection for all scenarios
+
+## [2026-03-18T01:02:00+01:00] Task 9: Integration Testing
+
+### Tests Created
+- test_cli_stop_via_http_endpoint: Full CLI shutdown flow
+- test_web_ui_no_mqtt_connection: Verify HTTP-only web UI
+- test_bridge_handles_app_not_running: Graceful degradation
+- test_web_pages_render_in_http_only_mode_when_app_not_running: all pages resilient when backend is down
+- test_web_pages_render_in_http_only_mode_when_app_running: all pages render in running state
+
+### QA Results
+✓ CLI stop works via HTTP shutdown
+✓ MQTT stable with web UI active
+✓ All integration scenarios pass
+
+### Coverage
+- End-to-end CLI shutdown flow
+- Web UI HTTP-only verification
+- Bridge graceful degradation
+- App running and app not running page behavior

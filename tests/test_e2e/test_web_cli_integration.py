@@ -132,11 +132,11 @@ def test_web_pages_render_in_http_only_mode_when_app_not_running(
         "FakeBridge",
         (),
         {
-            "is_app_running": lambda self: False,
-            "get_system_status": lambda self: None,
-            "get_devices": lambda self: [],
-            "get_rules": lambda self: [],
-            "shutdown": lambda self: False,
+            "is_app_running": lambda _: False,
+            "get_system_status": lambda _: None,
+            "get_devices": lambda _: [],
+            "get_rules": lambda _: [],
+            "shutdown": lambda _: False,
         },
     )()
 
@@ -155,15 +155,15 @@ def test_web_pages_render_in_http_only_mode_when_app_running(page_file: str) -> 
         "FakeBridge",
         (),
         {
-            "is_app_running": lambda self: True,
-            "get_system_status": lambda self: {
+            "is_app_running": lambda _: True,
+            "get_system_status": lambda _: {
                 "state": "running",
                 "is_running": True,
                 "orchestrator": {"is_ready": True, "components": {}},
             },
-            "get_devices": lambda self: [],
-            "get_rules": lambda self: [],
-            "shutdown": lambda self: True,
+            "get_devices": lambda _: [],
+            "get_rules": lambda _: [],
+            "shutdown": lambda _: True,
         },
     )()
 

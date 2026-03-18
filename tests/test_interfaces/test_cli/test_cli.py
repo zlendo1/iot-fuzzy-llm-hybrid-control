@@ -1068,7 +1068,7 @@ class TestSystemCommands:
             mock_response.status = 200
             mock_response.read.return_value = b'{"status": "shutdown_initiated"}'
             mock_response.__enter__ = lambda self: self
-            mock_response.__exit__ = lambda self, *args: None
+            mock_response.__exit__ = lambda *_: None
             return mock_response
 
         with patch("urllib.request.urlopen", side_effect=mock_urlopen_for_shutdown):
@@ -1127,7 +1127,7 @@ class TestSystemCommands:
             mock_response.status = 200
             mock_response.read.return_value = b'{"status": "shutdown_initiated"}'
             mock_response.__enter__ = lambda self: self
-            mock_response.__exit__ = lambda self, *args: None
+            mock_response.__exit__ = lambda *_: None
             return mock_response
 
         with patch("urllib.request.urlopen", side_effect=mock_urlopen_for_shutdown):

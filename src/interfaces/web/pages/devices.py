@@ -32,7 +32,7 @@ def render() -> None:
     render_header("Devices")
 
     try:
-        bridge = get_bridge()
+        get_bridge()
     except RuntimeError as exc:
         render_error_message(str(exc))
         return

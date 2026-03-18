@@ -485,3 +485,28 @@ def _add_rule_to_file(rule_id: str, rule_text: str) -> bool:
 - Web UI HTTP-only verification
 - Bridge graceful degradation
 - App running and app not running page behavior
+
+
+## [2026-03-18T02:20:00+01:00] F4 Scope Fidelity Re-check (Final Verification Wave)
+
+### Review Rule Clarification Applied
+- `.sisyphus/evidence/` and `.sisyphus/notepads/` are orchestration artifacts and are explicitly allowed.
+- Scope-fidelity review focused on production code changes only (`src/`, `tests/`).
+
+### Commit-to-Task Mapping Confirmed
+- Task 1: `149d558`
+- Task 2: `3580c5a`
+- Task 3: `95553b3`
+- Task 4: `f431f06`
+- Task 5: `7e6fba0`
+- Tasks 6-8: `58219c8` (grouped page refactor)
+- Task 9: `32847ae`
+- Style-only follow-ups: `2a1e52d`, `9ff79cc` (ruff/import cleanup only)
+
+### Scope Fidelity Findings
+- Tasks 1-9 match plan scope with no unaccounted production feature additions.
+- No `Must NOT do` violations detected (no auth/websocket additions; no web-side orchestrator or MQTT usage reintroduced).
+- Style commits are quality-only and not scope contamination.
+
+### Final F4 Outcome
+- `Tasks [9/9 compliant] | Contamination [CLEAN] | Unaccounted [CLEAN] | VERDICT: APPROVE`

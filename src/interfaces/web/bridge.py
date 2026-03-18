@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -13,7 +14,9 @@ logger = get_logger(__name__)
 
 
 class OrchestratorBridge:
-    def __init__(self, base_url: str = "http://localhost:8080") -> None:
+    def __init__(self, base_url: str | None = None) -> None:
+        if base_url is None:
+            base_url = os.environ.get("IOT_APP_URL", "http://localhost:8080")
         self._http_client = AppStatusClient(base_url=base_url)
         project_root = Path(__file__).resolve().parents[3]
         self._config_dir = project_root / "config"

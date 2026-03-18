@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import urllib.error
 import urllib.request
 from typing import Any
@@ -9,15 +10,15 @@ from typing import Any
 class AppStatusClient:
     """HTTP client for querying application status via REST API."""
 
-    def __init__(
-        self, base_url: str = "http://localhost:8080", timeout: int = 5
-    ) -> None:
+    def __init__(self, base_url: str | None = None, timeout: int = 5) -> None:
         """Initialize the status client.
 
         Args:
-            base_url: Base URL for the status endpoint (default: http://localhost:8080)
+            base_url: Base URL for the status endpoint (default: from IOT_APP_URL env or http://localhost:8080)
             timeout: Request timeout in seconds (default: 5)
         """
+        if base_url is None:
+            base_url = os.environ.get("IOT_APP_URL", "http://localhost:8080")
         self.base_url = base_url
         self.timeout = timeout
 

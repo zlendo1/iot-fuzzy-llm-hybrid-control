@@ -43,6 +43,17 @@ class _StatusRequestHandler(BaseHTTPRequestHandler):
         payload = self._app.get_status()
         self._send_response(200, payload)
 
+    def do_POST(self) -> None:  # noqa: N802
+        path = self.path.split("?", 1)[0].rstrip("/")
+        if path != "/start":
+            self._send_response(404, {"error": "not_found"})
+            return
+
+        if self._app.start_evaluation_loop():
+            self._send_response(200, {"status": "evaluation_loop_started"})
+        else:
+            self._send_response(400, {"error": "evaluation_loop_already_running"})
+
     def _send_response(self, status_code: int, payload: dict[str, Any]) -> None:
         body = json.dumps(payload).encode("utf-8")
         self.send_response(status_code)
@@ -126,7 +137,7 @@ class Application:
     def is_running(self) -> bool:
         return self._state == ApplicationState.RUNNING
 
-    def start(self) -> bool:
+    def start(self, auto_start: bool = True) -> bool:
         with self._lock:
             if self._state != ApplicationState.STOPPED:
                 logger.warning("Application already running or starting")
@@ -149,15 +160,35 @@ class Application:
 
             self._stop_event.clear()
             self._start_status_server()
+
+            if auto_start:
+                self._eval_thread = threading.Thread(
+                    target=self._evaluation_loop,
+                    name="EvaluationLoop",
+                    daemon=True,
+                )
+                self._eval_thread.start()
+
+            self._state = ApplicationState.RUNNING
+            logger.info("Application started successfully")
+            return True
+
+    def start_evaluation_loop(self) -> bool:
+        """Start the evaluation loop. Returns False if already running."""
+        with self._lock:
+            if self._eval_thread and self._eval_thread.is_alive():
+                logger.warning("Evaluation loop already running")
+                return False
+
+            logger.info("Starting evaluation loop...")
+            self._stop_event.clear()
             self._eval_thread = threading.Thread(
                 target=self._evaluation_loop,
                 name="EvaluationLoop",
                 daemon=True,
             )
             self._eval_thread.start()
-
-            self._state = ApplicationState.RUNNING
-            logger.info("Application started successfully")
+            logger.info("Evaluation loop started")
             return True
 
     def _resolve_status_port(self) -> int:
@@ -421,8 +452,8 @@ class Application:
             "orchestrator": self._orchestrator.get_system_status(),
         }
 
-    def run_forever(self) -> None:
-        if not self.start():
+    def run_forever(self, auto_start: bool = True) -> None:
+        if not self.start(auto_start=auto_start):
             raise RuntimeError("Failed to start application")
 
         def signal_handler(signum: int, _frame: object) -> None:

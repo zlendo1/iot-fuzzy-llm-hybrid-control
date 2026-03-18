@@ -1,5 +1,6 @@
 """IoT Fuzzy-LLM Hybrid Control System - Main Entry Point."""
 
+import os
 import sys
 
 from src.application import create_application
@@ -12,8 +13,11 @@ def main() -> None:
     logger.info("IoT Fuzzy-LLM Hybrid Control System starting...")
 
     try:
+        auto_start_str = os.getenv("IOT_AUTO_START", "true").lower()
+        auto_start = auto_start_str in ("true", "1", "yes")
+
         app = create_application()
-        app.run_forever()
+        app.run_forever(auto_start=auto_start)
     except KeyboardInterrupt:
         logger.info("Shutdown requested via keyboard interrupt")
     except Exception:

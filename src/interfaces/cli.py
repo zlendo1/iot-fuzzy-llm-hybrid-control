@@ -264,12 +264,24 @@ def start(ctx: CLIContext, skip_mqtt: bool, skip_ollama: bool) -> None:
     """Start the IoT management system."""
     click.echo(ctx.formatter.info("Starting Fuzzy-LLM IoT Management System..."))
 
+    start_port = os.getenv("IOT_STATUS_PORT", "8080")
+    start_url = f"http://localhost:{start_port}/start"
+
+    try:
+        with urllib.request.urlopen(start_url, data=b"", timeout=5) as response:
+            if response.status == 200:
+                click.echo(
+                    ctx.formatter.success("✓ Evaluation loop started successfully.")
+                )
+                return
+    except (OSError, urllib.error.URLError) as exc:
+        logger.debug("Start endpoint unavailable", extra={"error": str(exc)})
+
     orchestrator = ctx.orchestrator
     result = orchestrator.initialize(skip_mqtt=skip_mqtt, skip_ollama=skip_ollama)
 
     if result:
         click.echo(ctx.formatter.success("System started successfully."))
-        # Show initialization steps
         steps = orchestrator.initialization_steps
         if ctx.verbose:
             click.echo("\nInitialization steps:")
@@ -278,7 +290,6 @@ def start(ctx: CLIContext, skip_mqtt: bool, skip_ollama: bool) -> None:
                 click.echo(f"  {status} {step.name}: {step.description}")
     else:
         click.echo(ctx.formatter.error("System failed to start."))
-        # Show failed steps
         steps = orchestrator.initialization_steps
         for step in steps:
             if step.error:

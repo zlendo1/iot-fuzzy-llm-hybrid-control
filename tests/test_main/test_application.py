@@ -309,6 +309,8 @@ class TestApplication:
                     payload = json.loads(response.read().decode("utf-8"))
 
                 assert payload == {"status": "shutdown_initiated"}
+                # Give time for the stop() call to complete
+                time.sleep(0.2)
                 assert mock_stop.call_count >= 1
             finally:
                 app.stop()

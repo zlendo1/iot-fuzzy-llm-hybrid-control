@@ -2,9 +2,9 @@ import json
 import os
 import time
 import urllib.request
-from urllib.error import HTTPError
 from pathlib import Path
 from unittest.mock import MagicMock, patch
+from urllib.error import HTTPError
 
 import pytest
 

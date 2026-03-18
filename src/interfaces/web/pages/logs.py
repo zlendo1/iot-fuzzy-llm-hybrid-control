@@ -5,7 +5,7 @@ from pathlib import Path
 
 import streamlit as st
 
-from src.interfaces.web.components.common import render_error_message, render_header
+from src.interfaces.web.components.common import render_header
 from src.interfaces.web.session import init_session_state
 
 LOG_DIR = Path("logs")

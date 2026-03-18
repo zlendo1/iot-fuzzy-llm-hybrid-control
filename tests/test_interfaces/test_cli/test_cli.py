@@ -1039,18 +1039,28 @@ class TestSystemCommands:
     ) -> None:
         from src.interfaces.cli import cli
 
-        result = cli_runner.invoke(
-            cli,
-            [
-                "--config-dir",
-                str(temp_dirs["config"]),
-                "--rules-dir",
-                str(temp_dirs["rules"]),
-                "--logs-dir",
-                str(temp_dirs["logs"]),
-                "stop",
-            ],
-        )
+        def mock_urlopen_fails(*args: object, **kwargs: object) -> object:
+            raise OSError("Connection refused")
+
+        with (
+            patch("urllib.request.urlopen", side_effect=mock_urlopen_fails),
+            patch(
+                "src.interfaces.cli.CLIContext.get_initialized_orchestrator",
+                return_value=None,
+            ),
+        ):
+            result = cli_runner.invoke(
+                cli,
+                [
+                    "--config-dir",
+                    str(temp_dirs["config"]),
+                    "--rules-dir",
+                    str(temp_dirs["rules"]),
+                    "--logs-dir",
+                    str(temp_dirs["logs"]),
+                    "stop",
+                ],
+            )
 
         assert result.exit_code == 0
         assert "not running" in result.output.lower()

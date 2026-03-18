@@ -261,11 +261,15 @@ class TestApplication:
         )
         app = Application(config)
 
-        with patch.object(app._orchestrator, "initialize", return_value=True):
+        with (
+            patch.dict(os.environ, {"IOT_STATUS_PORT": "18081"}),
+            patch.object(app._orchestrator, "initialize", return_value=True),
+        ):
             assert app.start() is True
             try:
+                time.sleep(0.1)
                 with urllib.request.urlopen(
-                    "http://localhost:8080/status", timeout=2
+                    "http://localhost:18081/status", timeout=2
                 ) as response:
                     assert response.status == 200
                     payload = json.loads(response.read().decode("utf-8"))

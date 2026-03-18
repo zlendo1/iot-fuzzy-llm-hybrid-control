@@ -78,7 +78,8 @@ class _StatusRequestHandler(BaseHTTPRequestHandler):
 class ApplicationState(Enum):
     STOPPED = "stopped"
     STARTING = "starting"
-    RUNNING = "running"
+    IDLE = "idle"  # Orchestrator ready, evaluation loop NOT running
+    RUNNING = "running"  # Evaluation loop actively processing
     STOPPING = "stopping"
 
 
@@ -146,6 +147,10 @@ class Application:
     def is_running(self) -> bool:
         return self._state == ApplicationState.RUNNING
 
+    @property
+    def is_idle(self) -> bool:
+        return self._state == ApplicationState.IDLE
+
     def start(self, auto_start: bool = True) -> bool:
         with self._lock:
             if self._state != ApplicationState.STOPPED:
@@ -177,8 +182,10 @@ class Application:
                     daemon=True,
                 )
                 self._eval_thread.start()
+                self._state = ApplicationState.RUNNING
+            else:
+                self._state = ApplicationState.IDLE
 
-            self._state = ApplicationState.RUNNING
             logger.info("Application started successfully")
             return True
 
@@ -197,6 +204,7 @@ class Application:
                 daemon=True,
             )
             self._eval_thread.start()
+            self._state = ApplicationState.RUNNING
             logger.info("Evaluation loop started")
             return True
 
@@ -473,7 +481,7 @@ class Application:
         signal.signal(signal.SIGINT, signal_handler)
 
         try:
-            while self.is_running:
+            while self.is_running or self.is_idle:
                 time.sleep(1)
         except KeyboardInterrupt:
             logger.info("Keyboard interrupt received")

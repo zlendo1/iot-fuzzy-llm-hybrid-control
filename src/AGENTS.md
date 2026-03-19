@@ -1,5 +1,7 @@
 # src/AGENTS.md - Source Code Guide
 
+<!-- Generated: 2026-03-19 | Commit: 9ed969e | Branch: main -->
+
 > Layer-by-layer guide for AI agents working with the source code.
 
 ## Architecture Summary
@@ -27,15 +29,31 @@ device_interface/   MQTTCommunicationManager (COORDINATOR)
 
 ## Layer 1: User Interface (`interfaces/`)
 
-**Purpose**: User interaction via CLI
+**Purpose**: User interaction via CLI and Web UI
 
 | File          | Responsibility                                          |
 | ------------- | ------------------------------------------------------- |
 | `cli.py`      | Click-based CLI commands (status, rule, config, sensor) |
 | `__main__.py` | Enables `python -m src.interfaces`                      |
+| `web/`        | Streamlit dashboard (see below)                         |
 
-**Key Pattern**: CLI queries orchestrator for status, delegates to RuleManager
-for rule ops.
+### Web UI (`interfaces/web/`)
+
+| File                 | Responsibility                                    |
+| -------------------- | ------------------------------------------------- |
+| `streamlit_app.py`   | Main entry, navigation sidebar                    |
+| `bridge.py`          | OrchestratorBridge - connects UI to system layers |
+| `session.py`         | Streamlit session state management                |
+| `data_queue.py`      | Sensor data queue for real-time updates           |
+| `components/`        | Shared UI components (header, badges, errors)     |
+| `pages/dashboard.py` | Sensor metrics, auto-refresh fragments            |
+| `pages/devices.py`   | Device listing with expandable details            |
+| `pages/rules.py`     | Rule management and editing                       |
+| `pages/config.py`    | Configuration editing interface                   |
+| `pages/logs.py`      | Log viewing and filtering                         |
+
+**Key Pattern**: CLI/Web query orchestrator for status, delegate to managers for
+operations.
 
 ## Layer 2: Configuration & Management (`configuration/`)
 

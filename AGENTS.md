@@ -1,5 +1,7 @@
 # AGENTS.md - Fuzzy-LLM Hybrid IoT Management System
 
+<!-- Generated: 2026-03-19 | Commit: 9ed969e | Branch: main -->
+
 > AI Agent guidance for working with this codebase.
 
 ## Project Overview
@@ -36,12 +38,13 @@ ONLY through the layer coordinator.
 
 ## Key Entry Points
 
-| Entry Point                | Purpose                                        |
-| -------------------------- | ---------------------------------------------- |
-| `src/main.py`              | Application entry point                        |
-| `src/application.py`       | Application lifecycle (start/stop/run_forever) |
-| `python -m src.interfaces` | CLI interface                                  |
-| `docker compose up -d`     | Docker deployment                              |
+| Entry Point                                         | Purpose                                        |
+| --------------------------------------------------- | ---------------------------------------------- |
+| `src/main.py`                                       | Application entry point                        |
+| `src/application.py`                                | Application lifecycle (start/stop/run_forever) |
+| `python -m src.interfaces`                          | CLI interface                                  |
+| `streamlit run src/interfaces/web/streamlit_app.py` | Web UI (Streamlit dashboard)                   |
+| `docker compose up -d`                              | Docker deployment (4 services)                 |
 
 ## Technology Stack
 
@@ -49,7 +52,8 @@ ONLY through the layer coordinator.
 - **Ollama** - Local LLM inference (qwen3:0.6b default)
 - **MQTT** - Device communication via Mosquitto
 - **JSON** - All configuration (devices, rules, membership functions)
-- **pytest** - 826 tests, 83%+ coverage
+- **pytest** - 800+ tests, 83%+ coverage
+- **Streamlit** - Web UI dashboard
 
 ## Critical Conventions
 
@@ -129,14 +133,24 @@ from tests.conftest import create_sensor_reading, create_device_command
 @pytest.mark.slow
 ```
 
-**Run tests**: `pytest` or `make test` **Run lint**: `ruff check src tests` or
-`make lint`
+**Commands**:
+
+```bash
+make test          # Run all tests
+make test-unit     # Unit tests only
+make lint          # Ruff + mypy
+make format        # Ruff format + fix
+make coverage      # Coverage report
+make typecheck     # mypy strict
+```
 
 ## Directory Structure Quick Reference
 
 ```
 iot-master/
 ├── config/              # JSON configs (devices, MQTT, LLM, membership functions)
+│   ├── schemas/         # JSON schema validation
+│   └── membership_functions/  # Fuzzy MF definitions per sensor type
 ├── docker/              # Dockerfiles for app, mosquitto, ollama
 ├── docs/                # user/ and dev/ documentation
 ├── rules/               # Natural language rules (active_rules.json)
@@ -146,7 +160,8 @@ iot-master/
 │   ├── control_reasoning/ # RulePipeline, OllamaClient, CommandGenerator
 │   ├── data_processing/ # FuzzyPipeline, FuzzyEngine, MembershipFunctions
 │   ├── device_interface/ # MQTTManager, DeviceRegistry, DeviceMonitor
-│   └── interfaces/      # CLI
+│   └── interfaces/      # CLI + Web UI (Streamlit)
+│       └── web/         # Dashboard, device pages, rule editor
 └── tests/               # Mirrors src/ structure
 ```
 

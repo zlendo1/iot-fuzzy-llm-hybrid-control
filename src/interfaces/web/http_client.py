@@ -48,6 +48,23 @@ class AppStatusClient:
         """
         return self.get_status() is not None
 
+    def start(self) -> bool:
+        """Send start request to the application.
+
+        Returns:
+            True if start request was successful, False otherwise.
+        """
+        start_url = f"{self.base_url}/start"
+
+        try:
+            request = urllib.request.Request(start_url, method="POST", data=b"")
+            with urllib.request.urlopen(request, timeout=self.timeout) as response:
+                return response.status == 200
+        except (OSError, urllib.error.URLError):
+            pass
+
+        return False
+
     def shutdown(self) -> bool:
         """Send shutdown request to the application.
 

@@ -153,6 +153,39 @@ class TestAppStatusClient:
         assert result is False
 
     @pytest.mark.unit
+    def test_start_sends_post_request(self) -> None:
+        """start should send POST request to /start endpoint."""
+        from src.interfaces.web.http_client import AppStatusClient
+
+        mock_response = MagicMock()
+        mock_response.status = 200
+        mock_response.__enter__.return_value = mock_response
+        mock_response.__exit__.return_value = None
+
+        with patch(
+            "urllib.request.urlopen", return_value=mock_response
+        ) as mock_urlopen:
+            client = AppStatusClient()
+            result = client.start()
+
+        assert result is True
+        assert mock_urlopen.called
+
+    @pytest.mark.unit
+    def test_start_returns_false_on_error(self) -> None:
+        """start should return False when connection fails."""
+        from src.interfaces.web.http_client import AppStatusClient
+
+        def raise_url_error(*_args: object, **_kwargs: object) -> None:
+            raise urllib.error.URLError("connection failed")
+
+        with patch("urllib.request.urlopen", side_effect=raise_url_error):
+            client = AppStatusClient()
+            result = client.start()
+
+        assert result is False
+
+    @pytest.mark.unit
     def test_client_uses_default_base_url(self) -> None:
         """Client should use http://localhost:8080 as default base URL."""
         from src.interfaces.web.http_client import AppStatusClient

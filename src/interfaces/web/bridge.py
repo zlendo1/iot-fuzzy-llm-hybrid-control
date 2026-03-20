@@ -42,6 +42,9 @@ class OrchestratorBridge:
     def get_rules(self) -> list[dict[str, Any]]:
         return self._load_list_field(self._rules_dir / "active_rules.json", "rules")
 
+    def start(self) -> bool:
+        return self._http_client.start()
+
     def shutdown(self) -> bool:
         return self._http_client.shutdown()
 

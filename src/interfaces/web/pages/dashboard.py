@@ -27,9 +27,46 @@ def render() -> None:
         render_error_message(str(exc))
         return
 
-    if not bridge.is_app_running():
+    status = bridge.get_system_status()
+
+    if status is None:
         st.warning("⚠️ Application is not running. Start the system to see live data.")
         st.info("Run `docker compose up -d` or `python -m src.main` to start.")
+        st.stop()
+
+    current_state = status.get("state", "unknown")
+
+    st.subheader("System Control")
+    col_status, col_action = st.columns([2, 1])
+
+    with col_status:
+        if current_state == "running":
+            st.success("🟢 System is running")
+        elif current_state == "idle":
+            st.info("🟡 System is idle (ready to start)")
+        else:
+            st.warning(f"⚪ System state: {current_state}")
+
+    with col_action:
+        if current_state == "idle":
+            if st.button("▶️ Start System", type="primary", use_container_width=True):
+                if bridge.start():
+                    st.success("System started!")
+                    st.rerun()
+                else:
+                    st.error("Failed to start system")
+        elif current_state == "running":
+            if st.button("⏹️ Stop System", type="secondary", use_container_width=True):
+                if bridge.shutdown():
+                    st.success("Shutdown initiated!")
+                    st.rerun()
+                else:
+                    st.error("Failed to stop system")
+
+    st.divider()
+
+    if current_state != "running":
+        st.info("Start the system to see live sensor data.")
         st.stop()
 
     auto_refresh = st.toggle("Auto-refresh (1s)", value=False)

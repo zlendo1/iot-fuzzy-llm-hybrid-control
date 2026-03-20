@@ -79,6 +79,8 @@ iot-fuzzy-llm [OPTIONS] COMMAND [SUBCOMMAND] [ARGS]
 | `--config-dir PATH` | Configuration directory (default: `config`) |
 | `--rules-dir PATH`  | Rules directory (default: `rules`)          |
 | `--logs-dir PATH`   | Logs directory (default: `logs`)            |
+| `--grpc-host HOST`  | gRPC server host (default: `localhost`)     |
+| `--grpc-port PORT`  | gRPC server port (default: `50051`)         |
 | `--format FORMAT`   | Output format: `table`, `json`, `plain`     |
 | `-v, --verbose`     | Enable verbose output                       |
 | `--version`         | Show version and exit                       |
@@ -141,13 +143,15 @@ iot-fuzzy-llm -v status
 
 # JSON output for scripting
 iot-fuzzy-llm --format json status
+
+# Connect to custom gRPC server
+iot-fuzzy-llm --grpc-host localhost --grpc-port 50051 status
 ```
 
 > [!NOTE]
-> The `status` command first attempts to connect to a running application via
-> `http://localhost:8080/status` (port configurable with `IOT_STATUS_PORT`). If
-> the endpoint is unreachable, it falls back to a standalone orchestrator
-> instance to validate configurations.
+> The `status` command connects to a running application via the gRPC interface
+> (default: `localhost:50051`). The gRPC port can be customized with
+> `--grpc-port` or by setting the `GRPC_PORT` environment variable.
 
 **Status Output (after start):**
 

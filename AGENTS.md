@@ -42,13 +42,15 @@ ONLY through the layer coordinator.
 | --------------------------------------------------- | ---------------------------------------------- |
 | `src/main.py`                                       | Application entry point                        |
 | `src/application.py`                                | Application lifecycle (start/stop/run_forever) |
-| `python -m src.interfaces`                          | CLI interface                                  |
-| `streamlit run src/interfaces/web/streamlit_app.py` | Web UI (Streamlit dashboard)                   |
+| `localhost:50051` (gRPC)                            | Unified RPC interface for CLI and Web UI       |
+| `python -m src.interfaces`                          | CLI interface (uses gRPC on port 50051)        |
+| `streamlit run src/interfaces/web/streamlit_app.py` | Web UI dashboard (uses gRPC on port 50051)     |
 | `docker compose up -d`                              | Docker deployment (4 services)                 |
 
 ## Technology Stack
 
 - **Python 3.9+** (strict typing with mypy)
+- **gRPC** - Unified RPC interface (Protocol Buffers)
 - **Ollama** - Local LLM inference (qwen3:0.6b default)
 - **MQTT** - Device communication via Mosquitto
 - **JSON** - All configuration (devices, rules, membership functions)

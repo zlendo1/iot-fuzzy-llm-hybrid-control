@@ -10,6 +10,8 @@ ______________________________________________________________________
 
 - [User Interface Layer](#user-interface-layer)
   - [CLI Commands](#cli-commands)
+- [gRPC Interface Layer](#grpc-interface-layer)
+  - [gRPC Services](#grpc-services)
 - [Configuration & Management Layer](#configuration--management-layer)
   - [SystemOrchestrator](#systemorchestrator)
   - [ConfigurationManager](#configurationmanager)
@@ -38,14 +40,16 @@ The CLI is implemented using Click and provides the primary user interface.
 
 #### Global Options
 
-| Option            | Type   | Default  | Description                             |
-| ----------------- | ------ | -------- | --------------------------------------- |
-| `--config-dir`    | Path   | `config` | Configuration directory path            |
-| `--rules-dir`     | Path   | `rules`  | Rules directory path                    |
-| `--logs-dir`      | Path   | `logs`   | Logs directory path                     |
-| `--format`        | Choice | `table`  | Output format: `table`, `json`, `plain` |
-| `--verbose`, `-v` | Flag   | False    | Enable verbose output                   |
-| `--version`       | Flag   | -        | Show version and exit                   |
+| Option            | Type    | Default     | Description                             |
+| ----------------- | ------- | ----------- | --------------------------------------- |
+| `--config-dir`    | Path    | `config`    | Configuration directory path            |
+| `--rules-dir`     | Path    | `rules`     | Rules directory path                    |
+| `--logs-dir`      | Path    | `logs`      | Logs directory path                     |
+| `--grpc-host`     | String  | `localhost` | gRPC server host                        |
+| `--grpc-port`     | Integer | `50051`     | gRPC server port                        |
+| `--format`        | Choice  | `table`     | Output format: `table`, `json`, `plain` |
+| `--verbose`, `-v` | Flag    | False       | Enable verbose output                   |
+| `--version`       | Flag    | -           | Show version and exit                   |
 
 #### System Commands
 
@@ -755,6 +759,110 @@ if "temp_living_room" in registry:
 
 print(len(registry))  # Number of devices
 ```
+
+______________________________________________________________________
+
+## gRPC Interface Layer
+
+The system provides a unified gRPC interface for external clients (CLI and Web
+UI). All commands communicate through this interface on port **50051**
+(configurable).
+
+**Entry Point**: `localhost:50051` (default)
+
+**Proto Definitions**: `protos/` directory
+
+### gRPC Services
+
+#### LifecycleService
+
+Manage system lifecycle operations.
+
+**Methods:**
+
+- `Start()` - Start the IoT management system
+- `Stop()` - Stop the running system
+- `GetStatus()` - Get current system status
+- `GetSystemInfo()` - Get system information and version
+
+#### RulesService
+
+Manage natural language rules.
+
+**Methods:**
+
+- `AddRule(text, id?, priority?, tags?)` - Add a new rule
+- `RemoveRule(rule_id)` - Delete a rule
+- `ListRules(pagination?)` - List all rules
+- `GetRule(rule_id)` - Get rule details
+- `EnableRule(rule_id)` - Enable a rule
+- `DisableRule(rule_id)` - Disable a rule
+- `EvaluateRules()` - Trigger rule evaluation cycle
+
+#### DevicesService
+
+Access device information and send commands.
+
+**Methods:**
+
+- `ListDevices()` - List all registered devices
+- `GetDevice(device_id)` - Get device details
+- `GetDeviceStatus(device_id)` - Get current device status
+- `GetLatestReading(device_id)` - Get latest sensor reading
+- `SendCommand(device_id, action, parameters)` - Send command to device
+
+#### ConfigService
+
+Manage configuration files.
+
+**Methods:**
+
+- `GetConfig(name)` - Get configuration file
+- `UpdateConfig(name, content, version?)` - Update configuration
+- `ValidateConfig(name, content)` - Validate configuration
+- `ReloadConfig()` - Reload all configurations
+- `ListConfigs()` - List available config files
+
+#### LogsService
+
+Access system logs.
+
+**Methods:**
+
+- `GetLogEntries(pagination?, filters?)` - Get log entries
+- `GetLogCategories()` - Get available log categories
+- `GetLogStats()` - Get log statistics
+
+#### MembershipService
+
+Access fuzzy membership functions.
+
+**Methods:**
+
+- `GetMembershipFunctions(sensor_type)` - Get membership functions
+- `UpdateMembershipFunction(sensor_type, function)` - Update function
+- `ListSensorTypes()` - List available sensor types
+
+### Using gRPC Client
+
+The CLI and Web UI automatically use the gRPC interface. For custom clients:
+
+```python
+import grpc
+from src.interfaces.rpc.client import GrpcClient
+
+client = GrpcClient(host="localhost", port=50051)
+status = client.get_status()
+print(status.state)
+```
+
+### Error Handling
+
+gRPC errors are mapped to standard status codes:
+
+- `INVALID_ARGUMENT` - Configuration/Validation errors
+- `UNAVAILABLE` - Device/MQTT/Ollama unreachable
+- `INTERNAL` - System errors
 
 ______________________________________________________________________
 

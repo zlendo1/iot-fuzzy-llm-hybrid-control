@@ -8,7 +8,12 @@ from src.interfaces.web.components.common import (
     render_header,
 )
 from src.interfaces.web.data_queue import SensorDataQueue
-from src.interfaces.web.session import init_session_state
+from src.interfaces.web.session import (
+    clear_shutdown_initiated,
+    init_session_state,
+    is_shutdown_initiated,
+    set_shutdown_initiated,
+)
 
 
 def _get_sensor_queue() -> SensorDataQueue:
@@ -30,8 +35,15 @@ def render() -> None:
     status = bridge.get_system_status()
 
     if status is None:
-        st.warning("⚠️ Application is not running. Start the system to see live data.")
-        st.info("Run `docker compose up -d` or `python -m src.main` to start.")
+        if is_shutdown_initiated():
+            clear_shutdown_initiated()
+            st.info("System is shutting down...")
+            st.info("Refresh the page in a few seconds to see updated status.")
+        else:
+            st.warning(
+                "⚠️ Application is not running. Start the system to see live data."
+            )
+            st.info("Run `docker compose up -d` or `python -m src.main` to start.")
         st.stop()
 
     current_state = status.get("state", "unknown")
@@ -59,6 +71,7 @@ def render() -> None:
             if st.button("⏹️ Stop System", type="secondary", use_container_width=True):
                 if bridge.shutdown():
                     st.success("Shutdown initiated!")
+                    set_shutdown_initiated()
                     st.rerun()
                 else:
                     st.error("Failed to stop system")

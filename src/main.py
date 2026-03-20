@@ -4,7 +4,9 @@ import os
 import sys
 
 from src.application import create_application
-from src.common.logging import get_logger
+from src.common.logging import get_logger, setup_logging
+
+setup_logging()
 
 logger = get_logger(__name__)
 

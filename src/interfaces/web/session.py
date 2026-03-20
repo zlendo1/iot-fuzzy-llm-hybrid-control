@@ -53,3 +53,22 @@ def set_ui_preference(key: str, value: object) -> None:
         value: Preference value.
     """
     st.session_state.setdefault("ui_preferences", {})[key] = value
+
+
+def set_shutdown_initiated() -> None:
+    """Mark that a system shutdown was just initiated."""
+    st.session_state["shutdown_initiated"] = True
+
+
+def is_shutdown_initiated() -> bool:
+    """Check if a shutdown was just initiated.
+
+    Returns:
+        True if shutdown was initiated and not yet acknowledged.
+    """
+    return st.session_state.get("shutdown_initiated", False)
+
+
+def clear_shutdown_initiated() -> None:
+    """Clear the shutdown initiated flag."""
+    st.session_state["shutdown_initiated"] = False

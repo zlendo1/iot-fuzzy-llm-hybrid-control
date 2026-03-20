@@ -122,13 +122,14 @@ dev-web: $(VENV)
 
 proto: $(VENV)
 	mkdir -p $(GEN_DIR)
-	$(VENV_PYTHON) -m grpc_tools.protoc \
+	PATH=$(VENV_BIN):$$PATH $(VENV_PYTHON) -m grpc_tools.protoc \
 		--python_out=$(GEN_DIR) \
 		--grpc_python_out=$(GEN_DIR) \
 		--mypy_out=$(GEN_DIR) \
 		-I $(PROTO_DIR) \
 		$(PROTO_DIR)/*.proto
 	touch $(GEN_DIR)/__init__.py
+	$(VENV_PYTHON) scripts/fix_protobuf_imports.py
 
 proto-clean:
 	rm -rf $(GEN_DIR)

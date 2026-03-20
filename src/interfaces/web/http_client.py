@@ -8,14 +8,22 @@ from typing import Any
 
 
 class AppStatusClient:
-    """HTTP client for querying application status via REST API."""
+    """HTTP client for querying application status via REST API.
+
+    DEPRECATED: This class uses the legacy HTTP status endpoint. The system
+    now uses gRPC (port 50051) for all communication. This client is retained
+    for backwards compatibility with legacy deployments.
+    """
 
     def __init__(self, base_url: str | None = None, timeout: int = 5) -> None:
         """Initialize the status client.
 
         Args:
-            base_url: Base URL for the status endpoint (default: from IOT_APP_URL env or http://localhost:8080)
+            base_url: Base URL for the status endpoint (default: from IOT_APP_URL env or localhost:50051 via gRPC)
             timeout: Request timeout in seconds (default: 5)
+
+        Note:
+            For new implementations, use gRPC client instead (localhost:50051).
         """
         if base_url is None:
             base_url = os.environ.get("IOT_APP_URL", "http://localhost:8080")

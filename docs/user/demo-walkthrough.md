@@ -86,10 +86,9 @@ Components:
 ```
 
 > [!NOTE]
-> The CLI first attempts to connect to the running application via
-> `http://localhost:8080/status`. If successful, it shows live application
-> state. If unreachable, it falls back to standalone mode validating
-> configurations locally.
+> The CLI connects to the running application via gRPC on `localhost:50051`. If
+> successful, it shows live application state. If unreachable, it falls back to
+> standalone mode validating configurations locally.
 
 ### Step 3: List Demo Rules
 

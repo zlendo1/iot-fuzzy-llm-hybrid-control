@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
+from typing import Any
 
 import streamlit as st
 
@@ -12,43 +12,29 @@ from src.interfaces.web.components.common import render_error_message, render_he
 from src.interfaces.web.session import init_session_state
 
 
-def _load_config_file(filename: str) -> dict | None:
-    """Load config file by name."""
-    config_path = Path("config") / f"{filename}.json"
-    if not config_path.exists():
-        return None
-    try:
-        with config_path.open(encoding="utf-8") as f:
-            return json.load(f)
-    except (OSError, json.JSONDecodeError):
-        return None
-
-
-def _save_config_file(filename: str, data: dict) -> bool:
-    """Save config file by name."""
-    config_path = Path("config") / f"{filename}.json"
-    try:
-        config_path.write_text(json.dumps(data, indent=2), encoding="utf-8")
-        return True
-    except (OSError, json.JSONDecodeError):
-        return False
-
-
 def _render_config_editor(
     title: str,
     config_name: str,
     save_label: str,
+    bridge: Any,
 ) -> None:
     st.subheader(title)
-    config_data = _load_config_file(config_name)
+    config_data = bridge.get_config(config_name)
 
     if config_data is None:
         st.error(f"Failed to load {config_name} configuration")
         return
 
+    content = config_data.get("content")
+    version = config_data.get("version", "")
+
+    if content is None:
+        st.error(f"Invalid {config_name} configuration format")
+        return
+
     edited_text = st.text_area(
         label="Edit JSON",
-        value=json.dumps(config_data, indent=2),
+        value=json.dumps(content, indent=2),
         height=400,
         key=f"config_editor_{config_name}",
     )
@@ -60,10 +46,18 @@ def _render_config_editor(
             st.error(f"Invalid JSON: {exc}")
             return
 
-        if _save_config_file(config_name, parsed):
+        result = bridge.update_config(config_name, parsed, version)
+        if result is not None and result.get("success"):
+            st.success(f"Saved {config_name} configuration.")
+        elif result is not None and "new_version" in result:
             st.success(f"Saved {config_name} configuration.")
         else:
-            st.error(f"Failed to save {config_name} configuration")
+            error_msg = (
+                result.get("message", "Unknown error")
+                if result is not None
+                else "Failed to save configuration"
+            )
+            st.error(f"Failed to save {config_name} configuration: {error_msg}")
 
 
 def render() -> None:
@@ -71,18 +65,18 @@ def render() -> None:
     render_header("Configuration")
 
     try:
-        get_bridge()
+        bridge = get_bridge()
     except RuntimeError as exc:
         render_error_message(str(exc))
         return
 
     devices_tab, mqtt_tab, llm_tab = st.tabs(["Devices", "MQTT", "LLM"])
     with devices_tab:
-        _render_config_editor("Devices", "devices", "Save devices")
+        _render_config_editor("Devices", "devices", "Save devices", bridge)
     with mqtt_tab:
-        _render_config_editor("MQTT", "mqtt_config", "Save mqtt")
+        _render_config_editor("MQTT", "mqtt_config", "Save mqtt", bridge)
     with llm_tab:
-        _render_config_editor("LLM", "llm_config", "Save llm")
+        _render_config_editor("LLM", "llm_config", "Save llm", bridge)
 
 
 if __name__ == "__main__":

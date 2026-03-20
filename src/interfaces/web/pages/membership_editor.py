@@ -3,51 +3,36 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
+from typing import Any
 
 import streamlit as st
 
+from src.interfaces.web.bridge import get_bridge
 from src.interfaces.web.components.common import render_header
 from src.interfaces.web.session import init_session_state
 
-SENSOR_TYPES = ["temperature", "humidity", "light_level", "motion"]
-MEMBERSHIP_DIR = Path("config/membership_functions")
 
-
-def _load_membership_data(sensor_type: str) -> dict[str, object] | None:
-    file_path = MEMBERSHIP_DIR / f"{sensor_type}.json"
-    try:
-        return json.loads(file_path.read_text(encoding="utf-8"))
-    except FileNotFoundError:
-        st.warning("Membership file not found.")
-        return None
-    except json.JSONDecodeError as exc:
-        st.error(f"Invalid JSON in membership file: {exc}")
-        return None
-    except OSError as exc:
-        st.error(f"Failed to read membership file: {exc}")
-        return None
-
-
-def _save_membership_data(sensor_type: str, payload: dict[str, object]) -> None:
-    file_path = MEMBERSHIP_DIR / f"{sensor_type}.json"
-    try:
-        file_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-        st.success("Saved.")
-    except OSError as exc:
-        st.error(f"Failed to save membership file: {exc}")
-
-
-def render() -> None:
+def _render_membership_editor() -> None:
     init_session_state()
     render_header("Membership Editor")
 
-    sensor_type = st.selectbox("Sensor type", SENSOR_TYPES)
+    bridge = get_bridge()
 
-    data = _load_membership_data(sensor_type)
-    if data is not None:
-        st.json(data)
-        default_text = json.dumps(data, indent=2)
+    sensor_types = bridge.list_sensor_types()
+    if not sensor_types:
+        st.warning("No sensor types available. Backend may be unavailable.")
+        return
+
+    sensor_type = st.selectbox("Sensor type", sensor_types)
+
+    mf_data = bridge.get_membership_functions(sensor_type)
+    if mf_data is None:
+        st.warning("Failed to load membership functions. Backend may be unavailable.")
+        return
+
+    if mf_data:
+        st.json(mf_data)
+        default_text = json.dumps(mf_data, indent=2)
     else:
         default_text = "{}"
 
@@ -66,7 +51,66 @@ def render() -> None:
         if not isinstance(parsed, dict):
             st.error("Invalid JSON: root must be an object.")
             return
-        _save_membership_data(sensor_type, parsed)
+
+        linguistic_vars = parsed.get("linguistic_variables", [])
+        if not isinstance(linguistic_vars, list):
+            st.error("Invalid structure: must contain 'linguistic_variables' array")
+            return
+
+        success = True
+        for var in linguistic_vars:
+            if not isinstance(var, dict):
+                st.error("Invalid structure: linguistic_variables must contain objects")
+                return
+            var_name = var.get("name")
+            mfs = var.get("membership_functions", [])
+            if not isinstance(mfs, list):
+                st.error(
+                    f"Invalid structure: {var_name}.membership_functions must be array"
+                )
+                return
+
+            for mf in mfs:
+                if not isinstance(mf, dict):
+                    st.error(
+                        "Invalid structure: membership_functions must contain objects"
+                    )
+                    return
+                mf_name = mf.get("name")
+                func_type = mf.get("function_type")
+                params = mf.get("parameters", {})
+
+                if not isinstance(params, dict):
+                    st.error(f"Invalid parameters for {mf_name}: must be object")
+                    return
+
+                float_params: dict[str, float] = {}
+                try:
+                    for k, v in params.items():
+                        float_params[k] = float(v)
+                except (ValueError, TypeError):
+                    st.error(
+                        f"Invalid parameters for {mf_name}: values must be numbers"
+                    )
+                    return
+
+                result = bridge.update_membership_function(
+                    sensor_type, var_name, mf_name, func_type, float_params
+                )
+                if result is None:
+                    st.error(f"Failed to save {mf_name}. Backend may be unavailable.")
+                    success = False
+                    break
+
+            if not success:
+                break
+
+        if success:
+            st.success("Saved.")
+
+
+def render() -> None:
+    _render_membership_editor()
 
 
 if __name__ == "__main__":

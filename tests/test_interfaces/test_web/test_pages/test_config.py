@@ -19,20 +19,26 @@ def test_render_is_callable() -> None:
 
 def test_config_apptest_no_exception() -> None:
     at = AppTest.from_file("src/interfaces/web/pages/config.py")
-    with patch("src.interfaces.web.bridge.get_bridge") as mock_bridge:
-        mock_cfg = MagicMock()
-        mock_cfg.load_config.return_value = {"key": "value"}
-        mock_bridge.return_value.get_config_manager.return_value = mock_cfg
+    with patch("src.interfaces.web.bridge.get_bridge") as mock_get_bridge:
+        mock_bridge = MagicMock()
+        mock_bridge.get_config.return_value = {
+            "content": {"devices": []},
+            "version": "abc123",
+        }
+        mock_get_bridge.return_value = mock_bridge
         at.run(timeout=10)
     assert not at.exception
 
 
 def test_config_shows_title() -> None:
     at = AppTest.from_file("src/interfaces/web/pages/config.py")
-    with patch("src.interfaces.web.bridge.get_bridge") as mock_bridge:
-        mock_cfg = MagicMock()
-        mock_cfg.load_config.return_value = {"key": "value"}
-        mock_bridge.return_value.get_config_manager.return_value = mock_cfg
+    with patch("src.interfaces.web.bridge.get_bridge") as mock_get_bridge:
+        mock_bridge = MagicMock()
+        mock_bridge.get_config.return_value = {
+            "content": {"devices": []},
+            "version": "abc123",
+        }
+        mock_get_bridge.return_value = mock_bridge
         at.run(timeout=10)
     titles = [t.value for t in at.title]
     assert any("Config" in str(t) for t in titles)
@@ -40,9 +46,12 @@ def test_config_shows_title() -> None:
 
 def test_config_shows_tabs() -> None:
     at = AppTest.from_file("src/interfaces/web/pages/config.py")
-    with patch("src.interfaces.web.bridge.get_bridge") as mock_bridge:
-        mock_cfg = MagicMock()
-        mock_cfg.load_config.return_value = {"key": "value"}
-        mock_bridge.return_value.get_config_manager.return_value = mock_cfg
+    with patch("src.interfaces.web.bridge.get_bridge") as mock_get_bridge:
+        mock_bridge = MagicMock()
+        mock_bridge.get_config.return_value = {
+            "content": {"devices": []},
+            "version": "abc123",
+        }
+        mock_get_bridge.return_value = mock_bridge
         at.run(timeout=10)
     assert not at.exception

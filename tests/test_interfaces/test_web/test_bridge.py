@@ -1,101 +1,145 @@
 from __future__ import annotations
 
-import json
-from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
+from src.common.exceptions import IoTFuzzyLLMError
 from src.interfaces.web.bridge import OrchestratorBridge
 
 
-def test_get_system_status_returns_http_status_payload() -> None:
-    bridge = OrchestratorBridge()
-    expected = {"state": "running", "is_running": True, "orchestrator": {}}
+def test_get_status_success() -> None:
+    expected = {"status": "RUNNING", "uptime_seconds": 10, "version": "0.1.0"}
 
-    with patch.object(
-        bridge._http_client, "get_status", return_value=expected
-    ) as mocked:
-        result = bridge.get_system_status()
+    with patch("src.interfaces.web.bridge._build_grpc_client") as mock_builder:
+        mock_client = MagicMock()
+        mock_client.get_status.return_value = expected
+        mock_builder.return_value = mock_client
+
+        bridge = OrchestratorBridge()
+        result = bridge.get_status()
 
     assert result == expected
-    mocked.assert_called_once_with()
+    mock_builder.assert_called_once_with("localhost", 50051)
+    mock_client.connect.assert_called_once_with()
+    mock_client.get_status.assert_called_once_with()
 
 
-def test_is_app_running_proxies_http_client() -> None:
-    bridge = OrchestratorBridge()
+def test_get_status_error() -> None:
+    with patch("src.interfaces.web.bridge._build_grpc_client") as mock_builder:
+        mock_client = MagicMock()
+        mock_client.get_status.side_effect = IoTFuzzyLLMError("gRPC server unavailable")
+        mock_builder.return_value = mock_client
 
-    with patch.object(
-        bridge._http_client,
-        "is_app_running",
-        return_value=False,
-    ) as mocked:
+        bridge = OrchestratorBridge()
+        result = bridge.get_status()
+
+    assert result["status"] == "unavailable"
+    assert "error" in result
+
+
+def test_is_app_running_when_up() -> None:
+    with patch("src.interfaces.web.bridge._build_grpc_client") as mock_builder:
+        mock_client = MagicMock()
+        mock_client.get_status.return_value = {"status": "RUNNING"}
+        mock_builder.return_value = mock_client
+
+        bridge = OrchestratorBridge()
+        assert bridge.is_app_running() is True
+
+
+def test_is_app_running_when_down() -> None:
+    with patch("src.interfaces.web.bridge._build_grpc_client") as mock_builder:
+        mock_client = MagicMock()
+        mock_client.get_status.side_effect = IoTFuzzyLLMError("gRPC server unavailable")
+        mock_builder.return_value = mock_client
+
+        bridge = OrchestratorBridge()
         assert bridge.is_app_running() is False
 
-    mocked.assert_called_once_with()
 
+def test_get_devices() -> None:
+    expected = [{"id": "dev-1"}, {"id": "dev-2"}]
 
-def test_get_devices_prefers_status_orchestrator_devices() -> None:
-    bridge = OrchestratorBridge()
-    expected_devices = [{"id": "temp_1"}, {"id": "ac_1"}]
+    with patch("src.interfaces.web.bridge._build_grpc_client") as mock_builder:
+        mock_client = MagicMock()
+        mock_client.list_devices.return_value = expected
+        mock_builder.return_value = mock_client
 
-    with patch.object(
-        bridge,
-        "get_system_status",
-        return_value={"orchestrator": {"devices": expected_devices}},
-    ):
+        bridge = OrchestratorBridge()
         result = bridge.get_devices()
 
-    assert result == expected_devices
+    assert result == expected
+    mock_client.list_devices.assert_called_once_with()
 
 
-def test_get_devices_falls_back_to_devices_file(tmp_path: Path) -> None:
-    config_dir = tmp_path / "config"
-    config_dir.mkdir(parents=True)
-    devices_path = config_dir / "devices.json"
-    payload = {"devices": [{"id": "from_config"}]}
-    devices_path.write_text(json.dumps(payload), encoding="utf-8")
+def test_get_rules() -> None:
+    expected = [{"id": "rule-1", "text": "If hot then cool", "enabled": True}]
 
-    bridge = OrchestratorBridge()
-    bridge._config_dir = config_dir
+    with patch("src.interfaces.web.bridge._build_grpc_client") as mock_builder:
+        mock_client = MagicMock()
+        mock_client.list_rules.return_value = {"rules": expected, "pagination": {}}
+        mock_builder.return_value = mock_client
 
-    with patch.object(bridge, "get_system_status", return_value=None):
-        result = bridge.get_devices()
+        bridge = OrchestratorBridge()
+        result = bridge.get_rules()
 
-    assert result == payload["devices"]
-
-
-def test_get_rules_reads_active_rules_file(tmp_path: Path) -> None:
-    rules_dir = tmp_path / "rules"
-    rules_dir.mkdir(parents=True)
-    rules_path = rules_dir / "active_rules.json"
-    payload = {"rules": [{"rule_id": "r1", "rule_text": "If hot, turn on AC"}]}
-    rules_path.write_text(json.dumps(payload), encoding="utf-8")
-
-    bridge = OrchestratorBridge()
-    bridge._rules_dir = rules_dir
-
-    assert bridge.get_rules() == payload["rules"]
+    assert result == expected
+    mock_client.list_rules.assert_called_once_with()
 
 
-def test_shutdown_calls_http_client_shutdown() -> None:
-    bridge = OrchestratorBridge()
+def test_start() -> None:
+    with patch("src.interfaces.web.bridge._build_grpc_client") as mock_builder:
+        mock_client = MagicMock()
+        mock_client.start.return_value = {"success": True, "message": "started"}
+        mock_builder.return_value = mock_client
 
-    with patch.object(bridge._http_client, "shutdown", return_value=True) as mocked:
+        bridge = OrchestratorBridge()
+        result = bridge.start()
+
+    assert result is True
+    mock_client.start.assert_called_once_with()
+
+
+def test_shutdown() -> None:
+    with patch("src.interfaces.web.bridge._build_grpc_client") as mock_builder:
+        mock_client = MagicMock()
+        mock_client.stop.return_value = {"success": True, "message": "stopped"}
+        mock_builder.return_value = mock_client
+
+        bridge = OrchestratorBridge()
         result = bridge.shutdown()
 
     assert result is True
-    mocked.assert_called_once_with()
+    mock_client.stop.assert_called_once_with()
 
 
-def test_graceful_when_app_not_running() -> None:
-    bridge = OrchestratorBridge()
+def test_is_connected() -> None:
+    with patch("src.interfaces.web.bridge._build_grpc_client") as mock_builder:
+        mock_client = MagicMock()
+        mock_client.get_status.return_value = {"status": "RUNNING"}
+        mock_builder.return_value = mock_client
 
-    with patch.object(bridge._http_client, "is_app_running", return_value=False):
-        assert bridge.is_app_running() is False
+        bridge = OrchestratorBridge()
+        bridge.connect()
 
-    with patch.object(bridge, "get_system_status", return_value=None):
-        devices = bridge.get_devices()
+    assert bridge.is_connected() is True
 
-    assert isinstance(devices, list)
+
+def test_get_devices_returns_empty_on_connection_failure() -> None:
+    with patch(
+        "src.interfaces.web.bridge._build_grpc_client",
+        side_effect=IoTFuzzyLLMError("gRPC server unavailable"),
+    ):
+        bridge = OrchestratorBridge()
+        assert bridge.get_devices() == []
+
+
+def test_get_rules_returns_empty_on_connection_failure() -> None:
+    with patch(
+        "src.interfaces.web.bridge._build_grpc_client",
+        side_effect=IoTFuzzyLLMError("gRPC server unavailable"),
+    ):
+        bridge = OrchestratorBridge()
+        assert bridge.get_rules() == []
 
 
 def test_get_bridge_returns_cached_instance() -> None:

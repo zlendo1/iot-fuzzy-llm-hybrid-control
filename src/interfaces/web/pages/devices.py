@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-import json
-from pathlib import Path
-
 import streamlit as st
 
 from src.interfaces.web.bridge import get_bridge
@@ -14,32 +11,15 @@ from src.interfaces.web.components.common import (
 from src.interfaces.web.session import init_session_state
 
 
-def _load_devices() -> list[dict] | None:
-    """Load devices from config file."""
-    config_path = Path("config") / "devices.json"
-    if not config_path.exists():
-        return None
-    try:
-        with config_path.open(encoding="utf-8") as f:
-            data = json.load(f)
-            return data.get("devices", [])
-    except (OSError, json.JSONDecodeError):
-        return None
-
-
 def render() -> None:
     init_session_state()
     render_header("Devices")
 
-    try:
-        get_bridge()
-    except RuntimeError as exc:
-        render_error_message(str(exc))
-        return
+    bridge = get_bridge()
 
-    devices = _load_devices()
-    if devices is None:
-        st.warning("Device configuration not found.")
+    devices = bridge.get_devices()
+    if not devices:
+        st.warning("No devices available or unable to retrieve device list.")
         return
 
     locations = sorted(

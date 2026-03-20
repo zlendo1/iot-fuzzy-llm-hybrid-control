@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib
 from concurrent import futures
 from typing import TYPE_CHECKING
 
@@ -7,6 +8,7 @@ import grpc
 from grpc_reflection.v1alpha import reflection
 
 from src.common.logging import get_logger
+from src.interfaces.rpc.generated import lifecycle_pb2_grpc
 
 if TYPE_CHECKING:
     from src.configuration.system_orchestrator import SystemOrchestrator
@@ -44,7 +46,18 @@ class GrpcServer:
         if not self._server:
             return
 
+        lifecycle_module = importlib.import_module(
+            "src.interfaces.rpc.servicers.lifecycle_servicer"
+        )
+        lifecycle_servicer_cls = lifecycle_module.LifecycleServicer
+
+        lifecycle_pb2_grpc.add_LifecycleServiceServicer_to_server(
+            lifecycle_servicer_cls(orchestrator=self._orchestrator),
+            self._server,
+        )
+
         service_names = [
+            "iot.v1.LifecycleService",
             reflection.SERVICE_NAME,
         ]
         reflection.enable_server_reflection(service_names, self._server)

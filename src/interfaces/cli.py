@@ -369,37 +369,20 @@ def rule_add(
 
     TEXT is the natural language rule text.
     """
-    import uuid
+    with GrpcClient(ctx.grpc_host, ctx.grpc_port) as client:
+        try:
+            result = client.add_rule(text)
+            rule = result.get("rule", {})
 
-    from src.configuration.rule_manager import RuleManager
-
-    rules_file = ctx.rules_dir / "active_rules.json"
-    manager = RuleManager(rules_file=rules_file, auto_save=True)
-
-    if rule_id is None:
-        rule_id = f"rule_{uuid.uuid4().hex[:8]}"
-
-    metadata: dict[str, Any] = {}
-    if tag:
-        metadata["tags"] = list(tag)
-
-    rule_obj = manager.add_rule(
-        rule_id=rule_id,
-        rule_text=text,
-        priority=priority,
-        enabled=True,
-        metadata=metadata,
-    )
-
-    if ctx.output_format == "json":
-        click.echo(ctx.formatter.format_json(rule_obj.to_dict()))
-    else:
-        click.echo(ctx.formatter.success(f"Rule added with ID: {rule_obj.rule_id}"))
-        click.echo(f"  Text: {rule_obj.rule_text}")
-        click.echo(f"  Priority: {rule_obj.priority}")
-        tags = rule_obj.metadata.get("tags", [])
-        if tags:
-            click.echo(f"  Tags: {', '.join(tags)}")
+            if ctx.output_format == "json":
+                click.echo(ctx.formatter.format_json(rule))
+            else:
+                click.echo(ctx.formatter.success(f"Rule added with ID: {rule['id']}"))
+                click.echo(f"  Text: {rule['text']}")
+                click.echo(f"  Enabled: {'Yes' if rule.get('enabled', True) else 'No'}")
+        except Exception as e:
+            click.echo(ctx.formatter.error(f"Failed to add rule: {e}"), err=True)
+            sys.exit(1)
 
 
 @rule.command("list")
@@ -409,47 +392,44 @@ def rule_add(
 @handle_errors
 def rule_list(ctx: CLIContext, enabled_only: bool, tag: str | None) -> None:
     """List all rules."""
-    from src.configuration.rule_manager import RuleManager
+    with GrpcClient(ctx.grpc_host, ctx.grpc_port) as client:
+        try:
+            result = client.list_rules()
+            rules = result.get("rules", [])
 
-    rules_file = ctx.rules_dir / "active_rules.json"
-    manager = RuleManager(rules_file=rules_file, auto_save=False)
+            if enabled_only:
+                rules = [r for r in rules if r.get("enabled", True)]
 
-    rules = manager.get_enabled_rules() if enabled_only else manager.get_all_rules()
+            if ctx.output_format == "json":
+                click.echo(ctx.formatter.format_json(rules))
+                return
 
-    if tag:
-        rules = [r for r in rules if tag in r.metadata.get("tags", [])]
+            if not rules:
+                click.echo("No rules found.")
+                return
 
-    if ctx.output_format == "json":
-        click.echo(ctx.formatter.format_json([r.to_dict() for r in rules]))
-        return
+            headers = ["ID", "Enabled", "Text"]
+            rows = []
+            for r in rules:
+                rows.append(
+                    [
+                        r["id"],
+                        "Yes" if r.get("enabled", True) else "No",
+                        r["text"],
+                    ]
+                )
 
-    if not rules:
-        click.echo("No rules found.")
-        return
-
-    headers = ["ID", "Enabled", "Priority", "Text", "Tags"]
-    rows = []
-    for r in rules:
-        tags = r.metadata.get("tags", [])
-        tags_str = ", ".join(tags) if tags else ""
-        rows.append(
-            [
-                r.rule_id,
-                "Yes" if r.enabled else "No",
-                str(r.priority),
-                r.rule_text,
-                tags_str,
-            ]
-        )
-
-    text_column_wrap_width = 50
-    max_widths = [0, 0, 0, text_column_wrap_width, 0]
-    click.echo(
-        ctx.formatter.format_table(
-            headers, rows, max_widths=max_widths, row_separator=True
-        )
-    )
-    click.echo(f"\nTotal: {len(rules)} rule(s)")
+            text_column_wrap_width = 50
+            max_widths = [0, 0, text_column_wrap_width]
+            click.echo(
+                ctx.formatter.format_table(
+                    headers, rows, max_widths=max_widths, row_separator=True
+                )
+            )
+            click.echo(f"\nTotal: {len(rules)} rule(s)")
+        except Exception as e:
+            click.echo(ctx.formatter.error(f"Failed to list rules: {e}"), err=True)
+            sys.exit(1)
 
 
 @rule.command("show")
@@ -458,30 +438,20 @@ def rule_list(ctx: CLIContext, enabled_only: bool, tag: str | None) -> None:
 @handle_errors
 def rule_show(ctx: CLIContext, rule_id: str) -> None:
     """Show detailed information about a rule."""
-    from src.configuration.rule_manager import RuleManager
+    with GrpcClient(ctx.grpc_host, ctx.grpc_port) as client:
+        try:
+            rule = client.get_rule(rule_id)
 
-    rules_file = ctx.rules_dir / "active_rules.json"
-    manager = RuleManager(rules_file=rules_file, auto_save=False)
+            if ctx.output_format == "json":
+                click.echo(ctx.formatter.format_json(rule))
+                return
 
-    rule_obj = manager.get_rule_optional(rule_id)
-    if rule_obj is None:
-        click.echo(ctx.formatter.error(f"Rule not found: {rule_id}"))
-        sys.exit(1)
-
-    if ctx.output_format == "json":
-        click.echo(ctx.formatter.format_json(rule_obj.to_dict()))
-        return
-
-    tags = rule_obj.metadata.get("tags", [])
-    click.echo(f"Rule ID: {rule_obj.rule_id}")
-    click.echo(f"Text: {rule_obj.rule_text}")
-    click.echo(f"Enabled: {'Yes' if rule_obj.enabled else 'No'}")
-    click.echo(f"Priority: {rule_obj.priority}")
-    click.echo(f"Tags: {', '.join(tags) if tags else 'None'}")
-    click.echo(f"Created: {rule_obj.created_timestamp or 'N/A'}")
-    click.echo(f"Trigger Count: {rule_obj.trigger_count}")
-    if rule_obj.last_triggered:
-        click.echo(f"Last Triggered: {rule_obj.last_triggered}")
+            click.echo(f"Rule ID: {rule['id']}")
+            click.echo(f"Text: {rule['text']}")
+            click.echo(f"Enabled: {'Yes' if rule.get('enabled', True) else 'No'}")
+        except Exception as e:
+            click.echo(ctx.formatter.error(f"Failed to get rule: {e}"), err=True)
+            sys.exit(1)
 
 
 @rule.command("enable")
@@ -490,17 +460,17 @@ def rule_show(ctx: CLIContext, rule_id: str) -> None:
 @handle_errors
 def rule_enable(ctx: CLIContext, rule_id: str) -> None:
     """Enable a rule."""
-    from src.configuration.rule_manager import RuleManager
-
-    rules_file = ctx.rules_dir / "active_rules.json"
-    manager = RuleManager(rules_file=rules_file, auto_save=True)
-
-    if not manager.contains(rule_id):
-        click.echo(ctx.formatter.error(f"Rule not found: {rule_id}"))
-        sys.exit(1)
-
-    manager.enable_rule(rule_id)
-    click.echo(ctx.formatter.success(f"Rule {rule_id} enabled."))
+    with GrpcClient(ctx.grpc_host, ctx.grpc_port) as client:
+        try:
+            result = client.enable_rule(rule_id)
+            if result.get("success", False):
+                click.echo(ctx.formatter.success(f"Rule {rule_id} enabled."))
+            else:
+                click.echo(ctx.formatter.error(f"Failed to enable rule: {rule_id}"))
+                sys.exit(1)
+        except Exception as e:
+            click.echo(ctx.formatter.error(f"Failed to enable rule: {e}"), err=True)
+            sys.exit(1)
 
 
 @rule.command("disable")
@@ -509,17 +479,17 @@ def rule_enable(ctx: CLIContext, rule_id: str) -> None:
 @handle_errors
 def rule_disable(ctx: CLIContext, rule_id: str) -> None:
     """Disable a rule."""
-    from src.configuration.rule_manager import RuleManager
-
-    rules_file = ctx.rules_dir / "active_rules.json"
-    manager = RuleManager(rules_file=rules_file, auto_save=True)
-
-    if not manager.contains(rule_id):
-        click.echo(ctx.formatter.error(f"Rule not found: {rule_id}"))
-        sys.exit(1)
-
-    manager.disable_rule(rule_id)
-    click.echo(ctx.formatter.success(f"Rule {rule_id} disabled."))
+    with GrpcClient(ctx.grpc_host, ctx.grpc_port) as client:
+        try:
+            result = client.disable_rule(rule_id)
+            if result.get("success", False):
+                click.echo(ctx.formatter.success(f"Rule {rule_id} disabled."))
+            else:
+                click.echo(ctx.formatter.error(f"Failed to disable rule: {rule_id}"))
+                sys.exit(1)
+        except Exception as e:
+            click.echo(ctx.formatter.error(f"Failed to disable rule: {e}"), err=True)
+            sys.exit(1)
 
 
 @rule.command("delete")
@@ -529,33 +499,32 @@ def rule_disable(ctx: CLIContext, rule_id: str) -> None:
 @handle_errors
 def rule_delete(ctx: CLIContext, rule_id: str, yes: bool) -> None:
     """Delete a rule."""
-    from src.configuration.rule_manager import RuleManager
+    with GrpcClient(ctx.grpc_host, ctx.grpc_port) as client:
+        try:
+            if not yes:
+                try:
+                    rule = client.get_rule(rule_id)
+                    text_preview = (
+                        rule["text"][:50] + "..."
+                        if len(rule["text"]) > 50
+                        else rule["text"]
+                    )
+                    click.echo(f"Rule to delete: {text_preview}")
+                    if not click.confirm("Are you sure you want to delete this rule?"):
+                        click.echo("Cancelled.")
+                        return
+                except Exception:
+                    pass
 
-    rules_file = ctx.rules_dir / "active_rules.json"
-    manager = RuleManager(rules_file=rules_file, auto_save=True)
-
-    rule_obj = manager.get_rule_optional(rule_id)
-    if rule_obj is None:
-        click.echo(ctx.formatter.error(f"Rule not found: {rule_id}"))
-        sys.exit(1)
-
-    if not yes:
-        text_preview = (
-            rule_obj.rule_text[:50] + "..."
-            if len(rule_obj.rule_text) > 50
-            else rule_obj.rule_text
-        )
-        click.echo(f"Rule to delete: {text_preview}")
-        if not click.confirm("Are you sure you want to delete this rule?"):
-            click.echo("Cancelled.")
-            return
-
-    result = manager.delete_rule(rule_id)
-    if result:
-        click.echo(ctx.formatter.success(f"Rule {rule_id} deleted."))
-    else:
-        click.echo(ctx.formatter.error(f"Failed to delete rule: {rule_id}"))
-        sys.exit(1)
+            result = client.remove_rule(rule_id)
+            if result.get("success", False):
+                click.echo(ctx.formatter.success(f"Rule {rule_id} deleted."))
+            else:
+                click.echo(ctx.formatter.error(f"Failed to delete rule: {rule_id}"))
+                sys.exit(1)
+        except Exception as e:
+            click.echo(ctx.formatter.error(f"Failed to delete rule: {e}"), err=True)
+            sys.exit(1)
 
 
 @cli.group()

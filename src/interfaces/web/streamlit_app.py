@@ -6,33 +6,37 @@ for the Fuzzy-LLM IoT Management System web interface.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import streamlit as st
+
+SCRIPT_DIR = Path(__file__).parent
 
 PAGES = [
     st.Page(
-        "src/interfaces/web/pages/dashboard.py",
+        SCRIPT_DIR / "pages" / "dashboard.py",
         title="Dashboard",
         icon=":material/dashboard:",
     ),
     st.Page(
-        "src/interfaces/web/pages/devices.py",
+        SCRIPT_DIR / "pages" / "devices.py",
         title="Devices",
         icon=":material/devices_other:",
     ),
-    st.Page("src/interfaces/web/pages/rules.py", title="Rules", icon=":material/rule:"),
+    st.Page(SCRIPT_DIR / "pages" / "rules.py", title="Rules", icon=":material/rule:"),
     st.Page(
-        "src/interfaces/web/pages/config.py", title="Config", icon=":material/settings:"
+        SCRIPT_DIR / "pages" / "config.py", title="Config", icon=":material/settings:"
     ),
     st.Page(
-        "src/interfaces/web/pages/membership_editor.py",
+        SCRIPT_DIR / "pages" / "membership_editor.py",
         title="Membership Editor",
         icon=":material/functions:",
     ),
     st.Page(
-        "src/interfaces/web/pages/logs.py", title="Logs", icon=":material/description:"
+        SCRIPT_DIR / "pages" / "logs.py", title="Logs", icon=":material/description:"
     ),
     st.Page(
-        "src/interfaces/web/pages/system_control.py",
+        SCRIPT_DIR / "pages" / "system_control.py",
         title="System Control",
         icon=":material/tune:",
     ),

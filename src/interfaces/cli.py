@@ -304,6 +304,17 @@ def stop(ctx: CLIContext) -> None:
     """Stop the IoT management system."""
     click.echo(ctx.formatter.info("Stopping system..."))
 
+    shutdown_port = os.getenv("IOT_STATUS_PORT", "8080")
+    shutdown_url = f"http://localhost:{shutdown_port}/shutdown"
+
+    try:
+        with urllib.request.urlopen(shutdown_url, data=b"", timeout=5) as response:
+            if response.status == 200:
+                click.echo(ctx.formatter.success("✓ Application stopped successfully."))
+                return
+    except (OSError, urllib.error.URLError) as exc:
+        logger.debug("Shutdown endpoint unavailable", extra={"error": str(exc)})
+
     orchestrator = ctx.get_initialized_orchestrator()
     if orchestrator is None:
         click.echo(ctx.formatter.warning("System is not running."))
@@ -311,7 +322,7 @@ def stop(ctx: CLIContext) -> None:
 
     result = orchestrator.shutdown()
     if result:
-        click.echo(ctx.formatter.success("System stopped successfully."))
+        click.echo(ctx.formatter.success("✓ System stopped successfully."))
     else:
         click.echo(ctx.formatter.error("Failed to stop system."))
         sys.exit(1)

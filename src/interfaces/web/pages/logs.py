@@ -5,8 +5,7 @@ from pathlib import Path
 
 import streamlit as st
 
-from src.interfaces.web.bridge import get_bridge
-from src.interfaces.web.components.common import render_error_message, render_header
+from src.interfaces.web.components.common import render_header
 from src.interfaces.web.session import init_session_state
 
 LOG_DIR = Path("logs")
@@ -66,12 +65,6 @@ def _entries_for_display(entries: list[dict[str, str]]) -> list[dict[str, str]]:
 def render() -> None:
     init_session_state()
     render_header("Logs")
-
-    try:
-        get_bridge()
-    except RuntimeError as exc:
-        render_error_message(str(exc))
-        return
 
     col1, col2 = st.columns(2)
     with col1:

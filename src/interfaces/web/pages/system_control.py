@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+import time
 
 import streamlit as st
 
@@ -8,7 +8,6 @@ from src.interfaces.web.bridge import get_bridge
 from src.interfaces.web.components.common import (
     render_error_message,
     render_header,
-    render_status_badge,
 )
 from src.interfaces.web.session import init_session_state
 
@@ -23,52 +22,42 @@ def render() -> None:
         render_error_message(str(exc))
         return
 
-    try:
-        orch = bridge.get_orchestrator()
-    except RuntimeError as exc:
-        render_error_message(str(exc))
-        return
+    is_running = bridge.is_app_running()
 
-    col1, col2 = st.columns(2)
-    with col1:
-        st.write("**State:**")
-        render_status_badge(orch.state.value)
-    with col2:
-        st.write(f"**Ready:** {orch.is_ready}")
+    if is_running:
+        st.success("✓ Application is running")
 
-    status: dict[str, Any] = orch.get_system_status()
+        status = bridge.get_system_status()
+        if status:
+            st.subheader("System Status")
+            st.json(status)
 
-    components = status.get("components", {})
-    if components:
-        st.subheader("Components")
-        for name, available in components.items():
-            icon = "✅" if available else "❌"
-            st.write(f"{icon} {name}")
+        st.subheader("Actions")
+        confirm = st.checkbox("Confirm shutdown")
+        if st.button("Shutdown System"):
+            if confirm:
+                try:
+                    result = bridge.shutdown()
+                    if result:
+                        st.success("✓ Shutdown initiated")
+                        time.sleep(2)
+                        st.rerun()
+                    else:
+                        st.error("❌ Shutdown failed")
+                except Exception as exc:
+                    render_error_message(f"Shutdown failed: {exc}")
+            else:
+                st.warning("⚠️ Check the confirmation box first.")
+    else:
+        st.warning("⚠️ Application is not running")
 
-    init_steps = status.get("initialization_steps", [])
-    if init_steps:
-        with st.expander("Initialization Steps"):
-            for step in init_steps:
-                completed_icon = "✅" if step.get("completed") else "❌"
-                error_text = f" ERROR: {step['error']}" if step.get("error") else ""
-                st.write(
-                    f"{completed_icon} **{step.get('name', '')}** — {step.get('description', '')}{error_text}"
-                )
+        st.info("**To start the system:**")
 
-    st.subheader("Actions")
-    confirm = st.checkbox("Confirm shutdown")
-    if st.button("Shutdown System"):
-        if confirm:
-            try:
-                result = orch.shutdown()
-                if result:
-                    st.success("System shutdown successfully.")
-                else:
-                    st.warning("Shutdown returned False.")
-            except Exception as exc:
-                render_error_message(f"Shutdown failed: {exc}")
-        else:
-            st.warning("Check the confirmation box first.")
+        st.subheader("Option 1: Docker Compose")
+        st.code("docker compose up -d", language="bash")
+
+        st.subheader("Option 2: Manual (Python)")
+        st.code("python -m src.main", language="bash")
 
 
 if __name__ == "__main__":

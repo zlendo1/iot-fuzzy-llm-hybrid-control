@@ -1039,21 +1039,123 @@ class TestSystemCommands:
     ) -> None:
         from src.interfaces.cli import cli
 
-        result = cli_runner.invoke(
-            cli,
-            [
-                "--config-dir",
-                str(temp_dirs["config"]),
-                "--rules-dir",
-                str(temp_dirs["rules"]),
-                "--logs-dir",
-                str(temp_dirs["logs"]),
-                "stop",
-            ],
-        )
+        def mock_urlopen_fails(*args: object, **kwargs: object) -> object:
+            raise OSError("Connection refused")
+
+        with (
+            patch("urllib.request.urlopen", side_effect=mock_urlopen_fails),
+            patch(
+                "src.interfaces.cli.CLIContext.get_initialized_orchestrator",
+                return_value=None,
+            ),
+        ):
+            result = cli_runner.invoke(
+                cli,
+                [
+                    "--config-dir",
+                    str(temp_dirs["config"]),
+                    "--rules-dir",
+                    str(temp_dirs["rules"]),
+                    "--logs-dir",
+                    str(temp_dirs["logs"]),
+                    "stop",
+                ],
+            )
 
         assert result.exit_code == 0
         assert "not running" in result.output.lower()
+
+    @pytest.mark.unit
+    def test_stop_via_http_endpoint(
+        self, cli_runner: CliRunner, temp_dirs: dict[str, Path]
+    ) -> None:
+        from src.interfaces.cli import cli
+
+        def mock_urlopen_for_shutdown(*args: object, **kwargs: object) -> object:
+            from unittest.mock import MagicMock
+
+            mock_response = MagicMock()
+            mock_response.status = 200
+            mock_response.read.return_value = b'{"status": "shutdown_initiated"}'
+            mock_response.__enter__ = lambda self: self
+            mock_response.__exit__ = lambda *_: None
+            return mock_response
+
+        with patch("urllib.request.urlopen", side_effect=mock_urlopen_for_shutdown):
+            result = cli_runner.invoke(
+                cli,
+                [
+                    "--config-dir",
+                    str(temp_dirs["config"]),
+                    "--rules-dir",
+                    str(temp_dirs["rules"]),
+                    "--logs-dir",
+                    str(temp_dirs["logs"]),
+                    "stop",
+                ],
+            )
+
+        assert result.exit_code == 0
+        assert "stopped" in result.output.lower()
+
+    @pytest.mark.unit
+    def test_stop_falls_back_to_orchestrator_when_http_fails(
+        self, cli_runner: CliRunner, temp_dirs: dict[str, Path]
+    ) -> None:
+        from src.interfaces.cli import cli
+
+        def raise_url_error(*_args: object, **_kwargs: object) -> None:
+            raise urllib.error.URLError("connection failed")
+
+        with patch("urllib.request.urlopen", side_effect=raise_url_error):
+            result = cli_runner.invoke(
+                cli,
+                [
+                    "--config-dir",
+                    str(temp_dirs["config"]),
+                    "--rules-dir",
+                    str(temp_dirs["rules"]),
+                    "--logs-dir",
+                    str(temp_dirs["logs"]),
+                    "stop",
+                ],
+            )
+
+        assert result.exit_code == 0
+        assert "not running" in result.output.lower()
+
+    @pytest.mark.unit
+    def test_stop_displays_success_message(
+        self, cli_runner: CliRunner, temp_dirs: dict[str, Path]
+    ) -> None:
+        from src.interfaces.cli import cli
+
+        def mock_urlopen_for_shutdown(*args: object, **kwargs: object) -> object:
+            from unittest.mock import MagicMock
+
+            mock_response = MagicMock()
+            mock_response.status = 200
+            mock_response.read.return_value = b'{"status": "shutdown_initiated"}'
+            mock_response.__enter__ = lambda self: self
+            mock_response.__exit__ = lambda *_: None
+            return mock_response
+
+        with patch("urllib.request.urlopen", side_effect=mock_urlopen_for_shutdown):
+            result = cli_runner.invoke(
+                cli,
+                [
+                    "--config-dir",
+                    str(temp_dirs["config"]),
+                    "--rules-dir",
+                    str(temp_dirs["rules"]),
+                    "--logs-dir",
+                    str(temp_dirs["logs"]),
+                    "stop",
+                ],
+            )
+
+        assert result.exit_code == 0
+        assert "✓" in result.output or "successfully" in result.output.lower()
 
 
 class TestErrorHandling:

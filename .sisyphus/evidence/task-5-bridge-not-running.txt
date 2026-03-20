@@ -1,0 +1,2 @@
+is_app_running: False
+✓ Graceful handling

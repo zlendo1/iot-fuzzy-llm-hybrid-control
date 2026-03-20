@@ -2,15 +2,11 @@
 
 from __future__ import annotations
 
-import functools
-import json
-import os
 import signal
 import threading
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -25,54 +21,9 @@ if TYPE_CHECKING:
     from src.device_interface.messages import (
         SensorReading,
     )
+    from src.interfaces.rpc.server import GrpcServer
 
 logger = get_logger(__name__)
-
-
-class _StatusRequestHandler(BaseHTTPRequestHandler):
-    def __init__(self, *args: Any, app: Application, **kwargs: Any) -> None:
-        self._app = app
-        super().__init__(*args, **kwargs)
-
-    def do_GET(self) -> None:  # noqa: N802
-        path = self.path.split("?", 1)[0].rstrip("/")
-        if path == "/shutdown":
-            self._send_response(405, {"error": "method_not_allowed"})
-            return
-
-        if path != "/status":
-            self._send_response(404, {"error": "not_found"})
-            return
-
-        payload = self._app.get_status()
-        self._send_response(200, payload)
-
-    def do_POST(self) -> None:  # noqa: N802
-        path = self.path.split("?", 1)[0].rstrip("/")
-        if path == "/start":
-            if self._app.start_evaluation_loop():
-                self._send_response(200, {"status": "evaluation_loop_started"})
-            else:
-                self._send_response(400, {"error": "evaluation_loop_already_running"})
-            return
-
-        if path == "/shutdown":
-            self._send_response(200, {"status": "shutdown_initiated"})
-            self._app.stop()
-            return
-
-        self._send_response(404, {"error": "not_found"})
-
-    def _send_response(self, status_code: int, payload: dict[str, Any]) -> None:
-        body = json.dumps(payload).encode("utf-8")
-        self.send_response(status_code)
-        self.send_header("Content-Type", "application/json")
-        self.send_header("Content-Length", str(len(body)))
-        self.end_headers()
-        self.wfile.write(body)
-
-    def log_message(self, format: str, *args: Any) -> None:
-        logger.debug("Status server: " + format, *args)
 
 
 class ApplicationState(Enum):
@@ -90,6 +41,8 @@ class ApplicationConfig:
     logs_dir: Path = field(default_factory=lambda: Path("logs"))
     skip_mqtt: bool = False
     skip_ollama: bool = False
+    skip_grpc: bool = False
+    grpc_port: int = 50051
     evaluation_interval: float = 1.0
 
 
@@ -126,10 +79,8 @@ class Application:
         self._stats = ApplicationStats()
         self._stop_event = threading.Event()
         self._eval_thread: threading.Thread | None = None
-        self._status_server: ThreadingHTTPServer | None = None
-        self._status_thread: threading.Thread | None = None
-        self._status_port: int | None = None
         self._lock = threading.RLock()
+        self._grpc_server: GrpcServer | None = None
 
     @property
     def state(self) -> ApplicationState:
@@ -170,10 +121,11 @@ class Application:
 
             self._wire_components()
 
+            self._start_grpc_server()
+
             self._stats = ApplicationStats(start_time=time.time())
 
             self._stop_event.clear()
-            self._start_status_server()
 
             if auto_start:
                 self._eval_thread = threading.Thread(
@@ -208,55 +160,6 @@ class Application:
             logger.info("Evaluation loop started")
             return True
 
-    def _resolve_status_port(self) -> int:
-        raw_port = os.getenv("IOT_STATUS_PORT", "8080")
-        try:
-            port = int(raw_port)
-        except ValueError:
-            logger.warning(
-                "Invalid IOT_STATUS_PORT, using default",
-                extra={"value": raw_port},
-            )
-            return 8080
-
-        if port < 0 or port > 65535:
-            logger.warning(
-                "IOT_STATUS_PORT out of range, using default",
-                extra={"value": raw_port},
-            )
-            return 8080
-
-        return port
-
-    def _start_status_server(self) -> None:
-        if self._status_server:
-            return
-
-        port = self._resolve_status_port()
-        handler = functools.partial(_StatusRequestHandler, app=self)
-        try:
-            server = ThreadingHTTPServer(("0.0.0.0", port), handler)
-        except OSError as exc:
-            logger.warning(
-                "Failed to start status server",
-                extra={"port": port, "error": str(exc)},
-            )
-            return
-
-        server.daemon_threads = True
-        self._status_server = server
-        self._status_port = server.server_address[1]
-        self._status_thread = threading.Thread(
-            target=server.serve_forever,
-            name="StatusHTTPServer",
-            daemon=True,
-        )
-        self._status_thread.start()
-        logger.info(
-            "Status server started",
-            extra={"port": self._status_port},
-        )
-
     def _wire_components(self) -> None:
         if self._orchestrator.rule_manager and self._orchestrator._rule_pipeline:
             for rule in self._orchestrator.rule_manager.get_enabled_rules():
@@ -273,6 +176,20 @@ class Application:
                 self._on_sensor_reading
             )
             logger.debug("Wired MQTT callback to fuzzy pipeline")
+
+    def _start_grpc_server(self) -> None:
+        if self._config.skip_grpc:
+            logger.debug("gRPC server disabled via config")
+            return
+
+        from src.interfaces.rpc.server import GrpcServer
+
+        self._grpc_server = GrpcServer(
+            orchestrator=self._orchestrator,
+            port=self._config.grpc_port,
+        )
+        self._grpc_server.start()
+        logger.info("gRPC server started", extra={"port": self._config.grpc_port})
 
     def _on_sensor_reading(self, reading: SensorReading) -> None:
         try:
@@ -434,32 +351,16 @@ class Application:
             if self._eval_thread and self._eval_thread.is_alive():
                 self._eval_thread.join(timeout=5.0)
 
-            self._stop_status_server()
+            if self._grpc_server:
+                logger.info("Stopping gRPC server...")
+                self._grpc_server.stop(grace=5.0)
+                self._grpc_server = None
+
             self._orchestrator.shutdown()
 
             self._state = ApplicationState.STOPPED
             logger.info("Application stopped")
             return True
-
-    def _stop_status_server(self) -> None:
-        if not self._status_server:
-            return
-
-        try:
-            self._status_server.shutdown()
-            self._status_server.server_close()
-        except Exception as exc:
-            logger.warning(
-                "Failed to stop status server",
-                extra={"error": str(exc)},
-            )
-
-        if self._status_thread and self._status_thread.is_alive():
-            self._status_thread.join(timeout=2.0)
-
-        self._status_server = None
-        self._status_thread = None
-        self._status_port = None
 
     def get_status(self) -> dict[str, Any]:
         return {

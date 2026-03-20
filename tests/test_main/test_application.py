@@ -1,10 +1,6 @@
-import json
-import os
 import time
-import urllib.request
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-from urllib.error import HTTPError
 
 import pytest
 
@@ -21,6 +17,8 @@ class TestApplicationConfig:
         assert config.logs_dir == Path("logs")
         assert config.skip_mqtt is False
         assert config.skip_ollama is False
+        assert config.skip_grpc is False
+        assert config.grpc_port == 50051
         assert config.evaluation_interval == 1.0
 
     def test_custom_config_values(self, tmp_path: Path) -> None:
@@ -32,6 +30,8 @@ class TestApplicationConfig:
             logs_dir=tmp_path / "custom_logs",
             skip_mqtt=True,
             skip_ollama=True,
+            skip_grpc=True,
+            grpc_port=9999,
             evaluation_interval=0.5,
         )
 
@@ -40,6 +40,8 @@ class TestApplicationConfig:
         assert config.logs_dir == tmp_path / "custom_logs"
         assert config.skip_mqtt is True
         assert config.skip_ollama is True
+        assert config.skip_grpc is True
+        assert config.grpc_port == 9999
         assert config.evaluation_interval == 0.5
 
 
@@ -131,6 +133,122 @@ class TestApplication:
         assert app.orchestrator.rules_dir == tmp_path / "rules"
         assert app.orchestrator.logs_dir == tmp_path / "logs"
 
+
+@pytest.mark.unit
+class TestApplicationGrpcIntegration:
+    def test_grpc_server_config_defaults(self, tmp_path: Path) -> None:
+        from src.application import ApplicationConfig
+
+        config = ApplicationConfig(
+            config_dir=tmp_path / "config",
+            skip_mqtt=True,
+            skip_ollama=True,
+        )
+
+        assert config.skip_grpc is False
+        assert config.grpc_port == 50051
+
+    def test_grpc_server_config_custom(self, tmp_path: Path) -> None:
+        from src.application import ApplicationConfig
+
+        config = ApplicationConfig(
+            config_dir=tmp_path / "config",
+            skip_mqtt=True,
+            skip_ollama=True,
+            skip_grpc=True,
+            grpc_port=9999,
+        )
+
+        assert config.skip_grpc is True
+        assert config.grpc_port == 9999
+
+    def test_application_has_grpc_server_field(self, tmp_path: Path) -> None:
+        from src.application import Application, ApplicationConfig
+
+        config = ApplicationConfig(
+            config_dir=tmp_path / "config",
+            skip_mqtt=True,
+            skip_ollama=True,
+        )
+        app = Application(config)
+
+        assert hasattr(app, "_grpc_server")
+        assert app._grpc_server is None
+
+    def test_grpc_server_stopped_gracefully(self, tmp_path: Path) -> None:
+        from src.application import Application, ApplicationConfig
+
+        config = ApplicationConfig(
+            config_dir=tmp_path / "config",
+            skip_mqtt=True,
+            skip_ollama=True,
+        )
+        app = Application(config)
+
+        with patch.object(app._orchestrator, "initialize", return_value=True):
+            with patch.object(app._orchestrator, "shutdown", return_value=True):
+                with patch.object(app, "_start_grpc_server"):
+                    mock_grpc = MagicMock()
+                    app._grpc_server = mock_grpc
+
+                    app.start()
+                    app.stop()
+
+                    mock_grpc.stop.assert_called_once_with(grace=5.0)
+                    assert app._grpc_server is None
+
+    def test_grpc_server_field_none_when_skip_grpc_true(self, tmp_path: Path) -> None:
+        from src.application import Application, ApplicationConfig
+
+        config = ApplicationConfig(
+            config_dir=tmp_path / "config",
+            skip_mqtt=True,
+            skip_ollama=True,
+            skip_grpc=True,
+        )
+        app = Application(config)
+
+        with patch.object(app._orchestrator, "initialize", return_value=True):
+            with patch.object(app._orchestrator, "shutdown", return_value=True):
+                with patch.object(app, "_start_grpc_server"):
+                    app.start()
+                    assert app._grpc_server is None
+                    app.stop()
+
+    def test_grpc_server_uses_custom_port(self, tmp_path: Path) -> None:
+        from src.application import Application, ApplicationConfig
+
+        config = ApplicationConfig(
+            config_dir=tmp_path / "config",
+            skip_mqtt=True,
+            skip_ollama=True,
+            grpc_port=9999,
+        )
+        app = Application(config)
+
+        assert app._config.grpc_port == 9999
+
+    def test_grpc_server_not_stopped_if_not_started(self, tmp_path: Path) -> None:
+        from src.application import Application, ApplicationConfig
+
+        config = ApplicationConfig(
+            config_dir=tmp_path / "config",
+            skip_mqtt=True,
+            skip_ollama=True,
+            skip_grpc=True,
+        )
+        app = Application(config)
+
+        with (
+            patch.object(app._orchestrator, "initialize", return_value=True),
+            patch.object(app._orchestrator, "shutdown", return_value=True),
+            patch.object(app, "_start_grpc_server"),
+        ):
+            app.start()
+            assert app._grpc_server is None
+            app.stop()
+            assert app._grpc_server is None
+
     def test_start_fails_if_orchestrator_fails(self, tmp_path: Path) -> None:
         from src.application import Application, ApplicationConfig, ApplicationState
 
@@ -159,13 +277,14 @@ class TestApplication:
         app = Application(config)
 
         with patch.object(app._orchestrator, "initialize", return_value=True):
-            result = app.start()
+            with patch.object(app, "_start_grpc_server"):
+                result = app.start()
 
-            assert result is True
-            assert app.state == ApplicationState.RUNNING
-            assert app.stats.start_time is not None
+                assert result is True
+                assert app.state == ApplicationState.RUNNING
+                assert app.stats.start_time is not None
 
-            app.stop()
+                app.stop()
 
     def test_start_twice_returns_false(self, tmp_path: Path) -> None:
         from src.application import Application, ApplicationConfig
@@ -178,12 +297,13 @@ class TestApplication:
         app = Application(config)
 
         with patch.object(app._orchestrator, "initialize", return_value=True):
-            app.start()
-            result = app.start()
+            with patch.object(app, "_start_grpc_server"):
+                app.start()
+                result = app.start()
 
-            assert result is False
+                assert result is False
 
-            app.stop()
+                app.stop()
 
     def test_stop_when_already_stopped(self) -> None:
         from src.application import Application, ApplicationState
@@ -208,6 +328,7 @@ class TestApplication:
         with (
             patch.object(app._orchestrator, "initialize", return_value=True),
             patch.object(app._orchestrator, "shutdown", return_value=True),
+            patch.object(app, "_start_grpc_server"),
         ):
             app.start()
             result = app.stop()
@@ -230,6 +351,9 @@ class TestApplication:
         assert status["is_running"] is False
 
     def test_is_running_property(self, tmp_path: Path) -> None:
+        from pathlib import Path
+        from unittest.mock import patch
+
         from src.application import Application, ApplicationConfig
 
         config = ApplicationConfig(
@@ -242,112 +366,12 @@ class TestApplication:
         assert app.is_running is False
 
         with patch.object(app._orchestrator, "initialize", return_value=True):
-            app.start()
-            assert app.is_running is True
+            with patch.object(app, "_start_grpc_server"):
+                app.start()
+                assert app.is_running is True
 
-            app.stop()
-            assert app.is_running is False
-
-    def test_status_endpoint_returns_payload(self, tmp_path: Path) -> None:
-        from src.application import Application, ApplicationConfig
-
-        config = ApplicationConfig(
-            config_dir=tmp_path / "config",
-            rules_dir=tmp_path / "rules",
-            logs_dir=tmp_path / "logs",
-            skip_mqtt=True,
-            skip_ollama=True,
-            evaluation_interval=0.1,
-        )
-        app = Application(config)
-
-        with (
-            patch.dict(os.environ, {"IOT_STATUS_PORT": "18081"}),
-            patch.object(app._orchestrator, "initialize", return_value=True),
-        ):
-            assert app.start() is True
-            try:
-                time.sleep(0.1)
-                with urllib.request.urlopen(
-                    "http://localhost:18081/status", timeout=2
-                ) as response:
-                    assert response.status == 200
-                    payload = json.loads(response.read().decode("utf-8"))
-
-                assert payload["state"] == "running"
-                assert payload["is_running"] is True
-                assert "stats" in payload
-                assert "orchestrator" in payload
-            finally:
                 app.stop()
-
-    def test_shutdown_endpoint_post_triggers_stop(self, tmp_path: Path) -> None:
-        from src.application import Application, ApplicationConfig
-
-        config = ApplicationConfig(
-            config_dir=tmp_path / "config",
-            rules_dir=tmp_path / "rules",
-            logs_dir=tmp_path / "logs",
-            skip_mqtt=True,
-            skip_ollama=True,
-            evaluation_interval=0.1,
-        )
-        app = Application(config)
-
-        with (
-            patch.dict(os.environ, {"IOT_STATUS_PORT": "18080"}),
-            patch.object(app._orchestrator, "initialize", return_value=True),
-            patch.object(app._orchestrator, "shutdown", return_value=True),
-            patch.object(app, "stop", wraps=app.stop) as mock_stop,
-        ):
-            assert app.start() is True
-            try:
-                with urllib.request.urlopen(
-                    urllib.request.Request(
-                        "http://localhost:18080/shutdown",
-                        method="POST",
-                    ),
-                    timeout=2,
-                ) as response:
-                    assert response.status == 200
-                    payload = json.loads(response.read().decode("utf-8"))
-
-                assert payload == {"status": "shutdown_initiated"}
-                # Give time for the stop() call to complete
-                time.sleep(0.2)
-                assert mock_stop.call_count >= 1
-            finally:
-                app.stop()
-
-    def test_shutdown_endpoint_get_returns_405(self, tmp_path: Path) -> None:
-        from src.application import Application, ApplicationConfig
-
-        config = ApplicationConfig(
-            config_dir=tmp_path / "config",
-            rules_dir=tmp_path / "rules",
-            logs_dir=tmp_path / "logs",
-            skip_mqtt=True,
-            skip_ollama=True,
-            evaluation_interval=0.1,
-        )
-        app = Application(config)
-
-        with (
-            patch.dict(os.environ, {"IOT_STATUS_PORT": "18081"}),
-            patch.object(app._orchestrator, "initialize", return_value=True),
-            patch.object(app._orchestrator, "shutdown", return_value=True),
-        ):
-            assert app.start() is True
-            try:
-                with pytest.raises(HTTPError) as exc_info:
-                    urllib.request.urlopen(
-                        "http://localhost:18081/shutdown",
-                        timeout=2,
-                    )
-
-                assert exc_info.value.code == 405
-            finally:
-                app.stop()
+                assert app.is_running is False
 
 
 @pytest.mark.unit
@@ -364,15 +388,16 @@ class TestApplicationEvaluationLoop:
         app = Application(config)
 
         with patch.object(app._orchestrator, "initialize", return_value=True):
-            app.start()
+            with patch.object(app, "_start_grpc_server"):
+                app.start()
 
-            assert app._eval_thread is not None
-            assert app._eval_thread.is_alive()
+                assert app._eval_thread is not None
+                assert app._eval_thread.is_alive()
 
-            app.stop()
+                app.stop()
 
-            time.sleep(0.2)
-            assert not app._eval_thread.is_alive()
+                time.sleep(0.2)
+                assert not app._eval_thread.is_alive()
 
     def test_evaluation_loop_calls_evaluate_and_execute(self, tmp_path: Path) -> None:
         from src.application import Application, ApplicationConfig
@@ -388,6 +413,7 @@ class TestApplicationEvaluationLoop:
         with (
             patch.object(app._orchestrator, "initialize", return_value=True),
             patch.object(app, "_evaluate_and_execute") as mock_eval,
+            patch.object(app, "_start_grpc_server"),
         ):
             app.start()
             time.sleep(0.2)

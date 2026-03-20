@@ -1,9 +1,10 @@
 .PHONY: help build up down restart logs logs-app logs-web ps shell shell-mqtt shell-web \
-        install dev dev-deps dev-web \
-        test test-unit test-int coverage coverage-html \
-        lint format check typecheck \
-        clean clean-docker clean-all reset \
-        pull-model list-models
+	install dev dev-deps dev-web \
+	test test-unit test-int coverage coverage-html \
+	lint format check typecheck \
+	proto proto-clean \
+	clean clean-docker clean-all reset \
+	pull-model list-models
 
 .DEFAULT_GOAL := help
 
@@ -15,6 +16,8 @@ VENV := .venv
 VENV_BIN := $(VENV)/bin
 VENV_PYTHON := $(VENV_BIN)/python
 VENV_PIP := $(VENV_BIN)/pip
+PROTO_DIR := protos
+GEN_DIR := src/interfaces/rpc/generated
 
 help:
 	@echo "IoT Fuzzy-LLM Hybrid Control System"
@@ -115,6 +118,21 @@ dev-deps:
 
 dev-web: $(VENV)
 	$(VENV_BIN)/streamlit run src/interfaces/web/streamlit_app.py
+
+
+proto: $(VENV)
+	mkdir -p $(GEN_DIR)
+	$(VENV_PYTHON) -m grpc_tools.protoc \
+		--python_out=$(GEN_DIR) \
+		--grpc_python_out=$(GEN_DIR) \
+		--mypy_out=$(GEN_DIR) \
+		-I $(PROTO_DIR) \
+		$(PROTO_DIR)/*.proto
+	touch $(GEN_DIR)/__init__.py
+
+proto-clean:
+	rm -rf $(GEN_DIR)
+	@echo "Cleaned generated gRPC files"
 
 
 test: $(VENV)

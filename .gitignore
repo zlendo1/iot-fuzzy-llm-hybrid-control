@@ -211,3 +211,6 @@ __marimo__/
 
 # OpenCode
 .sisyphus/
+
+# Generated gRPC protobuf files
+src/interfaces/rpc/generated/*_pb2*.py

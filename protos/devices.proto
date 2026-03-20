@@ -1,0 +1,77 @@
+syntax = "proto3";
+package iot.v1;
+option go_package = "iot/v1";
+
+import "google/protobuf/timestamp.proto";
+import "common.proto";
+
+message Device {
+  string id = 1;
+  string name = 2;
+  string type = 3;
+  string location = 4;
+  repeated string capabilities = 5;
+}
+
+message SensorReading {
+  string device_id = 1;
+  double value = 2;
+  string unit = 3;
+  google.protobuf.Timestamp timestamp = 4;
+}
+
+message DeviceCommand {
+  string device_id = 1;
+  string action = 2;
+  map<string, string> parameters = 3;
+}
+
+message ListDevicesRequest {
+}
+
+message ListDevicesResponse {
+  repeated Device devices = 1;
+}
+
+message GetDeviceRequest {
+  string device_id = 1;
+}
+
+message GetDeviceResponse {
+  Device device = 1;
+}
+
+message GetDeviceStatusRequest {
+  string device_id = 1;
+}
+
+message GetDeviceStatusResponse {
+  string device_id = 1;
+  bool online = 2;
+  google.protobuf.Timestamp last_seen = 3;
+}
+
+message GetLatestReadingRequest {
+  string device_id = 1;
+}
+
+message GetLatestReadingResponse {
+  SensorReading reading = 1;
+}
+
+message SendCommandRequest {
+  DeviceCommand command = 1;
+}
+
+message SendCommandResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+service DevicesService {
+  rpc ListDevices(ListDevicesRequest) returns (ListDevicesResponse);
+  rpc GetDevice(GetDeviceRequest) returns (GetDeviceResponse);
+  rpc GetDeviceStatus(GetDeviceStatusRequest) returns (GetDeviceStatusResponse);
+  rpc GetLatestReading(GetLatestReadingRequest) returns (GetLatestReadingResponse);
+  rpc SendCommand(SendCommandRequest) returns (SendCommandResponse);
+}

@@ -1,0 +1,37 @@
+syntax = "proto3";
+package iot.v1;
+option go_package = "iot/v1";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+enum SystemState {
+  UNKNOWN = 0;
+  STARTING = 1;
+  RUNNING = 2;
+  STOPPING = 3;
+  STOPPED = 4;
+  ERROR = 5;
+}
+
+message Status {
+  SystemState state = 1;
+  int64 uptime_seconds = 2;
+  string version = 3;
+}
+
+message Error {
+  int32 code = 1;
+  string message = 2;
+  repeated string details = 3;
+}
+
+message PaginationRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+}
+
+message PaginationResponse {
+  int32 total = 1;
+  bool has_more = 2;
+}

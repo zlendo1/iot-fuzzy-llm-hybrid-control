@@ -1,0 +1,71 @@
+syntax = "proto3";
+package iot.v1;
+option go_package = "iot/v1";
+
+import "google/protobuf/timestamp.proto";
+import "common.proto";
+
+// LogEntry represents a single log entry
+message LogEntry {
+  google.protobuf.Timestamp timestamp = 1;
+  string level = 2;  // DEBUG, INFO, WARNING, ERROR, CRITICAL
+  string category = 3;  // system, commands, sensors, errors, rules
+  string message = 4;
+  map<string, string> extra = 5;  // Additional context fields
+}
+
+// LogStats contains aggregated log statistics
+message LogStats {
+  int32 total_entries = 1;
+  map<string, int32> entries_by_level = 2;  // e.g., {"INFO": 100, "ERROR": 5}
+  map<string, int32> entries_by_category = 3;  // e.g., {"system": 80, "sensors": 25}
+}
+
+// GetLogEntriesRequest - retrieve log entries with filtering
+message GetLogEntriesRequest {
+  PaginationRequest pagination = 1;
+  string level_filter = 2;  // Optional: filter by level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+  string category_filter = 3;  // Optional: filter by category (system, commands, sensors, errors, rules)
+  google.protobuf.Timestamp from_time = 4;  // Optional: filter entries from this time
+  google.protobuf.Timestamp to_time = 5;  // Optional: filter entries until this time
+}
+
+// GetLogEntriesResponse - paginated log entries
+message GetLogEntriesResponse {
+  repeated LogEntry entries = 1;
+  PaginationResponse pagination = 2;
+}
+
+// GetLogCategoriesRequest - retrieve available log categories
+message GetLogCategoriesRequest {
+}
+
+// GetLogCategoriesResponse - list of available log categories
+message GetLogCategoriesResponse {
+  repeated string categories = 1;
+}
+
+// GetLogStatsRequest - retrieve log statistics
+message GetLogStatsRequest {
+  string level_filter = 1;  // Optional: filter stats by level
+  string category_filter = 2;  // Optional: filter stats by category
+  google.protobuf.Timestamp from_time = 3;  // Optional: stats from this time
+  google.protobuf.Timestamp to_time = 4;  // Optional: stats until this time
+}
+
+// GetLogStatsResponse - log statistics
+message GetLogStatsResponse {
+  LogStats stats = 1;
+}
+
+// LogsService provides RPC methods for accessing system logs
+service LogsService {
+  // GetLogEntries retrieves log entries with pagination and filtering
+  rpc GetLogEntries(GetLogEntriesRequest) returns (GetLogEntriesResponse);
+  
+  // GetLogCategories retrieves the list of available log categories
+  rpc GetLogCategories(GetLogCategoriesRequest) returns (GetLogCategoriesResponse);
+  
+  // GetLogStats retrieves aggregated log statistics
+  rpc GetLogStats(GetLogStatsRequest) returns (GetLogStatsResponse);
+}

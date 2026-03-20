@@ -1,0 +1,113 @@
+syntax = "proto3";
+package iot.v1;
+option go_package = "iot/v1";
+
+import "common.proto";
+import "google/protobuf/timestamp.proto";
+
+// Rule represents a natural language rule for IoT device management
+message Rule {
+  string id = 1;
+  string text = 2;
+  bool enabled = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
+}
+
+// AddRuleRequest contains the rule text and optional metadata
+message AddRuleRequest {
+  string text = 1;
+  bool enabled = 2;
+}
+
+// AddRuleResponse returns the created rule
+message AddRuleResponse {
+  Rule rule = 1;
+}
+
+// RemoveRuleRequest identifies the rule to remove
+message RemoveRuleRequest {
+  string id = 1;
+}
+
+// RemoveRuleResponse confirms the removal
+message RemoveRuleResponse {
+  bool success = 1;
+}
+
+// ListRulesRequest with pagination support
+message ListRulesRequest {
+  PaginationRequest pagination = 1;
+}
+
+// ListRulesResponse returns paginated rules
+message ListRulesResponse {
+  repeated Rule rules = 1;
+  PaginationResponse pagination = 2;
+}
+
+// GetRuleRequest identifies which rule to retrieve
+message GetRuleRequest {
+  string id = 1;
+}
+
+// GetRuleResponse returns a single rule
+message GetRuleResponse {
+  Rule rule = 1;
+}
+
+// EnableRuleRequest identifies the rule to enable
+message EnableRuleRequest {
+  string id = 1;
+}
+
+// EnableRuleResponse confirms the rule was enabled
+message EnableRuleResponse {
+  bool success = 1;
+}
+
+// DisableRuleRequest identifies the rule to disable
+message DisableRuleRequest {
+  string id = 1;
+}
+
+// DisableRuleResponse confirms the rule was disabled
+message DisableRuleResponse {
+  bool success = 1;
+}
+
+// EvaluateRulesRequest triggers rule evaluation
+message EvaluateRulesRequest {
+  // Optional: evaluate only specific rules by ID
+  repeated string rule_ids = 1;
+}
+
+// EvaluateRulesResponse returns evaluation results
+message EvaluateRulesResponse {
+  repeated string commands_generated = 1;
+  int32 rules_evaluated = 2;
+}
+
+// RulesService provides rule management and evaluation operations
+service RulesService {
+  // AddRule creates a new rule
+  rpc AddRule(AddRuleRequest) returns (AddRuleResponse);
+
+  // RemoveRule deletes a rule by ID
+  rpc RemoveRule(RemoveRuleRequest) returns (RemoveRuleResponse);
+
+  // ListRules returns all rules with pagination support
+  rpc ListRules(ListRulesRequest) returns (ListRulesResponse);
+
+  // GetRule retrieves a specific rule by ID
+  rpc GetRule(GetRuleRequest) returns (GetRuleResponse);
+
+  // EnableRule activates a rule
+  rpc EnableRule(EnableRuleRequest) returns (EnableRuleResponse);
+
+  // DisableRule deactivates a rule
+  rpc DisableRule(DisableRuleRequest) returns (DisableRuleResponse);
+
+  // EvaluateRules triggers rule evaluation and returns generated commands
+  rpc EvaluateRules(EvaluateRulesRequest) returns (EvaluateRulesResponse);
+}

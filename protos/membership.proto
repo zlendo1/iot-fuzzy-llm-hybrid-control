@@ -1,0 +1,53 @@
+syntax = "proto3";
+package iot.v1;
+option go_package = "iot/v1";
+
+import "common.proto";
+
+message MembershipFunction {
+  string name = 1;
+  string function_type = 2;
+  map<string, double> parameters = 3;
+}
+
+message LinguisticVariable {
+  string name = 1;
+  repeated MembershipFunction membership_functions = 2;
+}
+
+message SensorTypeMembership {
+  string sensor_type = 1;
+  repeated LinguisticVariable linguistic_variables = 2;
+}
+
+message GetMembershipFunctionsRequest {
+  string sensor_type = 1;
+}
+
+message GetMembershipFunctionsResponse {
+  SensorTypeMembership membership = 1;
+}
+
+message UpdateMembershipFunctionRequest {
+  string sensor_type = 1;
+  string variable_name = 2;
+  MembershipFunction function = 3;
+}
+
+message UpdateMembershipFunctionResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message ListSensorTypesRequest {
+}
+
+message ListSensorTypesResponse {
+  repeated string sensor_types = 1;
+}
+
+service MembershipService {
+  rpc GetMembershipFunctions(GetMembershipFunctionsRequest) returns (GetMembershipFunctionsResponse);
+  rpc UpdateMembershipFunction(UpdateMembershipFunctionRequest) returns (UpdateMembershipFunctionResponse);
+  rpc ListSensorTypes(ListSensorTypesRequest) returns (ListSensorTypesResponse);
+}

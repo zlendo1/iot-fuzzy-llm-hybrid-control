@@ -1,0 +1,87 @@
+syntax = "proto3";
+package iot.v1;
+option go_package = "iot/v1";
+
+import "common.proto";
+
+// ConfigFile represents a configuration file with versioning for optimistic locking
+message ConfigFile {
+  string name = 1;
+  string content = 2;  // JSON string containing the actual configuration
+  string version = 3;  // Version/ETag for optimistic locking - used to detect concurrent updates
+}
+
+// GetConfigRequest retrieves a configuration file by name
+// Supported config files:
+// - mqtt_config: MQTT broker settings
+// - llm_config: Ollama LLM configuration
+// - devices: Sensor and actuator definitions
+// - membership_functions: Fuzzy membership function definitions per sensor type
+message GetConfigRequest {
+  string name = 1;  // Configuration file name (without .json extension)
+}
+
+message GetConfigResponse {
+  ConfigFile config = 1;
+}
+
+// UpdateConfigRequest updates a configuration file with optimistic locking
+// The version field must match the current version on the server;
+// if it doesn't, the update is rejected with ABORTED status
+message UpdateConfigRequest {
+  ConfigFile config = 1;
+}
+
+message UpdateConfigResponse {
+  bool success = 1;
+  string message = 2;
+  string new_version = 3;  // The new version/ETag after update
+}
+
+// ValidateConfigRequest validates a configuration without saving it
+message ValidateConfigRequest {
+  string name = 1;       // Configuration file name
+  string content = 2;    // JSON string to validate
+}
+
+message ValidateConfigResponse {
+  bool valid = 1;
+  repeated string errors = 2;  // List of validation errors (empty if valid)
+}
+
+// ReloadConfigRequest reloads a configuration file from disk
+message ReloadConfigRequest {
+  string name = 1;  // Configuration file name to reload
+}
+
+message ReloadConfigResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// ListConfigsRequest lists all available configuration files
+message ListConfigsRequest {
+}
+
+message ListConfigsResponse {
+  repeated string names = 1;  // List of available configuration file names
+}
+
+// ConfigService provides RPC methods for managing system configuration files
+service ConfigService {
+  // GetConfig retrieves a configuration file by name
+  rpc GetConfig(GetConfigRequest) returns (GetConfigResponse);
+
+  // UpdateConfig updates a configuration file with optimistic locking
+  // Returns ABORTED if the version doesn't match the current version on server
+  rpc UpdateConfig(UpdateConfigRequest) returns (UpdateConfigResponse);
+
+  // ValidateConfig validates a configuration without saving it
+  rpc ValidateConfig(ValidateConfigRequest) returns (ValidateConfigResponse);
+
+  // ReloadConfig reloads a configuration file from disk
+  rpc ReloadConfig(ReloadConfigRequest) returns (ReloadConfigResponse);
+
+  // ListConfigs lists all available configuration files
+  rpc ListConfigs(ListConfigsRequest) returns (ListConfigsResponse);
+}

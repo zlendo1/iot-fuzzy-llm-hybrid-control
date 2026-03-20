@@ -8,3 +8,7 @@ mypy==1.19.1
 black==26.1.0
 isort==7.0.0
 pre-commit==4.5.1
+grpcio-tools>=1.60.0,<2.0.0
+grpcio-reflection>=1.60.0,<2.0.0
+mypy-protobuf>=3.5.0,<4.0.0
+pytest-grpc>=0.8.0,<1.0.0

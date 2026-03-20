@@ -2,10 +2,9 @@
 from __future__ import annotations
 
 import json
-import urllib.error
 from pathlib import Path
 from typing import TYPE_CHECKING
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -251,12 +250,13 @@ class TestCLIContext:
         assert ctx.verbose is False
 
     @pytest.mark.unit
-    def test_get_initialized_orchestrator_none_when_not_created(self) -> None:
+    def test_default_grpc_values(self) -> None:
         from src.interfaces.cli import CLIContext
 
         ctx = CLIContext()
 
-        assert ctx.get_initialized_orchestrator() is None
+        assert ctx.grpc_host == "localhost"
+        assert ctx.grpc_port == 50051
 
 
 class TestCLIMainGroup:
@@ -280,6 +280,8 @@ class TestCLIMainGroup:
         assert "--config-dir" in result.output
         assert "--rules-dir" in result.output
         assert "--format" in result.output
+        assert "--grpc-host" in result.output
+        assert "--grpc-port" in result.output
 
 
 class TestRuleCommands:
@@ -899,13 +901,23 @@ class TestConfigCommands:
     ) -> None:
         from src.interfaces.cli import cli
 
-        result = cli_runner.invoke(
-            cli,
-            ["--config-dir", str(temp_dirs["config"]), "config", "reload"],
-        )
+        with patch("src.interfaces.cli.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.reload_config.return_value = {
+                "success": False,
+                "message": "System is not running. Nothing to reload.",
+            }
+            mock_client_cls.return_value.__enter__.return_value = mock_client
+            result = cli_runner.invoke(
+                cli,
+                ["--config-dir", str(temp_dirs["config"]), "config", "reload"],
+            )
 
-        assert result.exit_code == 0
-        assert "not running" in result.output.lower()
+        assert result.exit_code == 1
+        assert (
+            "not running" in result.output.lower()
+            or "nothing to reload" in result.output.lower()
+        )
 
 
 class TestLogCommands:
@@ -991,32 +1003,15 @@ class TestSystemCommands:
     ) -> None:
         from src.interfaces.cli import cli
 
-        result = cli_runner.invoke(
-            cli,
-            [
-                "--config-dir",
-                str(temp_dirs["config"]),
-                "--rules-dir",
-                str(temp_dirs["rules"]),
-                "--logs-dir",
-                str(temp_dirs["logs"]),
-                "status",
-            ],
-        )
+        with patch("src.interfaces.cli.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.get_status.return_value = {
+                "status": "RUNNING",
+                "uptime_seconds": 42,
+                "version": "0.1.0",
+            }
+            mock_client_cls.return_value.__enter__.return_value = mock_client
 
-        assert result.exit_code == 0
-        assert "System State:" in result.output
-
-    @pytest.mark.unit
-    def test_status_command_falls_back_when_endpoint_unreachable(
-        self, cli_runner: CliRunner, temp_dirs: dict[str, Path]
-    ) -> None:
-        from src.interfaces.cli import cli
-
-        def raise_url_error(*_args: object, **_kwargs: object) -> None:
-            raise urllib.error.URLError("connection failed")
-
-        with patch("urllib.request.urlopen", side_effect=raise_url_error):
             result = cli_runner.invoke(
                 cli,
                 [
@@ -1031,7 +1026,34 @@ class TestSystemCommands:
             )
 
         assert result.exit_code == 0
-        assert "standalone" in result.output.lower()
+        assert "System State:" in result.output
+
+    @pytest.mark.unit
+    def test_status_command_shows_error_when_grpc_unavailable(
+        self, cli_runner: CliRunner, temp_dirs: dict[str, Path]
+    ) -> None:
+        from src.interfaces.cli import cli
+        from src.common.exceptions import IoTFuzzyLLMError
+
+        with patch("src.interfaces.cli.GrpcClient") as mock_client_cls:
+            mock_client_cls.return_value.__enter__.side_effect = IoTFuzzyLLMError(
+                "gRPC server unavailable"
+            )
+            result = cli_runner.invoke(
+                cli,
+                [
+                    "--config-dir",
+                    str(temp_dirs["config"]),
+                    "--rules-dir",
+                    str(temp_dirs["rules"]),
+                    "--logs-dir",
+                    str(temp_dirs["logs"]),
+                    "status",
+                ],
+            )
+
+        assert result.exit_code == 1
+        assert "gRPC server unavailable" in result.output
 
     @pytest.mark.unit
     def test_stop_not_running(
@@ -1039,16 +1061,13 @@ class TestSystemCommands:
     ) -> None:
         from src.interfaces.cli import cli
 
-        def mock_urlopen_fails(*args: object, **kwargs: object) -> object:
-            raise OSError("Connection refused")
-
-        with (
-            patch("urllib.request.urlopen", side_effect=mock_urlopen_fails),
-            patch(
-                "src.interfaces.cli.CLIContext.get_initialized_orchestrator",
-                return_value=None,
-            ),
-        ):
+        with patch("src.interfaces.cli.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.stop.return_value = {
+                "success": False,
+                "message": "System is not running.",
+            }
+            mock_client_cls.return_value.__enter__.return_value = mock_client
             result = cli_runner.invoke(
                 cli,
                 [
@@ -1062,8 +1081,10 @@ class TestSystemCommands:
                 ],
             )
 
-        assert result.exit_code == 0
-        assert "not running" in result.output.lower()
+        assert result.exit_code == 1
+        assert (
+            "not running" in result.output.lower() or "failed" in result.output.lower()
+        )
 
     @pytest.mark.unit
     def test_stop_via_http_endpoint(
@@ -1071,17 +1092,13 @@ class TestSystemCommands:
     ) -> None:
         from src.interfaces.cli import cli
 
-        def mock_urlopen_for_shutdown(*args: object, **kwargs: object) -> object:
-            from unittest.mock import MagicMock
-
-            mock_response = MagicMock()
-            mock_response.status = 200
-            mock_response.read.return_value = b'{"status": "shutdown_initiated"}'
-            mock_response.__enter__ = lambda self: self
-            mock_response.__exit__ = lambda *_: None
-            return mock_response
-
-        with patch("urllib.request.urlopen", side_effect=mock_urlopen_for_shutdown):
+        with patch("src.interfaces.cli.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.stop.return_value = {
+                "success": True,
+                "message": "System stopped successfully",
+            }
+            mock_client_cls.return_value.__enter__.return_value = mock_client
             result = cli_runner.invoke(
                 cli,
                 [
@@ -1099,18 +1116,22 @@ class TestSystemCommands:
         assert "stopped" in result.output.lower()
 
     @pytest.mark.unit
-    def test_stop_falls_back_to_orchestrator_when_http_fails(
+    def test_stop_command_uses_grpc_options(
         self, cli_runner: CliRunner, temp_dirs: dict[str, Path]
     ) -> None:
         from src.interfaces.cli import cli
 
-        def raise_url_error(*_args: object, **_kwargs: object) -> None:
-            raise urllib.error.URLError("connection failed")
-
-        with patch("urllib.request.urlopen", side_effect=raise_url_error):
+        with patch("src.interfaces.cli.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.stop.return_value = {"success": True, "message": "ok"}
+            mock_client_cls.return_value.__enter__.return_value = mock_client
             result = cli_runner.invoke(
                 cli,
                 [
+                    "--grpc-host",
+                    "127.0.0.1",
+                    "--grpc-port",
+                    "50052",
                     "--config-dir",
                     str(temp_dirs["config"]),
                     "--rules-dir",
@@ -1120,9 +1141,9 @@ class TestSystemCommands:
                     "stop",
                 ],
             )
+            mock_client_cls.assert_called_once_with("127.0.0.1", 50052)
 
         assert result.exit_code == 0
-        assert "not running" in result.output.lower()
 
     @pytest.mark.unit
     def test_stop_displays_success_message(
@@ -1130,17 +1151,13 @@ class TestSystemCommands:
     ) -> None:
         from src.interfaces.cli import cli
 
-        def mock_urlopen_for_shutdown(*args: object, **kwargs: object) -> object:
-            from unittest.mock import MagicMock
-
-            mock_response = MagicMock()
-            mock_response.status = 200
-            mock_response.read.return_value = b'{"status": "shutdown_initiated"}'
-            mock_response.__enter__ = lambda self: self
-            mock_response.__exit__ = lambda *_: None
-            return mock_response
-
-        with patch("urllib.request.urlopen", side_effect=mock_urlopen_for_shutdown):
+        with patch("src.interfaces.cli.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.stop.return_value = {
+                "success": True,
+                "message": "System stopped successfully",
+            }
+            mock_client_cls.return_value.__enter__.return_value = mock_client
             result = cli_runner.invoke(
                 cli,
                 [
@@ -1199,17 +1216,25 @@ class TestErrorHandling:
     ) -> None:
         from src.interfaces.cli import cli
 
-        result = cli_runner.invoke(
-            cli,
-            [
-                "--verbose",
-                "--config-dir",
-                str(temp_dirs["config"]),
-                "--rules-dir",
-                str(temp_dirs["rules"]),
-                "status",
-            ],
-        )
+        with patch("src.interfaces.cli.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.get_status.return_value = {
+                "status": "RUNNING",
+                "uptime_seconds": 1,
+                "version": "0.1.0",
+            }
+            mock_client_cls.return_value.__enter__.return_value = mock_client
+            result = cli_runner.invoke(
+                cli,
+                [
+                    "--verbose",
+                    "--config-dir",
+                    str(temp_dirs["config"]),
+                    "--rules-dir",
+                    str(temp_dirs["rules"]),
+                    "status",
+                ],
+            )
 
         assert result.exit_code == 0
 

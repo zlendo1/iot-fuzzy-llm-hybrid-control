@@ -7,21 +7,50 @@ device monitoring, and configuration management.
 from __future__ import annotations
 
 import json
-import os
+import typing
 import sys
 import textwrap
-import urllib.error
-import urllib.request
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import click
 
-from src.common.exceptions import ConfigurationError, RuleError
+from src.common.exceptions import ConfigurationError, IoTFuzzyLLMError, RuleError
 from src.common.logging import get_logger
 
-if TYPE_CHECKING:
-    from src.configuration.system_orchestrator import SystemOrchestrator
+
+class _GrpcClientFallback:
+    def __init__(self, host: str = "localhost", port: int = 50051) -> None:
+        self._host = host
+        self._port = port
+
+    def __enter__(self) -> _GrpcClientFallback:
+        raise IoTFuzzyLLMError("gRPC server unavailable")
+
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+        return None
+
+    def start(self) -> dict[str, Any]:
+        raise IoTFuzzyLLMError("gRPC server unavailable")
+
+    def stop(self) -> dict[str, Any]:
+        raise IoTFuzzyLLMError("gRPC server unavailable")
+
+    def get_status(self) -> dict[str, Any]:
+        raise IoTFuzzyLLMError("gRPC server unavailable")
+
+    def reload_config(self) -> dict[str, Any]:
+        raise IoTFuzzyLLMError("gRPC server unavailable")
+
+
+GrpcClient: type[Any]
+try:
+    from src.interfaces.rpc.client import GrpcClient as _RealGrpcClient
+
+    GrpcClient = typing.cast(type[Any], _RealGrpcClient)
+except ModuleNotFoundError:
+    GrpcClient = _GrpcClientFallback
+
 
 logger = get_logger(__name__)
 
@@ -149,28 +178,8 @@ class CLIContext:
         self.output_format: str = "table"
         self.verbose: bool = False
         self.formatter: OutputFormatter = OutputFormatter()
-        self._orchestrator: SystemOrchestrator | None = None
-
-    @property
-    def orchestrator(self) -> SystemOrchestrator:
-        """Get or create the system orchestrator."""
-        if self._orchestrator is None:
-            from src.configuration.system_orchestrator import SystemOrchestrator
-
-            self._orchestrator = SystemOrchestrator(
-                config_dir=self.config_dir,
-                rules_dir=self.rules_dir,
-                logs_dir=self.logs_dir,
-            )
-        return self._orchestrator
-
-    def get_initialized_orchestrator(self) -> SystemOrchestrator | None:
-        """Get orchestrator only if it's been initialized."""
-        if self._orchestrator is None:
-            return None
-        if not self._orchestrator.is_ready:
-            return None
-        return self._orchestrator
+        self.grpc_host: str = "localhost"
+        self.grpc_port: int = 50051
 
 
 pass_context = click.make_pass_decorator(CLIContext, ensure=True)
@@ -187,6 +196,9 @@ def handle_errors(func: Any) -> Any:
             sys.exit(1)
         except RuleError as e:
             click.echo(formatter.error(f"Rule error: {e}"))
+            sys.exit(1)
+        except IoTFuzzyLLMError as e:
+            click.echo(formatter.error(str(e)))
             sys.exit(1)
         except FileNotFoundError as e:
             click.echo(formatter.error(f"File not found: {e}"))
@@ -230,6 +242,8 @@ def handle_errors(func: Any) -> Any:
     default="table",
     help="Output format.",
 )
+@click.option("--grpc-host", default="localhost", help="gRPC server host")
+@click.option("--grpc-port", default=50051, type=int, help="gRPC server port")
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose output.")
 @click.version_option(version="0.1.0", prog_name="iot-fuzzy-llm")
 @click.pass_context
@@ -239,6 +253,8 @@ def cli(
     rules_dir: Path,
     logs_dir: Path,
     output_format: str,
+    grpc_host: str,
+    grpc_port: int,
     verbose: bool,
 ) -> None:
     """Fuzzy-LLM Hybrid IoT Management System CLI.
@@ -251,6 +267,8 @@ def cli(
     cli_ctx.rules_dir = rules_dir
     cli_ctx.logs_dir = logs_dir
     cli_ctx.output_format = output_format
+    cli_ctx.grpc_host = grpc_host
+    cli_ctx.grpc_port = grpc_port
     cli_ctx.verbose = verbose
     cli_ctx.formatter.set_format(output_format)
 
@@ -264,36 +282,20 @@ def start(ctx: CLIContext, skip_mqtt: bool, skip_ollama: bool) -> None:
     """Start the IoT management system."""
     click.echo(ctx.formatter.info("Starting Fuzzy-LLM IoT Management System..."))
 
-    start_port = os.getenv("IOT_STATUS_PORT", "8080")
-    start_url = f"http://localhost:{start_port}/start"
+    if skip_mqtt or skip_ollama:
+        logger.debug(
+            "gRPC lifecycle start ignores local skip flags",
+            extra={"skip_mqtt": skip_mqtt, "skip_ollama": skip_ollama},
+        )
 
-    try:
-        with urllib.request.urlopen(start_url, data=b"", timeout=5) as response:
-            if response.status == 200:
-                click.echo(
-                    ctx.formatter.success("✓ Evaluation loop started successfully.")
-                )
-                return
-    except (OSError, urllib.error.URLError) as exc:
-        logger.debug("Start endpoint unavailable", extra={"error": str(exc)})
+    with GrpcClient(ctx.grpc_host, ctx.grpc_port) as client:
+        result = client.start()
 
-    orchestrator = ctx.orchestrator
-    result = orchestrator.initialize(skip_mqtt=skip_mqtt, skip_ollama=skip_ollama)
-
-    if result:
+    if result.get("success", False):
         click.echo(ctx.formatter.success("System started successfully."))
-        steps = orchestrator.initialization_steps
-        if ctx.verbose:
-            click.echo("\nInitialization steps:")
-            for step in steps:
-                status = "✓" if step.completed else "✗"
-                click.echo(f"  {status} {step.name}: {step.description}")
     else:
-        click.echo(ctx.formatter.error("System failed to start."))
-        steps = orchestrator.initialization_steps
-        for step in steps:
-            if step.error:
-                click.echo(f"  ✗ {step.name}: {step.error}")
+        message = result.get("message", "System failed to start.")
+        click.echo(ctx.formatter.error(f"Failed: {message}"))
         sys.exit(1)
 
 
@@ -304,27 +306,14 @@ def stop(ctx: CLIContext) -> None:
     """Stop the IoT management system."""
     click.echo(ctx.formatter.info("Stopping system..."))
 
-    shutdown_port = os.getenv("IOT_STATUS_PORT", "8080")
-    shutdown_url = f"http://localhost:{shutdown_port}/shutdown"
+    with GrpcClient(ctx.grpc_host, ctx.grpc_port) as client:
+        result = client.stop()
 
-    try:
-        with urllib.request.urlopen(shutdown_url, data=b"", timeout=5) as response:
-            if response.status == 200:
-                click.echo(ctx.formatter.success("✓ Application stopped successfully."))
-                return
-    except (OSError, urllib.error.URLError) as exc:
-        logger.debug("Shutdown endpoint unavailable", extra={"error": str(exc)})
-
-    orchestrator = ctx.get_initialized_orchestrator()
-    if orchestrator is None:
-        click.echo(ctx.formatter.warning("System is not running."))
-        return
-
-    result = orchestrator.shutdown()
-    if result:
+    if result.get("success", False):
         click.echo(ctx.formatter.success("✓ System stopped successfully."))
     else:
-        click.echo(ctx.formatter.error("Failed to stop system."))
+        message = result.get("message", "Failed to stop system.")
+        click.echo(ctx.formatter.error(f"Failed: {message}"))
         sys.exit(1)
 
 
@@ -333,71 +322,22 @@ def stop(ctx: CLIContext) -> None:
 @handle_errors
 def status(ctx: CLIContext) -> None:
     """Display system status."""
-    status_port = os.getenv("IOT_STATUS_PORT", "8080")
-    status_url = f"http://localhost:{status_port}/status"
-    status_data: dict[str, Any] | None = None
-    status_source = "standalone"
-
-    try:
-        with urllib.request.urlopen(status_url, timeout=2) as response:
-            if response.status == 200:
-                status_data = json.loads(response.read().decode("utf-8"))
-                status_source = "running"
-    except (OSError, urllib.error.URLError, json.JSONDecodeError) as exc:
-        logger.debug("Status endpoint unavailable", extra={"error": str(exc)})
-
-    if status_data is None:
-        orchestrator = ctx.orchestrator
-        status_data = orchestrator.get_system_status()
+    with GrpcClient(ctx.grpc_host, ctx.grpc_port) as client:
+        status_data = client.get_status()
 
     if ctx.output_format == "json":
-        if status_source == "running":
-            status_data = {"source": "running", **status_data}
-        else:
-            status_data = {"source": "standalone", **status_data}
-        click.echo(ctx.formatter.format_json(status_data))
+        click.echo(ctx.formatter.format_json({"source": "running", **status_data}))
         return
 
-    if status_source == "running":
-        click.echo(ctx.formatter.success("Connected to running application."))
-    else:
-        click.echo(ctx.formatter.warning("Running in standalone status mode."))
+    click.echo(ctx.formatter.success("Connected to running application."))
 
-    # Display status - handle both remote and standalone response shapes
-    state = status_data.get("state", "unknown")
-    is_ready = status_data.get("is_ready")
-    if is_ready is None:
-        # Remote response has is_ready nested under orchestrator
-        is_ready = status_data.get("orchestrator", {}).get("is_ready", False)
+    state = str(status_data.get("status", "unknown"))
+    is_ready = state.upper() in {"RUNNING", "READY"}
 
     click.echo(f"System State: {state.upper()}")
     click.echo(f"Ready: {'Yes' if is_ready else 'No'}")
-
-    # Component status - handle both response shapes
-    click.echo("\nComponents:")
-    components = status_data.get("components")
-    if components is None:
-        components = status_data.get("orchestrator", {}).get("components", {})
-    for name, available in components.items():
-        status_icon = "✓" if available else "✗"
-        status_color = "green" if available else "red"
-        click.echo(
-            f"  {status_icon} {name}: "
-            + click.style("available" if available else "unavailable", fg=status_color)
-        )
-
-    # Initialization steps (if any)
-    steps = status_data.get("initialization_steps")
-    if steps is None:
-        steps = status_data.get("orchestrator", {}).get("initialization_steps", [])
-
-    if steps and ctx.verbose:
-        click.echo("\nInitialization Steps:")
-        for step in steps:
-            status_icon = "✓" if step["completed"] else "✗"
-            click.echo(f"  {status_icon} {step['name']}: {step['description']}")
-            if step.get("error"):
-                click.echo(click.style(f"      Error: {step['error']}", fg="red"))
+    click.echo(f"Uptime (seconds): {status_data.get('uptime_seconds', 0)}")
+    click.echo(f"Version: {status_data.get('version', 'unknown')}")
 
 
 @cli.group()
@@ -1001,18 +941,15 @@ def config_migrate(ctx: CLIContext, dry_run: bool) -> None:
 @handle_errors
 def config_reload(ctx: CLIContext) -> None:
     """Reload configuration at runtime."""
-    orchestrator = ctx.get_initialized_orchestrator()
-    if orchestrator is None:
-        click.echo(ctx.formatter.warning("System is not running. Nothing to reload."))
-        return
+    with GrpcClient(ctx.grpc_host, ctx.grpc_port) as client:
+        result = client.reload_config()
 
-    config_manager = orchestrator.config_manager
-    if config_manager is None:
-        click.echo(ctx.formatter.error("Configuration manager not available."))
+    if result.get("success", False):
+        click.echo(ctx.formatter.success("Configuration reloaded successfully."))
+    else:
+        message = result.get("message", "Failed to reload configuration.")
+        click.echo(ctx.formatter.error(message))
         sys.exit(1)
-
-    config_manager.reload()
-    click.echo(ctx.formatter.success("Configuration reloaded successfully."))
 
 
 @cli.group()

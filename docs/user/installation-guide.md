@@ -185,7 +185,7 @@ instructions provided in output.
 iot-fuzzy-llm start
 
 # Or using Python module directly
-python -m src.interfaces.cli start
+python -m src.interfaces start
 ```
 
 ### Development Workflow
@@ -317,17 +317,17 @@ ls config/
 # - membership_functions/
 
 # Validate configuration
-python -m src.interfaces.cli config validate
+python -m src.interfaces config validate
 ```
 
 ### Step 5: Start the System
 
 ```bash
 # Start with default configuration
-python -m src.interfaces.cli start
+python -m src.interfaces start
 
 # Or skip external services for testing
-python -m src.interfaces.cli start --skip-mqtt --skip-ollama
+python -m src.interfaces start --skip-mqtt --skip-ollama
 ```
 
 ______________________________________________________________________

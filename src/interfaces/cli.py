@@ -538,53 +538,55 @@ def sensor() -> None:
 @handle_errors
 def sensor_list(ctx: CLIContext) -> None:
     """List all registered sensors."""
-    from src.common.config import ConfigLoader
-    from src.device_interface.registry import DeviceRegistry
+    from src.interfaces.rpc.client import GrpcClient
 
-    config_loader = ConfigLoader(config_dir=ctx.config_dir)
-    registry = DeviceRegistry(config_loader=config_loader)
+    with GrpcClient(ctx.grpc_host, ctx.grpc_port) as client:
+        try:
+            all_devices = client.list_devices()
+            # Filter to sensors only (type == "sensor")
+            sensors = [d for d in all_devices if d.get("type") == "sensor"]
 
-    try:
-        registry.load("devices.json")
-    except FileNotFoundError:
-        click.echo(ctx.formatter.error("devices.json not found in config directory."))
-        sys.exit(1)
+            if ctx.output_format == "json":
+                data = [
+                    {
+                        "id": s["id"],
+                        "name": s["name"],
+                        "device_class": s.get("capabilities", [""])[0]
+                        if s.get("capabilities")
+                        else "",
+                        "location": s.get("location", ""),
+                        "unit": "",  # Not available from gRPC response
+                    }
+                    for s in sensors
+                ]
+                click.echo(ctx.formatter.format_json(data))
+                return
 
-    sensors = registry.sensors()
+            if not sensors:
+                click.echo("No sensors registered.")
+                return
 
-    if ctx.output_format == "json":
-        data = [
-            {
-                "id": s.id,
-                "name": s.name,
-                "device_class": s.device_class,
-                "location": s.location,
-                "unit": s.unit,
-            }
-            for s in sensors
-        ]
-        click.echo(ctx.formatter.format_json(data))
-        return
+            headers = ["ID", "Name", "Class", "Location", "Unit"]
+            rows = []
+            for s in sensors:
+                rows.append(
+                    [
+                        s["id"],
+                        s["name"],
+                        s.get("capabilities", [""])[0]
+                        if s.get("capabilities")
+                        else "-",
+                        s.get("location") or "-",
+                        "-",  # Unit not available from gRPC response
+                    ]
+                )
 
-    if not sensors:
-        click.echo("No sensors registered.")
-        return
+            click.echo(ctx.formatter.format_table(headers, rows))
+            click.echo(f"\nTotal: {len(sensors)} sensor(s)")
 
-    headers = ["ID", "Name", "Class", "Location", "Unit"]
-    rows = []
-    for s in sensors:
-        rows.append(
-            [
-                s.id,
-                s.name,
-                s.device_class,
-                s.location or "-",
-                s.unit or "-",
-            ]
-        )
-
-    click.echo(ctx.formatter.format_table(headers, rows))
-    click.echo(f"\nTotal: {len(sensors)} sensor(s)")
+        except Exception as e:
+            click.echo(ctx.formatter.error(f"Failed to list sensors: {e}"), err=True)
+            sys.exit(1)
 
 
 @sensor.command("status")
@@ -596,53 +598,57 @@ def sensor_status(ctx: CLIContext, sensor_id: str | None) -> None:
 
     If SENSOR_ID is not provided, shows status for all sensors.
     """
-    from src.common.config import ConfigLoader
-    from src.device_interface.registry import DeviceRegistry
+    from src.interfaces.rpc.client import GrpcClient
 
-    config_loader = ConfigLoader(config_dir=ctx.config_dir)
-    registry = DeviceRegistry(config_loader=config_loader)
+    with GrpcClient(ctx.grpc_host, ctx.grpc_port) as client:
+        try:
+            if sensor_id:
+                device = client.get_device(sensor_id)
+                if device.get("type") != "sensor":
+                    click.echo(
+                        ctx.formatter.error(f"Device {sensor_id} is not a sensor")
+                    )
+                    sys.exit(1)
+                sensors = [device]
+            else:
+                all_devices = client.list_devices()
+                sensors = [d for d in all_devices if d.get("type") == "sensor"]
 
-    try:
-        registry.load("devices.json")
-    except FileNotFoundError:
-        click.echo(ctx.formatter.error("devices.json not found in config directory."))
-        sys.exit(1)
+            if ctx.output_format == "json":
+                data = [
+                    {
+                        "id": s["id"],
+                        "name": s["name"],
+                        "device_class": s.get("capabilities", [""])[0]
+                        if s.get("capabilities")
+                        else "",
+                        "location": s.get("location", ""),
+                        "unit": "",
+                        "status": "registered",
+                    }
+                    for s in sensors
+                ]
+                click.echo(ctx.formatter.format_json(data))
+                return
 
-    sensors = registry.sensors()
+            if not sensors:
+                click.echo("No sensors found.")
+                return
 
-    if sensor_id:
-        sensors = [s for s in sensors if s.id == sensor_id]
-        if not sensors:
-            click.echo(ctx.formatter.error(f"Sensor not found: {sensor_id}"))
+            for s in sensors:
+                click.echo(f"\n{s['name']} ({s['id']})")
+                click.echo(
+                    f"  Class: {s.get('capabilities', [''])[0] if s.get('capabilities') else 'N/A'}"
+                )
+                click.echo(f"  Location: {s.get('location') or 'N/A'}")
+                click.echo("  Unit: N/A")
+                click.echo("  Status: registered")
+
+        except Exception as e:
+            click.echo(
+                ctx.formatter.error(f"Failed to get sensor status: {e}"), err=True
+            )
             sys.exit(1)
-
-    if ctx.output_format == "json":
-        data = [
-            {
-                "id": s.id,
-                "name": s.name,
-                "device_class": s.device_class,
-                "location": s.location,
-                "unit": s.unit,
-                "status": "registered",
-            }
-            for s in sensors
-        ]
-        click.echo(ctx.formatter.format_json(data))
-        return
-
-    if not sensors:
-        click.echo("No sensors found.")
-        return
-
-    for s in sensors:
-        click.echo(f"\n{s.name} ({s.id})")
-        click.echo(f"  Class: {s.device_class}")
-        click.echo(f"  Location: {s.location or 'N/A'}")
-        click.echo(f"  Unit: {s.unit or 'N/A'}")
-        click.echo("  Status: registered")
-        if s.mqtt:
-            click.echo(f"  MQTT Topic: {s.mqtt.topic}")
 
 
 @cli.group()
@@ -656,53 +662,53 @@ def device() -> None:
 @handle_errors
 def device_list(ctx: CLIContext) -> None:
     """List all registered devices."""
-    from src.common.config import ConfigLoader
-    from src.device_interface.registry import DeviceRegistry
+    from src.interfaces.rpc.client import GrpcClient
 
-    config_loader = ConfigLoader(config_dir=ctx.config_dir)
-    registry = DeviceRegistry(config_loader=config_loader)
+    with GrpcClient(ctx.grpc_host, ctx.grpc_port) as client:
+        try:
+            devices = client.list_devices()
 
-    try:
-        registry.load("devices.json")
-    except FileNotFoundError:
-        click.echo(ctx.formatter.error("devices.json not found in config directory."))
-        sys.exit(1)
+            if ctx.output_format == "json":
+                data = [
+                    {
+                        "id": d["id"],
+                        "name": d["name"],
+                        "type": d.get("type", ""),
+                        "device_class": d.get("capabilities", [""])[0]
+                        if d.get("capabilities")
+                        else "",
+                        "location": d.get("location", ""),
+                    }
+                    for d in devices
+                ]
+                click.echo(ctx.formatter.format_json(data))
+                return
 
-    devices = list(registry)
+            if not devices:
+                click.echo("No devices registered.")
+                return
 
-    if ctx.output_format == "json":
-        data = [
-            {
-                "id": d.id,
-                "name": d.name,
-                "type": d.device_type.value,
-                "device_class": d.device_class,
-                "location": d.location,
-            }
-            for d in devices
-        ]
-        click.echo(ctx.formatter.format_json(data))
-        return
+            headers = ["ID", "Name", "Type", "Class", "Location"]
+            rows = []
+            for d in devices:
+                rows.append(
+                    [
+                        d["id"],
+                        d["name"],
+                        d.get("type", "-"),
+                        d.get("capabilities", [""])[0]
+                        if d.get("capabilities")
+                        else "-",
+                        d.get("location") or "-",
+                    ]
+                )
 
-    if not devices:
-        click.echo("No devices registered.")
-        return
+            click.echo(ctx.formatter.format_table(headers, rows))
+            click.echo(f"\nTotal: {len(devices)} device(s)")
 
-    headers = ["ID", "Name", "Type", "Class", "Location"]
-    rows = []
-    for d in devices:
-        rows.append(
-            [
-                d.id,
-                d.name,
-                d.device_type.value,
-                d.device_class,
-                d.location or "-",
-            ]
-        )
-
-    click.echo(ctx.formatter.format_table(headers, rows))
-    click.echo(f"\nTotal: {len(devices)} device(s)")
+        except Exception as e:
+            click.echo(ctx.formatter.error(f"Failed to list devices: {e}"), err=True)
+            sys.exit(1)
 
 
 @device.command("status")
@@ -714,60 +720,55 @@ def device_status(ctx: CLIContext, device_id: str | None) -> None:
 
     If DEVICE_ID is not provided, shows status for all devices.
     """
-    from src.common.config import ConfigLoader
-    from src.device_interface.models import Actuator
-    from src.device_interface.registry import DeviceRegistry
+    from src.interfaces.rpc.client import GrpcClient
 
-    config_loader = ConfigLoader(config_dir=ctx.config_dir)
-    registry = DeviceRegistry(config_loader=config_loader)
+    with GrpcClient(ctx.grpc_host, ctx.grpc_port) as client:
+        try:
+            if device_id:
+                device = client.get_device(device_id)
+                devices = [device]
+            else:
+                devices = client.list_devices()
 
-    try:
-        registry.load("devices.json")
-    except FileNotFoundError:
-        click.echo(ctx.formatter.error("devices.json not found in config directory."))
-        sys.exit(1)
+            if ctx.output_format == "json":
+                data: list[dict[str, Any]] = []
+                for d in devices:
+                    item: dict[str, Any] = {
+                        "id": d["id"],
+                        "name": d["name"],
+                        "type": d.get("type", ""),
+                        "device_class": d.get("capabilities", [""])[0]
+                        if d.get("capabilities")
+                        else "",
+                        "location": d.get("location", ""),
+                        "status": "registered",
+                    }
+                    if d.get("type") == "actuator" and d.get("capabilities"):
+                        item["capabilities"] = d["capabilities"]
+                    data.append(item)
+                click.echo(ctx.formatter.format_json(data))
+                return
 
-    devices = list(registry)
+            if not devices:
+                click.echo("No devices found.")
+                return
 
-    if device_id:
-        devices = [d for d in devices if d.id == device_id]
-        if not devices:
-            click.echo(ctx.formatter.error(f"Device not found: {device_id}"))
+            for d in devices:
+                click.echo(f"\n{d['name']} ({d['id']})")
+                click.echo(f"  Type: {d.get('type', 'N/A')}")
+                click.echo(
+                    f"  Class: {d.get('capabilities', [''])[0] if d.get('capabilities') else 'N/A'}"
+                )
+                click.echo(f"  Location: {d.get('location') or 'N/A'}")
+                click.echo("  Status: registered")
+                if d.get("type") == "actuator" and d.get("capabilities"):
+                    click.echo(f"  Capabilities: {', '.join(d['capabilities'])}")
+
+        except Exception as e:
+            click.echo(
+                ctx.formatter.error(f"Failed to get device status: {e}"), err=True
+            )
             sys.exit(1)
-
-    if ctx.output_format == "json":
-        data: list[dict[str, Any]] = []
-        for d in devices:
-            item: dict[str, Any] = {
-                "id": d.id,
-                "name": d.name,
-                "type": d.device_type.value,
-                "device_class": d.device_class,
-                "location": d.location,
-                "status": "registered",
-            }
-            if isinstance(d, Actuator):
-                item["capabilities"] = list(d.capabilities)
-            data.append(item)
-        click.echo(ctx.formatter.format_json(data))
-        return
-
-    if not devices:
-        click.echo("No devices found.")
-        return
-
-    for d in devices:
-        click.echo(f"\n{d.name} ({d.id})")
-        click.echo(f"  Type: {d.device_type.value}")
-        click.echo(f"  Class: {d.device_class}")
-        click.echo(f"  Location: {d.location or 'N/A'}")
-        click.echo("  Status: registered")
-        if isinstance(d, Actuator):
-            click.echo(f"  Capabilities: {', '.join(d.capabilities)}")
-        if d.mqtt:
-            click.echo(f"  MQTT Topic: {d.mqtt.topic}")
-            if d.mqtt.command_topic:
-                click.echo(f"  Command Topic: {d.mqtt.command_topic}")
 
 
 @cli.group()
@@ -781,22 +782,38 @@ def config() -> None:
 @handle_errors
 def config_validate(ctx: CLIContext) -> None:
     """Validate all configuration files."""
-    from src.configuration.config_manager import ConfigurationManager
+    from src.interfaces.rpc.client import GrpcClient
 
     click.echo(ctx.formatter.info("Validating configuration files..."))
 
-    try:
-        manager = ConfigurationManager(config_dir=ctx.config_dir)
-        configs = manager.get_all_configs()
+    with GrpcClient(ctx.grpc_host, ctx.grpc_port) as client:
+        try:
+            config_names = client.list_configs()
+            all_valid = True
+            validated_configs: list[str] = []
 
-        click.echo(ctx.formatter.success("All configuration files are valid."))
-        click.echo("\nLoaded configurations:")
-        for name in configs:
-            click.echo(f"  ✓ {name}")
+            for name in config_names:
+                config_data = client.get_config(name)
+                result = client.validate_config(name, config_data["content"])
+                if result["valid"]:
+                    validated_configs.append(name)
+                else:
+                    all_valid = False
+                    click.echo(ctx.formatter.error(f"Validation failed for {name}:"))
+                    for error in result["errors"]:
+                        click.echo(f"  - {error}")
 
-    except ConfigurationError as e:
-        click.echo(ctx.formatter.error(f"Validation failed: {e}"))
-        sys.exit(1)
+            if all_valid:
+                click.echo(ctx.formatter.success("All configuration files are valid."))
+                click.echo("\nLoaded configurations:")
+                for name in validated_configs:
+                    click.echo(f"  ✓ {name}")
+            else:
+                sys.exit(1)
+
+        except Exception as e:
+            click.echo(ctx.formatter.error(f"Validation failed: {e}"))
+            sys.exit(1)
 
 
 @config.command("migrate")
@@ -812,97 +829,106 @@ def config_migrate(ctx: CLIContext, dry_run: bool) -> None:
     and mqtt_config.json missing the topic_patterns key.
     Creates .bak backups before modifying any file.
     """
-    import shutil
+    from src.interfaces.rpc.client import GrpcClient
 
     changes_needed: list[str] = []
 
-    devices_file = ctx.config_dir / "devices.json"
-    devices_needing_payload_mapping: list[str] = []
+    with GrpcClient(ctx.grpc_host, ctx.grpc_port) as client:
+        try:
+            # Check devices.json for missing payload_mapping
+            devices_needing_payload_mapping: list[str] = []
+            try:
+                devices_config = client.get_config("devices")
+                devices_data: dict[str, Any] = devices_config["content"]
 
-    if devices_file.exists():
-        with open(devices_file) as f:
-            devices_data: dict[str, Any] = json.load(f)
+                for dev in devices_data.get("devices", []):
+                    dev_id: str = dev.get("id", "<unknown>")
+                    if "mqtt" in dev and "payload_mapping" not in dev["mqtt"]:
+                        devices_needing_payload_mapping.append(dev_id)
 
-        for dev in devices_data.get("devices", []):
-            dev_id: str = dev.get("id", "<unknown>")
-            if "mqtt" in dev and "payload_mapping" not in dev["mqtt"]:
-                devices_needing_payload_mapping.append(dev_id)
+                for dev_id in devices_needing_payload_mapping:
+                    if dry_run:
+                        click.echo(f"Would add payload_mapping to device: {dev_id}")
+                    else:
+                        click.echo(f"Added payload_mapping to device: {dev_id}")
+                    changes_needed.append(dev_id)
 
-        for dev_id in devices_needing_payload_mapping:
-            if dry_run:
-                click.echo(f"Would add payload_mapping to device: {dev_id}")
+                if not dry_run and devices_needing_payload_mapping:
+                    for dev in devices_data.get("devices", []):
+                        if dev.get("id") in devices_needing_payload_mapping:
+                            dev["mqtt"]["payload_mapping"] = {"value_field": "value"}
+                    client.update_config(
+                        "devices", devices_data, devices_config["version"]
+                    )
+
+                logger.info(
+                    "Checked devices.json for payload_mapping",
+                    extra={
+                        "count": len(devices_needing_payload_mapping),
+                        "dry_run": dry_run,
+                    },
+                )
+            except Exception:
+                click.echo(
+                    ctx.formatter.warning(
+                        "devices.json not found — skipping device migration."
+                    )
+                )
+
+            # Check mqtt_config.json for missing topic_patterns
+            try:
+                mqtt_config = client.get_config("mqtt_config")
+                mqtt_data: dict[str, Any] = mqtt_config["content"]
+
+                if "topic_patterns" not in mqtt_data:
+                    if dry_run:
+                        click.echo("Would add topic_patterns to mqtt_config.json")
+                    else:
+                        click.echo("Added topic_patterns to mqtt_config.json")
+                    changes_needed.append("mqtt_config.json:topic_patterns")
+
+                    if not dry_run:
+                        mqtt_data["topic_patterns"] = {}
+                        client.update_config(
+                            "mqtt_config", mqtt_data, mqtt_config["version"]
+                        )
+
+                logger.info(
+                    "Checked mqtt_config.json for topic_patterns",
+                    extra={
+                        "needs_migration": "topic_patterns" not in mqtt_data,
+                        "dry_run": dry_run,
+                    },
+                )
+            except Exception:
+                click.echo(
+                    ctx.formatter.warning(
+                        "mqtt_config.json not found — skipping MQTT config migration."
+                    )
+                )
+
+            if not changes_needed:
+                click.echo(
+                    ctx.formatter.success(
+                        "All configuration files are already up-to-date. No changes needed."
+                    )
+                )
+            elif dry_run:
+                click.echo(
+                    ctx.formatter.info(
+                        f"Dry-run complete. {len(changes_needed)} change(s) would be applied."
+                    )
+                )
             else:
-                click.echo(f"Added payload_mapping to device: {dev_id}")
-            changes_needed.append(dev_id)
+                click.echo(
+                    ctx.formatter.success(
+                        f"Migration complete. {len(changes_needed)} change(s) applied."
+                    )
+                )
 
-        if not dry_run and devices_needing_payload_mapping:
-            shutil.copy2(devices_file, Path(str(devices_file) + ".bak"))
-            for dev in devices_data.get("devices", []):
-                if dev.get("id") in devices_needing_payload_mapping:
-                    dev["mqtt"]["payload_mapping"] = {"value_field": "value"}
-            with open(devices_file, "w") as fw:
-                json.dump(devices_data, fw, indent=2)
-
-        logger.info(
-            "Checked devices.json for payload_mapping",
-            extra={"count": len(devices_needing_payload_mapping), "dry_run": dry_run},
-        )
-    else:
-        click.echo(
-            ctx.formatter.warning("devices.json not found — skipping device migration.")
-        )
-
-    mqtt_file = ctx.config_dir / "mqtt_config.json"
-
-    if mqtt_file.exists():
-        with open(mqtt_file) as f:
-            mqtt_data: dict[str, Any] = json.load(f)
-
-        if "topic_patterns" not in mqtt_data:
-            if dry_run:
-                click.echo("Would add topic_patterns to mqtt_config.json")
-            else:
-                click.echo("Added topic_patterns to mqtt_config.json")
-            changes_needed.append("mqtt_config.json:topic_patterns")
-
-            if not dry_run:
-                shutil.copy2(mqtt_file, Path(str(mqtt_file) + ".bak"))
-                mqtt_data["topic_patterns"] = {}
-                with open(mqtt_file, "w") as fw:
-                    json.dump(mqtt_data, fw, indent=2)
-
-        logger.info(
-            "Checked mqtt_config.json for topic_patterns",
-            extra={
-                "needs_migration": "topic_patterns" not in mqtt_data,
-                "dry_run": dry_run,
-            },
-        )
-    else:
-        click.echo(
-            ctx.formatter.warning(
-                "mqtt_config.json not found — skipping MQTT config migration."
-            )
-        )
-
-    if not changes_needed:
-        click.echo(
-            ctx.formatter.success(
-                "All configuration files are already up-to-date. No changes needed."
-            )
-        )
-    elif dry_run:
-        click.echo(
-            ctx.formatter.info(
-                f"Dry-run complete. {len(changes_needed)} change(s) would be applied."
-            )
-        )
-    else:
-        click.echo(
-            ctx.formatter.success(
-                f"Migration complete. {len(changes_needed)} change(s) applied."
-            )
-        )
+        except Exception as e:
+            click.echo(ctx.formatter.error(f"Migration failed: {e}"), err=True)
+            sys.exit(1)
 
 
 @config.command("reload")
@@ -939,40 +965,39 @@ def log() -> None:
 @handle_errors
 def log_tail(ctx: CLIContext, lines: int, category: str) -> None:
     """Show recent log entries."""
-    log_file = ctx.logs_dir / f"{category}.log"
+    from src.interfaces.rpc.client import GrpcClient
 
-    if not log_file.exists():
-        click.echo(ctx.formatter.warning(f"Log file not found: {log_file}"))
-        return
-
-    # Read last N lines
-    with open(log_file) as f:
-        all_lines = f.readlines()
-        recent_lines = all_lines[-lines:] if len(all_lines) > lines else all_lines
-
-    if not recent_lines:
-        click.echo("No log entries found.")
-        return
-
-    click.echo(f"Last {len(recent_lines)} entries from {category}.log:\n")
-    for line in recent_lines:
-        # Try to parse as JSON for better formatting
+    with GrpcClient(ctx.grpc_host, ctx.grpc_port) as client:
         try:
-            entry = json.loads(line.strip())
-            timestamp = entry.get("timestamp", "")
-            level = entry.get("level", "INFO")
-            message = entry.get("message", line.strip())
+            result = client.get_log_entries(
+                limit=lines, category_filter=category, offset=0
+            )
+            entries = result["entries"]
 
-            level_color = {
-                "DEBUG": "cyan",
-                "INFO": "green",
-                "WARNING": "yellow",
-                "ERROR": "red",
-            }.get(level, "white")
+            if not entries:
+                click.echo("No log entries found.")
+                return
 
-            click.echo(f"{timestamp} [{click.style(level, fg=level_color)}] {message}")
-        except json.JSONDecodeError:
-            click.echo(line.strip())
+            click.echo(f"Last {len(entries)} entries from {category} category:\n")
+            for entry in entries:
+                timestamp = entry.get("timestamp", "")
+                level = entry.get("level", "INFO")
+                message = entry.get("message", "")
+
+                level_color = {
+                    "DEBUG": "cyan",
+                    "INFO": "green",
+                    "WARNING": "yellow",
+                    "ERROR": "red",
+                }.get(level, "white")
+
+                click.echo(
+                    f"{timestamp} [{click.style(level, fg=level_color)}] {message}"
+                )
+
+        except Exception as e:
+            click.echo(ctx.formatter.error(f"Failed to retrieve logs: {e}"), err=True)
+            sys.exit(1)
 
 
 def main() -> None:

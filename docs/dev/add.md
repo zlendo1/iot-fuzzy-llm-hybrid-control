@@ -124,7 +124,7 @@ specialized work within the layer.
 
 | Layer                      | Coordinator                | Responsibility                                                                                     |
 | -------------------------- | -------------------------- | -------------------------------------------------------------------------------------------------- |
-| User Interface             | —                          | Exposes CLI for user interaction (Web UI optional for future).                                     |
+| User Interface             | —                          | Exposes CLI and Web UI for user interaction.                                                       |
 | Configuration & Management | System Orchestrator        | Manages system lifecycle, configuration loading, rule persistence, and centralized logging.        |
 | Control & Reasoning        | Rule Processing Pipeline   | Evaluates natural language rules against sensor state using the LLM and generates device commands. |
 | Data Processing            | Fuzzy Processing Pipeline  | **Semantic Bridge:** Transforms raw sensor data into linguistic descriptions via fuzzy logic.      |
@@ -1000,10 +1000,19 @@ src/interfaces/rpc/
 ```python
 from src.interfaces.rpc.client import GrpcClient
 
+# Using context manager (recommended)
+with GrpcClient(host="localhost", port=50051) as client:
+    status = client.get_status()
+    rules = client.list_rules()
+    client.add_rule("If temperature is hot, turn on AC")
+
+# Or manual connection
 client = GrpcClient(host="localhost", port=50051)
-status = client.get_status()
-rules = client.list_rules()
-client.add_rule("If temperature is hot, turn on AC")
+client.connect()
+try:
+    status = client.get_status()
+finally:
+    client.disconnect()
 ```
 
 ### 11.2.6 Error Handling

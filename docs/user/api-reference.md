@@ -853,13 +853,11 @@ Access fuzzy membership functions.
 The CLI and Web UI automatically use the gRPC interface. For custom clients:
 
 ```python
-import grpc
 from src.interfaces.rpc.client import GrpcClient
 
-client = GrpcClient(host="localhost", port=50051)
-with client:
+with GrpcClient(host="localhost", port=50051) as client:
     status = client.get_status()
-    print(status["state"])
+    print(status["status"])  # e.g., "RUNNING", "STOPPED"
 ```
 
 ### Error Handling

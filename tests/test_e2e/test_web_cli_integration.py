@@ -99,20 +99,20 @@ def test_cli_stop_via_http_endpoint(
 @pytest.mark.integration
 def test_web_ui_no_mqtt_connection() -> None:
     sys.modules.pop("src.interfaces.web.bridge", None)
-    sys.modules.pop("src.interfaces.web.http_client", None)
     sys.modules.pop("paho.mqtt", None)
     sys.modules.pop("paho.mqtt.client", None)
 
     bridge_module = importlib.import_module("src.interfaces.web.bridge")
-    bridge = bridge_module.OrchestratorBridge(base_url="http://127.0.0.1:9")
+    bridge = bridge_module.OrchestratorBridge(grpc_host="127.0.0.1", grpc_port=9999)
 
-    assert bridge._http_client.__class__.__name__ == "AppStatusClient"
+    assert bridge._grpc_host == "127.0.0.1"
+    assert bridge._grpc_port == 9999
     assert "paho.mqtt.client" not in sys.modules
 
 
 @pytest.mark.integration
 def test_bridge_handles_app_not_running() -> None:
-    bridge = OrchestratorBridge(base_url="http://127.0.0.1:9")
+    bridge = OrchestratorBridge(grpc_host="127.0.0.1", grpc_port=9999)
 
     assert bridge.is_app_running() is False
     assert bridge.get_system_status() is None

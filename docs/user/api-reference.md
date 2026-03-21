@@ -36,7 +36,7 @@ ______________________________________________________________________
 
 The CLI is implemented using Click and provides the primary user interface.
 
-**Entry Point**: `python -m src.interfaces.cli`
+**Entry Point**: `python -m src.interfaces`
 
 #### Global Options
 
@@ -76,15 +76,19 @@ iot-fuzzy-llm status
 **`rule add`** - Add a new natural language rule
 
 ```bash
-iot-fuzzy-llm rule add "If temperature is hot, turn on AC" \
-    --id climate_001 --priority 1 -t climate -t cooling
+iot-fuzzy-llm rule add "If temperature is hot, turn on AC"
 ```
 
-| Option        | Type              | Default        | Description                               |
-| ------------- | ----------------- | -------------- | ----------------------------------------- |
-| `--id`        | String            | Auto-generated | Rule ID                                   |
-| `--priority`  | Integer           | 50             | Priority (1-100, higher = more important) |
-| `-t`, `--tag` | String (multiple) | -              | Tags for the rule                         |
+| Option        | Type              | Default        | Description                                                    |
+| ------------- | ----------------- | -------------- | -------------------------------------------------------------- |
+| `--id`        | String            | Auto-generated | Rule ID (accepted but currently ignored — ID auto-generated)   |
+| `--priority`  | Integer           | 50             | Priority (accepted but currently ignored — not passed to gRPC) |
+| `-t`, `--tag` | String (multiple) | -              | Tags (accepted but currently ignored — not passed to gRPC)     |
+
+> [!NOTE]
+> The `--id`, `--priority`, and `--tag` options are accepted by the CLI but not
+> currently passed to the gRPC `AddRule` call, which only accepts `text` and
+> `enabled`. These options may be implemented in a future release.
 
 **`rule list`** - List all rules
 

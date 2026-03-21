@@ -85,7 +85,8 @@ Hybrid IoT Management System.
 
 - CLI: Requires local shell access or SSH authentication
 - Web UI: Local access by default; can add Streamlit authentication
-- gRPC: Local-only by default; TLS can be enabled for network access
+- gRPC: Binds to all interfaces (`[::]`) by default; TLS not currently
+  implemented
 - All interfaces validate inputs before passing to system
 
 ## Architecture Note

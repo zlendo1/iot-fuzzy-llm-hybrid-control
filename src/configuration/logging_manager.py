@@ -263,6 +263,88 @@ class LoggingManager:
     def get_log_files(self) -> dict[str, Path]:
         return {category.value: self.get_log_file(category) for category in LogCategory}
 
+    def get_log_entries(
+        self,
+        category: LogCategory | None = None,
+        limit: int | None = None,
+    ) -> list[dict[str, Any]]:
+        """Read log entries from log files.
+
+        Args:
+            category: If specified, only return entries from this category.
+                     If None, return entries from all categories.
+            limit: Maximum number of entries to return. If None, return all.
+
+        Returns:
+            List of log entry dictionaries with 'category' field added.
+        """
+        entries: list[dict[str, Any]] = []
+
+        # Determine which categories to read
+        categories_to_read = [category] if category else list(LogCategory)
+
+        for cat in categories_to_read:
+            log_file = self.get_log_file(cat)
+            if not log_file.exists():
+                continue
+
+            file_entries = self._read_log_file(log_file)
+            # Add category to each entry
+            for entry in file_entries:
+                entry["category"] = cat.value
+                entries.append(entry)
+
+        # Apply limit if specified
+        if limit is not None and limit > 0:
+            entries = entries[:limit]
+
+        return entries
+
+    def _read_log_file(self, path: Path) -> list[dict[str, Any]]:
+        """Read and parse a single log file.
+
+        Supports both JSON array format and newline-delimited JSON format.
+
+        Args:
+            path: Path to log file to read.
+
+        Returns:
+            List of parsed log entry dictionaries.
+        """
+        try:
+            raw_text = path.read_text(encoding="utf-8")
+        except (FileNotFoundError, OSError):
+            return []
+
+        stripped = raw_text.strip()
+        if not stripped:
+            return []
+
+        # Try parsing as JSON array or single object first
+        try:
+            parsed_json = json.loads(stripped)
+        except json.JSONDecodeError:
+            parsed_json = None
+
+        if isinstance(parsed_json, list):
+            return [item for item in parsed_json if isinstance(item, dict)]
+        if isinstance(parsed_json, dict):
+            return [parsed_json]
+
+        # Fall back to newline-delimited JSON
+        line_entries: list[dict[str, Any]] = []
+        for line in raw_text.splitlines():
+            payload = line.strip()
+            if not payload:
+                continue
+            try:
+                item = json.loads(payload)
+            except json.JSONDecodeError:
+                continue
+            if isinstance(item, dict):
+                line_entries.append(item)
+        return line_entries
+
     def set_level(self, level: str) -> None:
         with self._lock:
             self.log_level = level

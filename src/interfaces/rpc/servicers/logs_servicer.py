@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
@@ -9,6 +8,7 @@ from typing import Any
 from google.protobuf.timestamp_pb2 import Timestamp
 
 from src.common.logging import get_logger
+from src.configuration.logging_manager import LoggingManager
 from src.interfaces.rpc.error_mapping import handle_grpc_errors
 from src.interfaces.rpc.generated import logs_pb2_grpc
 from src.interfaces.rpc.generated.logs_pb2 import (
@@ -22,7 +22,6 @@ from src.interfaces.rpc.generated.common_pb2 import PaginationResponse
 
 logger = get_logger(__name__)
 
-_LOG_SUFFIX = ".json"
 _TIMESTAMP_KEY = "timestamp"
 _LEVEL_KEY = "level"
 _LOGGER_KEY = "logger"
@@ -31,7 +30,8 @@ _MESSAGE_KEY = "message"
 
 class LogsServicer(logs_pb2_grpc.LogsServiceServicer):
     def __init__(self, log_dir: Path | None = None) -> None:
-        self._log_dir = log_dir or Path("logs")
+        log_path = log_dir or Path("logs")
+        self._logging_manager = LoggingManager(log_dir=log_path)
 
     @handle_grpc_errors
     def GetLogEntries(
@@ -99,50 +99,15 @@ class LogsServicer(logs_pb2_grpc.LogsServiceServicer):
         )
 
     def _load_entries(self) -> list[dict[str, Any]]:
-        if not self._log_dir.exists() or not self._log_dir.is_dir():
-            return []
+        raw_entries = self._logging_manager.get_log_entries()
 
         entries: list[dict[str, Any]] = []
-        for log_file in sorted(self._log_dir.glob(f"*{_LOG_SUFFIX}")):
-            category = log_file.stem
-            for parsed in self._read_log_file(log_file):
-                normalized = self._normalize_entry(parsed, category)
-                if normalized is not None:
-                    entries.append(normalized)
+        for entry in raw_entries:
+            category = entry.get("category", "")
+            normalized = self._normalize_entry(entry, category)
+            if normalized is not None:
+                entries.append(normalized)
         return entries
-
-    def _read_log_file(self, path: Path) -> list[dict[str, Any]]:
-        try:
-            raw_text = path.read_text(encoding="utf-8")
-        except (FileNotFoundError, OSError):
-            return []
-
-        stripped = raw_text.strip()
-        if not stripped:
-            return []
-
-        try:
-            parsed_json = json.loads(stripped)
-        except json.JSONDecodeError:
-            parsed_json = None
-
-        if isinstance(parsed_json, list):
-            return [item for item in parsed_json if isinstance(item, dict)]
-        if isinstance(parsed_json, dict):
-            return [parsed_json]
-
-        line_entries: list[dict[str, Any]] = []
-        for line in raw_text.splitlines():
-            payload = line.strip()
-            if not payload:
-                continue
-            try:
-                item = json.loads(payload)
-            except json.JSONDecodeError:
-                continue
-            if isinstance(item, dict):
-                line_entries.append(item)
-        return line_entries
 
     def _normalize_entry(
         self,

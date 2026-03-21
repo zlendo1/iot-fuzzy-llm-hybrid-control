@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
-import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -11,7 +9,7 @@ import jsonschema
 import grpc
 
 from src.common.logging import get_logger
-from src.common.utils import load_json
+from src.configuration.config_manager import ConfigurationManager
 from src.interfaces.rpc.generated import config_pb2, config_pb2_grpc
 
 logger = get_logger(__name__)
@@ -20,58 +18,23 @@ logger = get_logger(__name__)
 class ConfigServicer(config_pb2_grpc.ConfigServiceServicer):
     def __init__(self, config_dir: Path | str = Path("config")) -> None:
         self._config_dir = Path(config_dir)
-        self._schema_dir = self._config_dir / "schemas"
+        self._config_manager = ConfigurationManager(config_dir=self._config_dir)
 
     @staticmethod
     def _compute_version(content: str) -> str:
         return hashlib.md5(content.encode("utf-8")).hexdigest()[:8]
 
-    def _config_path(self, name: str) -> Path:
-        return self._config_dir / f"{name}.json"
-
-    def _read_config_content(self, name: str) -> str:
-        path = self._config_path(name)
-        if not path.exists():
-            raise FileNotFoundError(f"Configuration file not found: {name}")
-        return path.read_text(encoding="utf-8")
-
-    def _atomic_write(self, path: Path, content: str) -> None:
-        directory = str(path.parent)
-        with tempfile.NamedTemporaryFile(
-            mode="w", dir=directory, delete=False, encoding="utf-8"
-        ) as tmp_file:
-            tmp_file.write(content)
-            tmp_path = tmp_file.name
-        os.replace(tmp_path, path)
-
-    @staticmethod
-    def _schema_name_for(config_name: str) -> str | None:
-        mapping = {
-            "mqtt_config": "mqtt",
-            "llm_config": "llm",
-            "devices": "devices",
-        }
-        return mapping.get(config_name)
-
-    def _load_schema(self, name: str) -> dict[str, Any] | None:
-        schema_name = self._schema_name_for(name)
-        if not schema_name:
-            return None
-        schema_path = self._schema_dir / f"{schema_name}.schema.json"
-        if not schema_path.exists():
-            return None
-        loaded = load_json(schema_path)
-        if not isinstance(loaded, dict):
-            return None
-        return loaded
-
     def GetConfig(
         self, request: config_pb2.GetConfigRequest, context: grpc.ServicerContext
     ) -> config_pb2.GetConfigResponse:
         try:
-            content = self._read_config_content(request.name)
+            data = self._config_manager.load_config(request.name, validate=False)
+            content = json.dumps(data, indent=2)
         except FileNotFoundError as exc:
             context.abort(grpc.StatusCode.NOT_FOUND, str(exc))
+            return config_pb2.GetConfigResponse()
+        except Exception as exc:
+            context.abort(grpc.StatusCode.INTERNAL, f"Failed to load config: {exc}")
             return config_pb2.GetConfigResponse()
 
         version = self._compute_version(content)
@@ -87,8 +50,11 @@ class ConfigServicer(config_pb2_grpc.ConfigServiceServicer):
         self, request: config_pb2.UpdateConfigRequest, context: grpc.ServicerContext
     ) -> config_pb2.UpdateConfigResponse:
         name = request.config.name
-        path = self._config_path(name)
-        if not path.exists():
+
+        try:
+            current_data = self._config_manager.load_config(name, validate=False)
+            current_content = json.dumps(current_data, indent=2)
+        except FileNotFoundError:
             context.abort(
                 grpc.StatusCode.NOT_FOUND, f"Configuration file not found: {name}"
             )
@@ -97,8 +63,14 @@ class ConfigServicer(config_pb2_grpc.ConfigServiceServicer):
                 message=f"Configuration file not found: {name}",
                 new_version="",
             )
+        except Exception as exc:
+            context.abort(grpc.StatusCode.INTERNAL, f"Failed to load config: {exc}")
+            return config_pb2.UpdateConfigResponse(
+                success=False,
+                message=f"Failed to load config: {exc}",
+                new_version="",
+            )
 
-        current_content = path.read_text(encoding="utf-8")
         current_version = self._compute_version(current_content)
         if request.config.version != current_version:
             context.abort(grpc.StatusCode.ABORTED, "Version conflict")
@@ -108,7 +80,24 @@ class ConfigServicer(config_pb2_grpc.ConfigServiceServicer):
                 new_version=current_version,
             )
 
-        self._atomic_write(path, request.config.content)
+        try:
+            new_data = json.loads(request.config.content)
+            self._config_manager.save_config(name, new_data, validate=True, backup=True)
+        except json.JSONDecodeError as exc:
+            context.abort(grpc.StatusCode.INVALID_ARGUMENT, f"Invalid JSON: {exc}")
+            return config_pb2.UpdateConfigResponse(
+                success=False,
+                message=f"Invalid JSON: {exc}",
+                new_version="",
+            )
+        except Exception as exc:
+            context.abort(grpc.StatusCode.INTERNAL, f"Failed to save config: {exc}")
+            return config_pb2.UpdateConfigResponse(
+                success=False,
+                message=f"Failed to save config: {exc}",
+                new_version="",
+            )
+
         new_version = self._compute_version(request.config.content)
         logger.info(
             "Configuration updated via RPC",
@@ -131,7 +120,7 @@ class ConfigServicer(config_pb2_grpc.ConfigServiceServicer):
                 valid=False, errors=[f"Invalid JSON: {exc}"]
             )
 
-        schema = self._load_schema(request.name)
+        schema = self._config_manager._get_schema_for_config(request.name)
         if schema is not None:
             try:
                 jsonschema.validate(parsed, schema)
@@ -145,16 +134,15 @@ class ConfigServicer(config_pb2_grpc.ConfigServiceServicer):
     def ReloadConfig(
         self, request: config_pb2.ReloadConfigRequest, context: grpc.ServicerContext
     ) -> config_pb2.ReloadConfigResponse:
-        path = self._config_path(request.name)
-        if not path.exists():
+        if request.name not in self._config_manager.list_configs():
             return config_pb2.ReloadConfigResponse(
                 success=False,
                 message=f"Configuration file not found: {request.name}",
             )
 
         try:
-            _ = path.read_text(encoding="utf-8")
-        except OSError as exc:
+            self._config_manager.reload(request.name)
+        except Exception as exc:
             return config_pb2.ReloadConfigResponse(
                 success=False,
                 message=f"Failed to reload config: {exc}",
@@ -167,5 +155,5 @@ class ConfigServicer(config_pb2_grpc.ConfigServiceServicer):
     def ListConfigs(
         self, request: config_pb2.ListConfigsRequest, context: grpc.ServicerContext
     ) -> config_pb2.ListConfigsResponse:
-        names = sorted([path.stem for path in self._config_dir.glob("*.json")])
+        names = self._config_manager.list_configs()
         return config_pb2.ListConfigsResponse(names=names)

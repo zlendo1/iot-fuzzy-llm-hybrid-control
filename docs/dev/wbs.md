@@ -20,13 +20,15 @@ linguistic concepts for LLM-based natural language rule processing.
 
 | In Scope (Thesis MVP)                             | Out of Scope (Future Work)    |
 | ------------------------------------------------- | ----------------------------- |
-| Fuzzy logic semantic bridge                       | Web-based user interface      |
-| Ollama LLM integration (edge-optimized, CPU-only) | REST API interface            |
-| MQTT device communication                         | Multi-protocol device support |
-| CLI interface                                     | Distributed deployment        |
-| JSON configuration system                         | Advanced conflict resolution  |
+| Fuzzy logic semantic bridge                       | REST API interface            |
+| Ollama LLM integration (edge-optimized, CPU-only) | Multi-protocol device support |
+| MQTT device communication                         | Distributed deployment        |
+| CLI interface                                     | Advanced conflict resolution  |
+| JSON configuration system                         |                               |
 | Smart home demo scenario                          |                               |
 | Docker containerization                           |                               |
+| gRPC interface (port 50051)                       |                               |
+| Streamlit Web UI                                  |                               |
 
 ### 1.2 Key Performance Targets
 

@@ -791,7 +791,7 @@ Manage natural language rules.
 
 **Methods:**
 
-- `AddRule(text, id?, priority?, tags?)` - Add a new rule
+- `AddRule(text, enabled?)` - Add a new rule
 - `RemoveRule(rule_id)` - Delete a rule
 - `ListRules(pagination?)` - List all rules
 - `GetRule(rule_id)` - Get rule details
@@ -840,7 +840,8 @@ Access fuzzy membership functions.
 **Methods:**
 
 - `GetMembershipFunctions(sensor_type)` - Get membership functions
-- `UpdateMembershipFunction(sensor_type, function)` - Update function
+- `UpdateMembershipFunction(sensor_type, variable_name, function)` - Update
+  function
 - `ListSensorTypes()` - List available sensor types
 
 ### Using gRPC Client
@@ -852,8 +853,9 @@ import grpc
 from src.interfaces.rpc.client import GrpcClient
 
 client = GrpcClient(host="localhost", port=50051)
-status = client.get_status()
-print(status.state)
+with client:
+    status = client.get_status()
+    print(status["state"])
 ```
 
 ### Error Handling

@@ -1003,16 +1003,15 @@ from src.interfaces.rpc.client import GrpcClient
 client = GrpcClient(host="localhost", port=50051)
 status = client.get_status()
 rules = client.list_rules()
-client.add_rule("If temperature is hot, turn on AC", priority=1)
+client.add_rule("If temperature is hot, turn on AC")
 ```
 
 ### 11.2.6 Error Handling
 
 gRPC status codes are mapped to the system exception hierarchy:
 
-| gRPC Status Code   | Exception Type                      |
-| ------------------ | ----------------------------------- |
-| `INVALID_ARGUMENT` | ConfigurationError, ValidationError |
-| `NOT_FOUND`        | RuleError, DeviceError              |
-| `UNAVAILABLE`      | MQTTError, OllamaError              |
-| `INTERNAL`         | IoTFuzzyLLMError                    |
+| gRPC Status Code   | Exception Type                                 |
+| ------------------ | ---------------------------------------------- |
+| `INVALID_ARGUMENT` | ConfigurationError, ValidationError, RuleError |
+| `UNAVAILABLE`      | MQTTError, DeviceError, OllamaError            |
+| `INTERNAL`         | IoTFuzzyLLMError (default for unmapped)        |

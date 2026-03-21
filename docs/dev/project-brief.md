@@ -57,8 +57,7 @@ concept with these essential features:
 The following features are documented for extensibility but are **not required**
 for thesis evaluation:
 
-- Web-based user interface
-- REST API for programmatic access
+- REST API for programmatic access (gRPC implemented instead)
 - Multi-protocol device support (HTTP REST, serial, CoAP)
 - Distributed multi-node deployment
 

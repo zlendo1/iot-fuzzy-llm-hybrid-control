@@ -22,10 +22,10 @@ device_interface/   MQTTCommunicationManager (COORDINATOR)
 
 ## Entry Points
 
-| File             | Purpose                                                         |
-| ---------------- | --------------------------------------------------------------- |
-| `main.py`        | Entry point, calls `Application.run_forever()`                  |
-| `application.py` | Full lifecycle: start/stop, HTTP status server, evaluation loop |
+| File             | Purpose                                                  |
+| ---------------- | -------------------------------------------------------- |
+| `main.py`        | Entry point, calls `Application.run_forever()`           |
+| `application.py` | Full lifecycle: start/stop, gRPC server, evaluation loop |
 
 ## Layer 1: User Interface (`interfaces/`)
 
@@ -36,6 +36,7 @@ device_interface/   MQTTCommunicationManager (COORDINATOR)
 | `cli.py`      | Click-based CLI commands (status, rule, config, sensor) |
 | `__main__.py` | Enables `python -m src.interfaces`                      |
 | `web/`        | Streamlit dashboard (see below)                         |
+| `rpc/`        | gRPC server, client, 6 servicers (port 50051)           |
 
 ### Web UI (`interfaces/web/`)
 
@@ -54,6 +55,22 @@ device_interface/   MQTTCommunicationManager (COORDINATOR)
 
 **Key Pattern**: CLI/Web query orchestrator for status, delegate to managers for
 operations.
+
+### RPC Interface (`interfaces/rpc/`)
+
+gRPC-based unified RPC layer. CLI and Web UI use `GrpcClient` to communicate
+with the running application. Server starts automatically with the application.
+
+| File               | Responsibility                                                                  |
+| ------------------ | ------------------------------------------------------------------------------- |
+| `server.py`        | GrpcServer - registers 6 services on port 50051                                 |
+| `client.py`        | GrpcClient - typed Python wrapper for all RPC calls                             |
+| `error_mapping.py` | Maps gRPC status codes ↔ exception hierarchy                                    |
+| `servicers/`       | 6 service implementations (lifecycle, rules, devices, config, logs, membership) |
+| `generated/`       | Auto-generated protobuf/gRPC Python code                                        |
+
+**Key Pattern**: Servicers delegate to layer managers (ConfigurationManager,
+RuleManager, etc.) — they do NOT access files directly.
 
 ## Layer 2: Configuration & Management (`configuration/`)
 

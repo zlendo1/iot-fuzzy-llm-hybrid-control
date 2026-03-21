@@ -3,7 +3,7 @@
 ## Fuzzy-LLM Hybrid IoT Management System
 
 **Document Status:** Active\
-**Last Updated:** 2026-02-04\
+**Last Updated:** 2026-03-21\
 **Source Documents:** [thesis-setup.md](thesis-setup.md),
 [project-brief.md](project-brief.md), [srs.md](srs.md)
 
@@ -64,7 +64,7 @@ required for thesis evaluation:
 | Smart Home Demo Scenario  |     X      |             |
 | Docker Containerization   |     X      |             |
 | Web-Based User Interface  |     X      |             |
-| REST API Interface        |            |      X      |
+| gRPC RPC Interface        |     X      |             |
 | Multi-Protocol Support    |            |      X      |
 | Distributed Deployment    |            |      X      |
 
@@ -142,7 +142,7 @@ main application.
 ┌─────────────────────────────────────────────────────────────────────┐
 │                      USER INTERFACE LAYER                           │
 │                                                                     │
-│   CLI Interface (MVP)  |  Web UI (Future)  |  REST API (Future)     │
+│   CLI Interface  |  Web UI (Streamlit)  |  gRPC Interface (50051)   │
 └───────────────────────────────┬─────────────────────────────────────┘
                                 │ User commands and queries
 ┌───────────────────────────────┼─────────────────────────────────────┐
@@ -817,18 +817,20 @@ ______________________________________________________________________
 
 ### Appendix A: Technology Stack
 
-| Category    | Technology             | Role                                                  |
-| ----------- | ---------------------- | ----------------------------------------------------- |
-| Language    | Python 3.9+            | Core application implementation.                      |
-| LLM Runtime | Ollama                 | Local LLM model serving and inference.                |
-| LLM Model   | qwen3:0.6b (default)   | Lightweight model for edge deployment, CPU inference. |
-| MQTT Broker | Eclipse Mosquitto 2.0+ | Message routing for IoT device communication.         |
-| MQTT Client | paho-mqtt              | Python MQTT client library.                           |
-| HTTP Client | requests               | REST communication with Ollama API.                   |
-| Numerical   | NumPy                  | Vectorized membership function computation.           |
-| Validation  | jsonschema             | JSON configuration schema validation.                 |
-| Web UI      | Streamlit              | Browser-based dashboard for monitoring and control.   |
-| Testing     | pytest                 | Unit and integration testing framework.               |
+| Category         | Technology             | Role                                                  |
+| ---------------- | ---------------------- | ----------------------------------------------------- |
+| Language         | Python 3.9+            | Core application implementation.                      |
+| LLM Runtime      | Ollama                 | Local LLM model serving and inference.                |
+| LLM Model        | qwen3:0.6b (default)   | Lightweight model for edge deployment, CPU inference. |
+| MQTT Broker      | Eclipse Mosquitto 2.0+ | Message routing for IoT device communication.         |
+| MQTT Client      | paho-mqtt              | Python MQTT client library.                           |
+| HTTP Client      | requests               | REST communication with Ollama API.                   |
+| gRPC             | grpcio 1.60+           | RPC framework for unified interface.                  |
+| Protocol Buffers | protobuf 4.25+         | Interface definition and serialization.               |
+| Numerical        | NumPy                  | Vectorized membership function computation.           |
+| Validation       | jsonschema             | JSON configuration schema validation.                 |
+| Web UI           | Streamlit              | Browser-based dashboard for monitoring and control.   |
+| Testing          | pytest                 | Unit and integration testing framework.               |
 
 ### Appendix B: Ollama API Reference
 
@@ -909,3 +911,108 @@ fixed payload format **will not be compatible** with this change and will
 require explicit topic and payload schema fields to be added per device. The
 migration guide in the configuration documentation will provide step-by-step
 instructions and examples for updating existing configurations.
+
+______________________________________________________________________
+
+## 11.2 gRPC Interface Architecture
+
+> Added: March 2026 | Replaces planned REST API (UI-MODE-003)
+
+The gRPC interface provides a unified RPC layer for all external communication
+with the system. Both the CLI and Web UI communicate exclusively through this
+interface on port 50051.
+
+### 11.2.1 Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    External Clients                              │
+│   CLI (GrpcClient)  |  Web UI (OrchestratorBridge → GrpcClient) │
+└────────────────────────────┬────────────────────────────────────┘
+                             │ gRPC (port 50051)
+┌────────────────────────────▼────────────────────────────────────┐
+│                      GrpcServer                                  │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐                │
+│  │ Lifecycle   │ │ Rules       │ │ Devices     │                │
+│  │ Servicer    │ │ Servicer    │ │ Servicer    │                │
+│  └─────────────┘ └─────────────┘ └─────────────┘                │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐                │
+│  │ Config      │ │ Logs        │ │ Membership  │                │
+│  │ Servicer    │ │ Servicer    │ │ Servicer    │                │
+│  └─────────────┘ └─────────────┘ └─────────────┘                │
+└────────────────────────────┬────────────────────────────────────┘
+                             │ Delegates to
+┌────────────────────────────▼────────────────────────────────────┐
+│              Configuration & Management Layer                    │
+│                    SystemOrchestrator                            │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 11.2.2 Protocol Definition
+
+Proto files are located in `protos/` and define the RPC contract:
+
+| Proto File         | Service           | Purpose                             |
+| ------------------ | ----------------- | ----------------------------------- |
+| `lifecycle.proto`  | LifecycleService  | Start, stop, status, system info    |
+| `rules.proto`      | RulesService      | Rule CRUD, enable/disable, evaluate |
+| `devices.proto`    | DevicesService    | Device listing, status, commands    |
+| `config.proto`     | ConfigService     | Config get/update/validate/reload   |
+| `logs.proto`       | LogsService       | Log retrieval and filtering         |
+| `membership.proto` | MembershipService | Fuzzy membership function access    |
+| `common.proto`     | —                 | Shared types (pagination, state)    |
+
+### 11.2.3 Implementation Structure
+
+```
+src/interfaces/rpc/
+├── server.py          # GrpcServer - registers 6 services, starts on port 50051
+├── client.py          # GrpcClient - typed Python wrapper for all services
+├── error_mapping.py   # Maps gRPC status codes ↔ exception hierarchy
+├── servicers/         # Service implementations
+│   ├── lifecycle_servicer.py
+│   ├── rules_servicer.py
+│   ├── devices_servicer.py
+│   ├── config_servicer.py
+│   ├── logs_servicer.py
+│   └── membership_servicer.py
+└── generated/         # Auto-generated protobuf/gRPC Python code
+```
+
+### 11.2.4 Design Decisions
+
+**DD-08: gRPC as Unified RPC Interface**
+
+- **Decision**: Use gRPC instead of REST for external API
+- **Rationale**:
+  1. Typed RPC contracts via Protocol Buffers
+  2. Code generation for client/server stubs
+  3. Efficient binary serialization
+  4. Built-in support for streaming (future use)
+  5. Single unified interface for CLI and Web UI
+- **Alternatives Considered**:
+  - REST API: Simpler but untyped, requires manual client code
+  - Direct imports: Violates layer separation, no network boundary
+- **Constraints**: Unary RPCs only (no streaming in MVP)
+
+### 11.2.5 Client Usage
+
+```python
+from src.interfaces.rpc.client import GrpcClient
+
+client = GrpcClient(host="localhost", port=50051)
+status = client.get_status()
+rules = client.list_rules()
+client.add_rule("If temperature is hot, turn on AC", priority=1)
+```
+
+### 11.2.6 Error Handling
+
+gRPC status codes are mapped to the system exception hierarchy:
+
+| gRPC Status Code   | Exception Type                      |
+| ------------------ | ----------------------------------- |
+| `INVALID_ARGUMENT` | ConfigurationError, ValidationError |
+| `NOT_FOUND`        | RuleError, DeviceError              |
+| `UNAVAILABLE`      | MQTTError, OllamaError              |
+| `INTERNAL`         | IoTFuzzyLLMError                    |

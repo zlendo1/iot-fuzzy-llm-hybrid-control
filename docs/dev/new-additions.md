@@ -1,7 +1,7 @@
-# New Additions — 13 March 2026
+# New Additions — 21 March 2026
 
-Two planned features added to the thesis scope. Details in the documents linked
-below.
+Three planned features added to the thesis scope. Details in the documents
+linked below.
 
 ______________________________________________________________________
 
@@ -28,3 +28,13 @@ Custom payload schemas and topic patterns per device.
   [user/configuration-guide.md — Section 8](../user/configuration-guide.md)
 - **Full documentation**:
   [user/mqtt-flexibility-guide.md](../user/mqtt-flexibility-guide.md)
+
+### 3. gRPC Interface
+
+Unified RPC layer for CLI and Web UI communication (port 50051).
+
+- **Architecture**:
+  [add.md — Section 11.2](add.md#112-grpc-interface-architecture)
+- **Requirements**: [srs.md — UI-MODE-003](srs.md#ui-mode-003)
+- **API reference**:
+  [user/api-reference.md — gRPC Interface Layer](../user/api-reference.md#grpc-interface-layer)

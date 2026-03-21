@@ -3,7 +3,7 @@
 ## Fuzzy-LLM Hybrid IoT Management System
 
 **Document Status:** Active\
-**Last Updated:** 2026-02-04\
+**Last Updated:** 2026-03-21\
 **Source Documents:** [thesis-setup.md](thesis-setup.md),
 [project-brief.md](project-brief.md)
 
@@ -48,7 +48,6 @@ The thesis prototype implements the following core requirements:
 The following features are documented for extensibility but are **not required**
 for thesis evaluation:
 
-- REST API interface (UI-MODE-003)
 - HTTP REST and serial device protocols (FR-DC-004 partial)
 - Multi-node distributed deployment
 
@@ -966,14 +965,33 @@ A web-based interface for user-friendly rule management and system monitoring.
 - Visual membership function editor (drag-point graph interface)
 - Log viewing and filtering
 
-#### UI-MODE-003: API Interface (Optional — Future Work)
+### UI-MODE-003: gRPC RPC Interface
 
-A programmatic API for integration with external systems or custom interfaces.
-**Not required for thesis evaluation.**
+**Priority**: High (Implemented)\
+**Status**: Implemented
 
-**Protocol:** REST API over HTTP or Python API for embedded use\
-**Authentication:** Token-based authentication for network API\
-**Endpoints:** Rule management, status queries, device control
+**Description**: The system shall provide a gRPC-based RPC interface for
+programmatic access by external clients.
+
+**Rationale**: Enables unified access for CLI, Web UI, and third-party
+integrations through a typed, efficient RPC protocol.
+
+**Fit Criterion**:
+
+1. gRPC server listens on configurable port (default 50051)
+2. All 6 services accessible: Lifecycle, Rules, Devices, Config, Logs,
+   Membership
+3. Protocol Buffers define the interface contract
+4. GrpcClient wrapper provides typed Python access
+
+**Dependencies**: None
+
+**Implementation Notes**:
+
+- Proto definitions in `protos/` directory
+- Server implementation in `src/interfaces/rpc/server.py`
+- Client wrapper in `src/interfaces/rpc/client.py`
+- 6 servicers in `src/interfaces/rpc/servicers/`
 
 ______________________________________________________________________
 
@@ -1002,6 +1020,7 @@ ______________________________________________________________________
 - FR-CM-002: Configuration File Loading
 - FR-UI-001: Rule Definition Interface (CLI)
 - UI-MODE-002: Web Interface
+- UI-MODE-003: gRPC RPC Interface (Implemented)
 - FR-DC-008: Payload Format Customization
 - FR-DC-009: Topic Pattern Customization
 - FR-DC-010: Configuration Migration Support
@@ -1030,7 +1049,6 @@ ______________________________________________________________________
 - FR-DC-007: Command Logging
 - FR-CM-004: Default Configurations
 - FR-UI-004: Configuration Interface
-- UI-MODE-003: REST API Interface
 
 ______________________________________________________________________
 

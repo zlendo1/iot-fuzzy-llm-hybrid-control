@@ -295,6 +295,58 @@ class ConfigurationManager:
 
             logger.info("Saved configuration", extra={"config_name": config_name})
 
+    def save_membership_function(
+        self,
+        sensor_type: str,
+        config: dict[str, Any],
+        validate: bool = True,
+        backup: bool = True,
+    ) -> None:
+        with self._lock:
+            file_path = self.config_dir / "membership_functions" / f"{sensor_type}.json"
+            cache_key = f"membership_{sensor_type}"
+
+            if validate:
+                schema = self._schemas.get("membership_functions")
+                if schema:
+                    self._validate_config(config, schema, cache_key)
+
+            if backup and file_path.exists():
+                backup_dir = self.config_dir / "backups"
+                backup_dir.mkdir(parents=True, exist_ok=True)
+                timestamp = int(time.time())
+                backup_path = backup_dir / f"membership_{sensor_type}_{timestamp}.json"
+                try:
+                    existing = load_json(file_path)
+                    save_json(backup_path, existing)
+                    logger.info(
+                        "Created membership function backup",
+                        extra={
+                            "sensor_type": sensor_type,
+                            "backup_path": str(backup_path),
+                        },
+                    )
+                except Exception as e:
+                    logger.warning(
+                        "Failed to create membership function backup",
+                        extra={"sensor_type": sensor_type, "error": str(e)},
+                    )
+
+            try:
+                save_json(file_path, config)
+            except Exception as e:
+                raise ConfigurationError(
+                    f"Failed to save membership function '{sensor_type}': {e}"
+                ) from e
+
+            if cache_key in self._cache:
+                del self._cache[cache_key]
+
+            logger.info(
+                "Saved membership function",
+                extra={"sensor_type": sensor_type},
+            )
+
     def get_all_configs(self) -> dict[str, dict[str, Any]]:
         configs = {}
         for config_name in self.list_configs():

@@ -1,38 +1,22 @@
 from __future__ import annotations
 
-import json
-import os
-import tempfile
 from pathlib import Path
-from typing import Any
 
 import grpc
 
+from src.common.exceptions import ConfigurationError
 from src.common.logging import get_logger
+from src.configuration.config_manager import ConfigurationManager
 from src.interfaces.rpc.error_mapping import handle_grpc_errors
 from src.interfaces.rpc.generated import membership_pb2, membership_pb2_grpc
 
 logger = get_logger(__name__)
 
 
-def atomic_write_json(path: Path, data: dict[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with tempfile.NamedTemporaryFile(
-        mode="w",
-        dir=path.parent,
-        delete=False,
-        suffix=".json",
-        encoding="utf-8",
-    ) as temp_file:
-        json.dump(data, temp_file, indent=2)
-        temp_file.write("\n")
-        temp_path = temp_file.name
-    os.replace(temp_path, path)
-
-
 class MembershipServicer(membership_pb2_grpc.MembershipServiceServicer):
     def __init__(self, config_dir: Path | None = None) -> None:
-        self._config_dir = config_dir or Path("config/membership_functions")
+        config_base_dir = config_dir.parent if config_dir else Path("config")
+        self._config_manager = ConfigurationManager(config_dir=config_base_dir)
 
     @handle_grpc_errors
     def ListSensorTypes(
@@ -40,7 +24,7 @@ class MembershipServicer(membership_pb2_grpc.MembershipServiceServicer):
         request: membership_pb2.ListSensorTypesRequest,
         context: grpc.ServicerContext,
     ) -> membership_pb2.ListSensorTypesResponse:
-        sensor_types = sorted(path.stem for path in self._config_dir.glob("*.json"))
+        sensor_types = self._config_manager.list_membership_functions()
         return membership_pb2.ListSensorTypesResponse(sensor_types=sensor_types)
 
     @handle_grpc_errors
@@ -50,10 +34,11 @@ class MembershipServicer(membership_pb2_grpc.MembershipServiceServicer):
         context: grpc.ServicerContext,
     ) -> membership_pb2.GetMembershipFunctionsResponse:
         sensor_type = request.sensor_type
-        config_path = self._config_dir / f"{sensor_type}.json"
         try:
-            payload = json.loads(config_path.read_text(encoding="utf-8"))
-        except FileNotFoundError:
+            payload = self._config_manager.load_membership_function(
+                sensor_type, validate=True
+            )
+        except ConfigurationError:
             context.abort(
                 grpc.StatusCode.NOT_FOUND,
                 f"Membership definition for sensor type '{sensor_type}' not found",
@@ -94,10 +79,11 @@ class MembershipServicer(membership_pb2_grpc.MembershipServiceServicer):
         context: grpc.ServicerContext,
     ) -> membership_pb2.UpdateMembershipFunctionResponse:
         sensor_type = request.sensor_type
-        config_path = self._config_dir / f"{sensor_type}.json"
         try:
-            payload = json.loads(config_path.read_text(encoding="utf-8"))
-        except FileNotFoundError:
+            payload = self._config_manager.load_membership_function(
+                sensor_type, validate=True
+            )
+        except ConfigurationError:
             context.abort(
                 grpc.StatusCode.NOT_FOUND,
                 f"Membership definition for sensor type '{sensor_type}' not found",
@@ -129,7 +115,9 @@ class MembershipServicer(membership_pb2_grpc.MembershipServiceServicer):
                 message="Membership variable not found",
             )
 
-        atomic_write_json(config_path, payload)
+        self._config_manager.save_membership_function(
+            sensor_type, payload, validate=True, backup=True
+        )
         logger.info(
             "Membership function updated",
             extra={

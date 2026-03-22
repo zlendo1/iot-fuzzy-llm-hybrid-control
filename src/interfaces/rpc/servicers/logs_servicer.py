@@ -32,6 +32,7 @@ class LogsServicer(logs_pb2_grpc.LogsServiceServicer):
     def __init__(self, log_dir: Path | None = None) -> None:
         log_path = log_dir or Path("logs")
         self._logging_manager = LoggingManager(log_dir=log_path)
+        self._session_start = datetime.now(timezone.utc)
 
     @handle_grpc_errors
     def GetLogEntries(
@@ -106,7 +107,8 @@ class LogsServicer(logs_pb2_grpc.LogsServiceServicer):
             category = entry.get("category", "")
             normalized = self._normalize_entry(entry, category)
             if normalized is not None:
-                entries.append(normalized)
+                if normalized["timestamp"] >= self._session_start:
+                    entries.append(normalized)
         return entries
 
     def _normalize_entry(

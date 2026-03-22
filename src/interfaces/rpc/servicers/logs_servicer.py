@@ -8,7 +8,7 @@ from typing import Any
 from google.protobuf.timestamp_pb2 import Timestamp
 
 from src.common.logging import get_logger
-from src.configuration.logging_manager import LoggingManager
+from src.configuration.logging_manager import LogCategory, LoggingManager
 from src.interfaces.rpc.error_mapping import handle_grpc_errors
 from src.interfaces.rpc.generated import logs_pb2_grpc
 from src.interfaces.rpc.generated.logs_pb2 import (
@@ -68,7 +68,7 @@ class LogsServicer(logs_pb2_grpc.LogsServiceServicer):
     ) -> GetLogCategoriesResponse:
         del request
         del context
-        categories = sorted({entry["category"] for entry in self._load_entries()})
+        categories = sorted(cat.value for cat in LogCategory)
         return GetLogCategoriesResponse(categories=categories)
 
     @handle_grpc_errors

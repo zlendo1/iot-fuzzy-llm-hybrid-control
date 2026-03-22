@@ -13,9 +13,10 @@ make ps
 make logs | tail -100
 
 # Check specific service
-docker-compose logs app --tail 50
-docker-compose logs mosquitto --tail 50
-docker-compose logs ollama --tail 50
+docker compose logs app --tail 50
+docker compose logs mosquitto --tail 50
+docker compose logs ollama --tail 50
+docker compose logs web --tail 50
 ```
 
 ## Common Issues
@@ -60,7 +61,7 @@ mosquitto_pub -h localhost -p 1883 -t test -m "hello"
 mosquitto_sub -h localhost -p 1883 -t test
 
 # Check Mosquitto logs
-docker-compose logs mosquitto
+docker compose logs mosquitto
 ```
 
 ### 3. LLM Not Responding
@@ -84,7 +85,7 @@ curl http://localhost:11434/
 curl http://localhost:11434/api/tags
 
 # Pull model manually
-docker-compose exec ollama ollama pull qwen3:0.6b
+docker compose exec ollama ollama pull qwen3:0.6b
 
 # Test inference directly
 curl http://localhost:11434/api/generate -d '{
@@ -191,13 +192,15 @@ python3 -m src.interfaces config validate
 ```bash
 # Test fuzzification manually
 python -c "
-from src.data_processing.fuzzy_engine import FuzzyEngine
+from src.data_processing.fuzzy_engine import FuzzyEngine, FuzzificationResult
 from pathlib import Path
 
 engine = FuzzyEngine()
 engine.load_configs_from_directory(Path('config/membership_functions'))
 result = engine.fuzzify('temperature', 32.0)
-print(result)
+print(f'Sensor: {result.sensor_type}')
+print(f'Raw Value: {result.raw_value}')
+print(f'Memberships: {result.memberships}')
 "
 ```
 
@@ -231,26 +234,19 @@ iot-fuzzy-llm -v status
 
 ```bash
 # All errors
-grep -i "error" logs/system.log
+iot-fuzzy-llm log tail --category system -n 50 | grep -i "error"
 
-# Recent errors
-tail -1000 logs/system.log | grep -i "error"
-
-# Rule evaluation issues
-grep "rule_evaluation" logs/system.log
-
-# LLM responses
-grep "llm_response" logs/system.log
+# Recent errors from specific categories
+iot-fuzzy-llm log tail --category system -n 20
+iot-fuzzy-llm log tail --category rules -n 20
+iot-fuzzy-llm log tail --category errors -n 20
 ```
 
 ### Timing Analysis
 
 ```bash
-# Find slow operations
-grep "elapsed" logs/system.log | sort -t'=' -k2 -rn | head -20
-
-# LLM latency
-grep "inference_time" logs/system.log
+# Find slow operations (look for elapsed in system logs)
+grep "elapsed" logs/system.json | sort -t':' -k2 -rn | head -20
 ```
 
 ## Recovery Procedures
@@ -261,7 +257,7 @@ grep "inference_time" logs/system.log
 make down
 make clean-docker
 rm -rf logs/*
-rm rules/active_rules.json
+rm -f rules/active_rules.json
 make build
 make up
 make pull-model
@@ -278,7 +274,7 @@ make up
 ### Rule Reset Only
 
 ```bash
-rm rules/active_rules.json
+rm -f rules/active_rules.json
 # Rules will start empty on next startup
 ```
 
@@ -291,14 +287,20 @@ rm rules/active_rules.json
 
 ## Environment Variables
 
-| Variable    | Default   | Description                 |
-| ----------- | --------- | --------------------------- |
-| LOG_LEVEL   | INFO      | DEBUG, INFO, WARNING, ERROR |
-| MQTT_HOST   | localhost | MQTT broker hostname        |
-| OLLAMA_HOST | localhost | Ollama service hostname     |
+| Variable        | Default   | Description                                 |
+| --------------- | --------- | ------------------------------------------- |
+| IOT_LOG_LEVEL   | INFO      | Logging level (DEBUG, INFO, WARNING, ERROR) |
+| IOT_MQTT_HOST   | localhost | MQTT broker hostname                        |
+| IOT_MQTT_PORT   | 1883      | MQTT broker port                            |
+| IOT_OLLAMA_HOST | localhost | Ollama service hostname                     |
+| IOT_OLLAMA_PORT | 11434     | Ollama service port                         |
+| IOT_CONFIG_DIR  | config    | Configuration directory path                |
+| IOT_GRPC_HOST   | localhost | gRPC server hostname                        |
+| IOT_GRPC_PORT   | 50051     | gRPC server port                            |
+| IOT_AUTO_START  | false     | Whether to start the system automatically   |
 
 ```bash
 # Enable debug logging
-export LOG_LEVEL=DEBUG
+export IOT_LOG_LEVEL=DEBUG
 make restart
 ```

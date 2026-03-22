@@ -40,13 +40,14 @@ The demo showcases a smart home with:
 docker compose ps
 ```
 
-**Verification**: Confirm all 3 containers show `running (healthy)`:
+**Verification**: Confirm all 4 containers show `running (healthy)`:
 
 ```
 NAME           STATUS
 iot-mosquitto  running (healthy)
 iot-ollama     running (healthy)
 iot-app        running (healthy)
+iot-web        running (healthy)
 ```
 
 ### Step 2: CLI Status Check
@@ -63,7 +64,7 @@ and system status:
 ✓ Connected to running application.
 System State: RUNNING
 Ready: Yes
-Uptime (seconds): 45
+Uptime (seconds): 10
 Version: 0.1.0
 ```
 
@@ -83,7 +84,7 @@ iot-fuzzy-llm rule list
 text:
 
 ```
-ID           | Enabled | Text                                               
+ID           | Enabled | Text
 -------------+---------+----------------------------------------------------
 climate_001  | Yes     | If the living room temperature is hot and humidity 
              |         | is high, turn on the air conditioner and set it to 
@@ -94,7 +95,22 @@ climate_002  | Yes     | If the living room temperature is warm and
 -------------+---------+----------------------------------------------------
 lighting_001 | Yes     | When motion is detected in the hallway and the     
              |         | light level is dark, turn on the hallway light     
-...
+-------------+---------+----------------------------------------------------
+lighting_002 | Yes     | If motion is detected in the living room and it is 
+             |         | dark, turn on the living room light                
+-------------+---------+----------------------------------------------------
+heating_001  | Yes     | If the bedroom is cold, turn on the heater         
+-------------+---------+----------------------------------------------------
+heating_002  | Yes     | If the office is cold, turn on the office heater   
+-------------+---------+----------------------------------------------------
+blinds_001   | Yes     | If the living room is very bright, close the blinds
+-------------+---------+----------------------------------------------------
+blinds_002   | Yes     | If the living room is dark, open the blinds        
+-------------+---------+----------------------------------------------------
+energy_001   | Yes     | If no motion in living room for 1 hour, turn off AC
+-------------+---------+----------------------------------------------------
+comfort_001  | Yes     | If living room is comfortable, turn off AC         
+-------------+---------+----------------------------------------------------
 
 Total: 10 rule(s)
 ```
@@ -123,7 +139,7 @@ mosquitto_pub -h localhost -t home/living_room/humidity \
 
 **Verification**:
 
-1. **Check application logs** (`make logs` or `docker-compose logs -f app`):
+1. **Check application logs** (`make logs` or `docker compose logs -f app`):
 
    ```
    INFO  Sensor reading received  sensor_id=temp_living_room value=32.0
@@ -231,17 +247,20 @@ mosquitto_pub -h localhost -t home/living_room/light_level \
 
 ```bash
 # Add a new rule
-iot-fuzzy-llm rule add --id night_mode \
+iot-fuzzy-llm rule add \
   "If no motion detected for 30 minutes after 11pm, turn off all lights"
 ```
 
 **Verification**: Confirm rule was added:
 
 ```
-✓ Rule added with ID: night_mode
-  Text: If no motion detected for 30 minutes after 11pm, turn off all lights
-  Enabled: Yes
+✓ Rule added with ID: rule_a1b2c3d4e5f6
 ```
+
+> [!IMPORTANT]
+> Although the CLI accepts `--id`, `--priority`, and `-t/--tag` options, these
+> are not currently passed to the server in the gRPC implementation. The system
+> automatically generates a unique ID for every new rule.
 
 ```bash
 # Disable a rule
@@ -278,11 +297,69 @@ Text: If the living room temperature is hot and humidity is high, turn on the ai
 Enabled: Yes
 ```
 
+```bash
+# Delete a rule
+iot-fuzzy-llm rule delete climate_002
+```
+
+**Verification**: Confirm rule was deleted:
+
+```
+Are you sure you want to delete rule 'climate_002'? [y/N]: y
+✓ Rule climate_002 deleted.
+```
+
 ### Step 9: Sensor Status Demo
 
 ```bash
 # Show current sensor readings
 iot-fuzzy-llm sensor status
+```
+
+**Verification**: Confirm sensors are displayed with their registration status:
+
+```
+Living Room Temperature Sensor (temp_living_room)
+  Class: N/A
+  Location: living_room
+  Unit: N/A
+  Status: registered
+
+Living Room Humidity Sensor (humidity_living_room)
+  Class: N/A
+  Location: living_room
+  Unit: N/A
+  Status: registered
+
+Bedroom Temperature Sensor (temp_bedroom)
+  Class: N/A
+  Location: bedroom
+  Unit: N/A
+  Status: registered
+
+Hallway Motion Sensor (motion_hallway)
+  Class: N/A
+  Location: hallway
+  Unit: N/A
+  Status: registered
+
+Living Room Motion Sensor (motion_living_room)
+  Class: N/A
+  Location: living_room
+  Unit: N/A
+  Status: registered
+
+Living Room Light Level Sensor (light_level_living_room)
+  Class: N/A
+  Location: living_room
+  Unit: N/A
+  Status: registered
+
+Office Temperature Sensor (temp_office)
+  Class: N/A
+  Location: office
+  Unit: N/A
+  Status: registered
 ```
 
 **Verification**: Confirm sensors are displayed with their configuration:
@@ -323,9 +400,8 @@ iot-fuzzy-llm config validate
 
 Loaded configurations:
   ✓ devices
-  ✓ mqtt
-  ✓ llm
-  ✓ membership_functions
+  ✓ llm_config
+  ✓ mqtt_config
 ```
 
 ## Expected Outputs
@@ -368,14 +444,16 @@ ACTION: ac_living_room, turn_on, temperature=22
 
 ## Performance Metrics
 
-During the demo, observe these performance targets:
+During the demo, observe these performance targets (as defined in `AGENTS.md`):
 
-| Metric             | Target  | How to Verify                    |
-| ------------------ | ------- | -------------------------------- |
-| Fuzzy processing   | < 100ms | Check logs for timing            |
-| LLM inference      | < 3s    | Observe response time            |
-| End-to-end latency | < 5s    | Time from sensor pub to command  |
-| System startup     | < 30s   | Time `make up` to healthy status |
+| Metric               | Target  | How to Verify                    |
+| -------------------- | ------- | -------------------------------- |
+| Fuzzy processing     | < 50ms  | Check application logs           |
+| Sensor → description | < 100ms | Check application logs           |
+| LLM inference        | < 3s    | Observe response time            |
+| Command generation   | < 100ms | Check application logs           |
+| End-to-end latency   | < 5s    | Time from sensor pub to command  |
+| System startup       | < 30s   | Time `make up` to healthy status |
 
 ## Cleanup
 

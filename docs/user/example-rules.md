@@ -59,12 +59,12 @@ CONDITION → ACTION
 
 Rules use fuzzy linguistic terms defined in membership functions:
 
-| Sensor Type | Available Terms                |
-| ----------- | ------------------------------ |
-| Temperature | cold, comfortable, warm, hot   |
-| Humidity    | dry, comfortable, humid        |
-| Light Level | dark, dim, bright, very_bright |
-| Motion      | detected, not_detected         |
+| Sensor Type | Available Terms                          |
+| ----------- | ---------------------------------------- |
+| Temperature | cold, comfortable, warm, hot             |
+| Humidity    | dry, comfortable, humid, very_humid      |
+| Light Level | dark, dim, moderate, bright, very_bright |
+| Motion      | no_motion, motion_detected               |
 
 ______________________________________________________________________
 

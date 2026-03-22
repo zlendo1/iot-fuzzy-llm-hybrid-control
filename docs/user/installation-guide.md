@@ -64,7 +64,7 @@ dependencies automatically.
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-org/iot-fuzzy-llm.git
+git clone https://github.com/zlendo1/iot-fuzzy-llm-hybrid-control.git
 cd iot-fuzzy-llm
 
 # 2. Build Docker images
@@ -82,11 +82,12 @@ make logs
 
 ### What Gets Started
 
-| Service     | Container     | Port  | Description           |
-| ----------- | ------------- | ----- | --------------------- |
-| MQTT Broker | iot-mosquitto | 1883  | Mosquitto MQTT broker |
-| Ollama      | iot-ollama    | 11434 | LLM inference service |
-| App         | iot-app       | 50051 | Main application gRPC |
+| Service     | Container     | Port        | Description                |
+| ----------- | ------------- | ----------- | -------------------------- |
+| MQTT Broker | iot-mosquitto | 1883        | Mosquitto MQTT broker      |
+| Ollama      | iot-ollama    | 11434       | LLM inference service      |
+| App         | iot-app       | 8080, 50051 | Main application + gRPC    |
+| Web         | iot-web       | 8501        | Streamlit Web UI dashboard |
 
 ### Environment Variables
 
@@ -160,7 +161,7 @@ dependencies.
 ### Step 1: Clone Repository
 
 ```bash
-git clone https://github.com/your-org/iot-fuzzy-llm.git
+git clone https://github.com/zlendo1/iot-fuzzy-llm-hybrid-control.git
 cd iot-fuzzy-llm
 ```
 
@@ -341,14 +342,11 @@ ______________________________________________________________________
 iot-fuzzy-llm status
 
 # Expected output:
+# ✓ Connected to running application.
 # System State: RUNNING
 # Ready: Yes
-# Components:
-#   ✓ config_manager: available
-#   ✓ device_registry: available
-#   ✓ fuzzy_engine: available
-#   ✓ ollama_client: available
-#   ✓ mqtt_client: available
+# Uptime (seconds): 10
+# Version: 0.1.0
 ```
 
 ### Verify MQTT Broker
@@ -383,7 +381,7 @@ make test
 # Run with verbose output
 pytest tests/ -v
 
-# Expected: 806 tests passing
+# Expected: 1191 tests (1183 passed, 8 skipped)
 ```
 
 ### Validate Configuration
@@ -392,11 +390,30 @@ pytest tests/ -v
 # Validate all configuration files
 iot-fuzzy-llm config validate
 
+# Expected output:
+# ℹ Validating configuration files...
+# ✓ All configuration files are valid.
+#
+# Loaded configurations:
+#   ✓ devices
+#   ✓ llm_config
+#   ✓ mqtt_config
+
 # List devices
 iot-fuzzy-llm device list
 
+# Expected output format:
+# ID | Name | Type | Class | Location
+# ...
+# Total: 14 device(s)
+
 # List rules
 iot-fuzzy-llm rule list
+
+# Expected output format:
+# ID | Enabled | Text
+# ...
+# Total: 10 rule(s)
 ```
 
 ______________________________________________________________________

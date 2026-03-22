@@ -58,9 +58,18 @@ config/
 ```bash
 # Validate all configuration files
 iot-fuzzy-llm config validate
+```
 
-# Check JSON syntax manually
-python -m json.tool config/devices.json
+Expected output:
+
+```text
+ℹ Validating configuration files...
+✓ All configuration files are valid.
+
+Loaded configurations:
+  ✓ devices
+  ✓ llm_config
+  ✓ mqtt_config
 ```
 
 ______________________________________________________________________
@@ -76,20 +85,20 @@ ______________________________________________________________________
 {
   "devices": [
     {
-      "id": "living_room_temp",
+      "id": "temp_living_room",
       "name": "Living Room Temperature Sensor",
       "type": "sensor",
       "device_class": "temperature",
-      "location": "Living Room",
-      "unit": "celsius",
+      "location": "living_room",
+      "unit": "°C",
       "value_type": "float",
       "mqtt": {
         "topic": "home/living_room/temperature",
         "qos": 1
       },
       "constraints": {
-        "min": -10.0,
-        "max": 50.0
+        "min": -40,
+        "max": 85
       }
     }
   ]
@@ -100,14 +109,14 @@ ______________________________________________________________________
 
 ```json
 {
-  "id": "living_room_ac",
+  "id": "ac_living_room",
   "name": "Living Room Air Conditioner",
   "type": "actuator",
   "device_class": "thermostat",
-  "location": "Living Room",
-  "capabilities": ["turn_on", "turn_off", "set_temperature"],
+  "location": "living_room",
+  "capabilities": ["set_temperature", "set_mode", "turn_on", "turn_off"],
   "mqtt": {
-    "topic": "home/living_room/ac/status",
+    "topic": "home/living_room/ac/state",
     "command_topic": "home/living_room/ac/set",
     "qos": 1
   },
@@ -179,66 +188,55 @@ ______________________________________________________________________
     "keepalive": 60
   },
   "client": {
-    "id": "iot-fuzzy-llm-controller",
+    "id": "iot-fuzzy-llm",
     "clean_session": true,
     "protocol_version": 5
-  }
-}
-```
-
-### With Authentication
-
-```json
-{
-  "broker": {
-    "host": "mqtt.example.com",
-    "port": 1883
   },
   "auth": {
-    "username": "iot-controller",
-    "password": "your-secure-password"
-  }
-}
-```
-
-### With TLS Encryption
-
-```json
-{
-  "broker": {
-    "host": "mqtt.example.com",
-    "port": 8883
-  },
-  "auth": {
-    "username": "iot-controller",
-    "password": "your-secure-password"
-  },
-  "tls": {
-    "enabled": true,
-    "ca_certs": "/etc/ssl/certs/ca-certificates.crt"
-  }
-}
-```
-
-### With Reconnection and LWT
-
-```json
-{
-  "broker": {
-    "host": "localhost",
-    "port": 1883,
-    "keepalive": 60
+    "username": "iot_user",
+    "password": "iot_password"
   },
   "reconnect": {
     "enabled": true,
     "min_delay": 1,
-    "max_delay": 30
+    "max_delay": 60
   },
   "lwt": {
-    "topic": "home/controller/status",
+    "topic": "iot-fuzzy-llm/status",
     "payload": "offline",
     "qos": 1,
     "retain": true
+  }
+}
+```
+
+### Advanced Configuration (Optional)
+
+The following features are supported by the schema but are not part of the
+default configuration.
+
+#### TLS Encryption
+
+```json
+{
+  "tls": {
+    "enabled": true,
+    "ca_certs": "/etc/ssl/certs/ca-certificates.crt",
+    "certfile": "/path/to/cert.pem",
+    "keyfile": "/path/to/key.pem",
+    "cert_reqs": "CERT_REQUIRED",
+    "tls_version": "PROTOCOL_TLSv1_2"
+  }
+}
+```
+
+#### Topic Patterns
+
+```json
+{
+  "topic_patterns": {
+    "default_sensor": "{location}/{room}/{device_class}",
+    "default_actuator": "{location}/{room}/{device_class}/set"
   }
 }
 ```
@@ -313,7 +311,8 @@ ______________________________________________________________________
 | Model         | Size   | Speed  | Accuracy | Use Case              |
 | ------------- | ------ | ------ | -------- | --------------------- |
 | `qwen3:0.6b`  | ~400MB | Fast   | Good     | Default, edge devices |
-| `qwen3:1.7b`  | ~1GB   | Medium | Better   | When accuracy matters |
+| `qwen3:1.7b`  | ~1GB   | Medium | Better   | Recommended fallback  |
+| `tinyllama`   | ~600MB | Fast   | Basic    | Low-resource fallback |
 | `llama3.2:1b` | ~700MB | Medium | Good     | Alternative option    |
 | `llama3.2:3b` | ~2GB   | Slow   | Best     | Powerful edge devices |
 
@@ -327,11 +326,21 @@ ______________________________________________________________________
 | `top_k`          | 1-100  | 40      | Top-k sampling             |
 | `repeat_penalty` | 1-2    | 1.1     | Discourage repetition      |
 
+### Context Configuration
+
+The `context` section controls how much conversation history is sent to the LLM.
+
+| Parameter     | Default | Description                           |
+| ------------- | ------- | ------------------------------------- |
+| `enabled`     | false   | Whether to include history in prompts |
+| `max_history` | 5       | Number of previous exchanges to keep  |
+
 **Recommendations for IoT:**
 
 - Use low temperature (0.1-0.3) for consistent responses
 - Keep max_tokens low (256-512) for fast inference
 - Use repeat_penalty > 1.0 to avoid repetitive outputs
+- Disable context for pure stateless rule evaluation to save resources
 
 ______________________________________________________________________
 
@@ -471,12 +480,13 @@ Environment variables override configuration file values.
 
 ### Application Variables
 
-| Variable     | Default | Description                                 |
-| ------------ | ------- | ------------------------------------------- |
-| `LOG_LEVEL`  | INFO    | Logging level (DEBUG, INFO, WARNING, ERROR) |
-| `CONFIG_DIR` | config  | Configuration directory path                |
-| `RULES_DIR`  | rules   | Rules directory path                        |
-| `LOGS_DIR`   | logs    | Logs directory path                         |
+| Variable         | Default | Description                                 |
+| ---------------- | ------- | ------------------------------------------- |
+| `LOG_LEVEL`      | INFO    | Logging level (DEBUG, INFO, WARNING, ERROR) |
+| `CONFIG_DIR`     | config  | Configuration directory path                |
+| `RULES_DIR`      | rules   | Rules directory path                        |
+| `LOGS_DIR`       | logs    | Logs directory path                         |
+| `IOT_AUTO_START` | false   | Whether to start the system automatically   |
 
 ### MQTT Variables
 
@@ -506,6 +516,7 @@ OLLAMA_PORT=11434
 OLLAMA_MODEL=qwen3:0.6b
 OLLAMA_PULL_ON_START=true
 LOG_LEVEL=INFO
+IOT_AUTO_START=true
 ```
 
 ______________________________________________________________________
@@ -581,19 +592,19 @@ pre-existing MQTT infrastructure.
 
 ### 8.1 MQTT Payload Format Customization
 
-Each device entry in `devices.json` supports a `payload_schema` field that
-specifies the expected JSON field names and value types for incoming sensor
-readings and outgoing actuator commands. This allows the system to interoperate
-with third-party IoT devices that publish data in non-standard formats.
+Each device entry in `devices.json` supports a `payload_mapping` field that
+specifies the expected JSON field names for incoming sensor readings and
+outgoing actuator commands. This allows the system to interoperate with
+third-party IoT devices that publish data in non-standard formats.
 
 ```json
 {
-  "id": "living_room_temp",
+  "id": "temp_living_room",
   "type": "sensor",
   "mqtt": {
     "topic": "home/living_room/temperature",
     "qos": 1,
-    "payload_schema": {
+    "payload_mapping": {
       "value_field": "temperature",
       "unit_field": "unit",
       "timestamp_field": "ts"
@@ -653,11 +664,11 @@ And reference them in device definitions:
 
 The MQTT flexibility update is a **BREAKING CHANGE**. The following will change:
 
-| Aspect           | Current (Fixed Format)    | New (Flexible Format)                      |
-| ---------------- | ------------------------- | ------------------------------------------ |
-| Sensor payload   | Fixed field names assumed | `payload_schema` field required per device |
-| Topic structure  | Hardcoded in `mqtt.topic` | Can use patterns from `mqtt_config.json`   |
-| Actuator payload | Fixed command format      | `payload_schema` defines command fields    |
+| Aspect           | Current (Fixed Format)    | New (Flexible Format)                        |
+| ---------------- | ------------------------- | -------------------------------------------- |
+| Sensor payload   | Fixed field names assumed | `payload_mapping` field supported per device |
+| Topic structure  | Hardcoded in `mqtt.topic` | Can use patterns from `mqtt_config.json`     |
+| Actuator payload | Fixed command format      | `payload_mapping` defines command fields     |
 
 #### Migration Steps
 
@@ -668,10 +679,10 @@ The MQTT flexibility update is a **BREAKING CHANGE**. The following will change:
    cp config/mqtt_config.json config/mqtt_config.json.pre-migration-backup
    ```
 
-2. **Add `payload_schema` to each sensor device** — specify which JSON field in
+2. **Add `payload_mapping` to sensors if needed** — specify which JSON field in
    the MQTT message contains the sensor value, unit, and timestamp.
 
-3. **Add `payload_schema` to each actuator device** — specify the field names
+3. **Add `payload_mapping` to actuators if needed** — specify the field names
    for command type and value.
 
 4. **Verify your configuration:**
@@ -708,16 +719,16 @@ template for your device type:
   "name": "My New Sensor",
   "type": "sensor",
   "device_class": "temperature",
-  "location": "My Room",
-  "unit": "celsius",
+  "location": "my_room",
+  "unit": "°C",
   "value_type": "float",
   "mqtt": {
     "topic": "home/my_room/temperature",
     "qos": 1
   },
   "constraints": {
-    "min": -10.0,
-    "max": 50.0
+    "min": -40,
+    "max": 85
   }
 }
 ```
@@ -730,7 +741,7 @@ template for your device type:
   "name": "My New Actuator",
   "type": "actuator",
   "device_class": "switch",
-  "location": "My Room",
+  "location": "my_room",
   "capabilities": ["turn_on", "turn_off"],
   "mqtt": {
     "topic": "home/my_room/switch/status",
@@ -743,7 +754,6 @@ template for your device type:
 **Step 3:** Validate and reload:
 
 ```bash
-python -m json.tool config/devices.json
 iot-fuzzy-llm config validate
 iot-fuzzy-llm config reload
 ```
@@ -772,7 +782,7 @@ iot-fuzzy-llm rule list | grep "my_device_id"
 **Step 2:** Remove or update any dependent rules:
 
 ```bash
-iot-fuzzy-llm rule remove <rule-id>
+iot-fuzzy-llm rule delete <rule-id>
 ```
 
 **Step 3:** Remove the device entry from `config/devices.json`.

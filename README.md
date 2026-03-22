@@ -93,7 +93,7 @@ iot-master/
 │   ├── data_processing/ # Fuzzy engine, linguistic descriptors
 │   ├── device_interface/ # MQTT client, device registry
 │   └── interfaces/      # CLI interface
-└── tests/               # Test suite (836+ tests, 83% coverage)
+└── tests/               # Test suite (1191 tests, 83% coverage)
 ```
 
 ## Documentation

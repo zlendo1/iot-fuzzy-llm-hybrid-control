@@ -81,12 +81,29 @@ Defines all IoT devices (sensors and actuators) in the system.
 
 ### MQTT Configuration (per device)
 
-| Property        | Type    | Required | Default | Description                           |
-| --------------- | ------- | -------- | ------- | ------------------------------------- |
-| `topic`         | string  | Yes      | -       | MQTT topic for publishing/subscribing |
-| `command_topic` | string  | No       | -       | Command topic (actuators only)        |
-| `qos`           | integer | No       | 1       | Quality of Service: 0, 1, or 2        |
-| `retain`        | boolean | No       | false   | Retain messages on broker             |
+| Property          | Type    | Required | Default | Description                              |
+| ----------------- | ------- | -------- | ------- | ---------------------------------------- |
+| `topic`           | string  | Yes      | -       | MQTT topic for publishing/subscribing    |
+| `command_topic`   | string  | No       | -       | Command topic (actuators only)           |
+| `qos`             | integer | No       | 1       | Quality of Service: 0, 1, or 2           |
+| `retain`          | boolean | No       | false   | Retain messages on broker                |
+| `payload_mapping` | object  | No       | -       | Custom payload field mapping (see below) |
+
+### Payload Mapping Object (optional)
+
+Used when devices send non-standard payload formats.
+
+| Property          | Type   | Required | Description                         |
+| ----------------- | ------ | -------- | ----------------------------------- |
+| `value_field`     | string | Yes      | JSON path to the sensor value field |
+| `timestamp_field` | string | No       | JSON path to the timestamp field    |
+| `unit_field`      | string | No       | JSON path to the unit field         |
+
+> [!NOTE]
+> The default device configuration does not use `payload_mapping`. It is
+> available for integrating devices with non-standard MQTT payload formats
+> (e.g., Zigbee2MQTT, Tasmota). See the
+> [MQTT Flexibility Guide](mqtt-flexibility-guide.md) for details.
 
 ### Constraints Object
 
@@ -101,12 +118,12 @@ Defines all IoT devices (sensors and actuators) in the system.
 
 ```json
 {
-  "id": "living_room_temp",
-  "name": "Living Room Temperature",
+  "id": "temp_living_room",
+  "name": "Living Room Temperature Sensor",
   "type": "sensor",
   "device_class": "temperature",
-  "location": "Living Room",
-  "unit": "celsius",
+  "location": "living_room",
+  "unit": "°C",
   "value_type": "float",
   "mqtt": {
     "topic": "home/living_room/temperature",
@@ -114,7 +131,7 @@ Defines all IoT devices (sensors and actuators) in the system.
   },
   "constraints": {
     "min": -10.0,
-    "max": 50.0
+    "max": 60.0
   }
 }
 ```
@@ -123,12 +140,12 @@ Defines all IoT devices (sensors and actuators) in the system.
 
 ```json
 {
-  "id": "living_room_ac",
-  "name": "Living Room AC",
+  "id": "ac_living_room",
+  "name": "Living Room Air Conditioner",
   "type": "actuator",
-  "device_class": "thermostat",
-  "location": "Living Room",
-  "capabilities": ["turn_on", "turn_off", "set_temperature"],
+  "device_class": "set_temperature",
+  "location": "living_room",
+  "capabilities": ["set_temperature", "set_mode", "turn_on", "turn_off"],
   "mqtt": {
     "topic": "home/living_room/ac/status",
     "command_topic": "home/living_room/ac/set",
@@ -161,14 +178,15 @@ Configures the MQTT broker connection for device communication.
 
 ### Root Object
 
-| Property    | Type   | Required | Description                |
-| ----------- | ------ | -------- | -------------------------- |
-| `broker`    | object | Yes      | Broker connection settings |
-| `client`    | object | No       | Client identity settings   |
-| `auth`      | object | No       | Authentication credentials |
-| `tls`       | object | No       | TLS/SSL configuration      |
-| `reconnect` | object | No       | Reconnection behavior      |
-| `lwt`       | object | No       | Last Will and Testament    |
+| Property         | Type   | Required | Description                            |
+| ---------------- | ------ | -------- | -------------------------------------- |
+| `broker`         | object | Yes      | Broker connection settings             |
+| `client`         | object | No       | Client identity settings               |
+| `auth`           | object | No       | Authentication credentials             |
+| `tls`            | object | No       | TLS/SSL configuration                  |
+| `reconnect`      | object | No       | Reconnection behavior                  |
+| `lwt`            | object | No       | Last Will and Testament                |
+| `topic_patterns` | object | No       | MQTT topic patterns for auto-discovery |
 
 ### Broker Object
 
@@ -219,6 +237,21 @@ Configures the MQTT broker connection for device communication.
 | `payload` | string  | "offline" | Message payload                |
 | `qos`     | integer | 1         | Quality of Service: 0, 1, or 2 |
 | `retain`  | boolean | true      | Retain LWT message             |
+
+### Topic Patterns Object
+
+Optional topic patterns for automatic MQTT topic resolution.
+
+| Property    | Type   | Description                                                |
+| ----------- | ------ | ---------------------------------------------------------- |
+| `sensors`   | string | Pattern for sensor topics (e.g., `home/{location}/{type}`) |
+| `actuators` | string | Pattern for actuator status topics                         |
+| `commands`  | string | Pattern for actuator command topics                        |
+
+> [!NOTE]
+> Topic patterns are optional and not included in the default configuration.
+> When specified, they provide template patterns for automatic topic assignment
+> using `{device_id}`, `{location}`, and `{type}` substitution variables.
 
 ### Example: Basic Configuration
 
@@ -621,10 +654,11 @@ ______________________________________________________________________
 ```bash
 # Validate all configurations
 iot-fuzzy-llm config validate
-
-# Validate specific file
-iot-fuzzy-llm config validate --file config/devices.json
 ```
+
+> [!NOTE]
+> The `config validate` command validates all configuration files against their
+> schemas. There is no option to validate individual files.
 
 ______________________________________________________________________
 

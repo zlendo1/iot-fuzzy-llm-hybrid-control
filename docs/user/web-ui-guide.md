@@ -24,7 +24,6 @@ ______________________________________________________________________
    - [4.4 Config](#44-config)
    - [4.5 Membership Editor](#45-membership-editor)
    - [4.6 Logs](#46-logs)
-   - [4.7 System Control](#47-system-control)
 5. [Common Workflows](#5-common-workflows)
 6. [CLI vs Web UI](#6-cli-vs-web-ui)
 7. [Troubleshooting](#7-troubleshooting)
@@ -128,17 +127,16 @@ ______________________________________________________________________
 ## 3. Navigation
 
 The Web UI uses a **sidebar navigation** panel on the left side of the browser
-window. It lists all seven pages with their icons.
+window. It lists all six pages.
 
-| Page              | Icon | Purpose                          |
-| ----------------- | ---- | -------------------------------- |
-| Dashboard         | 📊   | Live sensor readings overview    |
-| Devices           | 🖥️   | Device registry browser          |
-| Rules             | 📋   | Natural language rule management |
-| Config            | ⚙️   | JSON configuration editor        |
-| Membership Editor | ƒ    | Fuzzy membership function editor |
-| Logs              | 📄   | Log file browser and search      |
-| System Control    | 🎚️   | System status and shutdown       |
+| Page              | Purpose                                     |
+| ----------------- | ------------------------------------------- |
+| Dashboard         | System status, control, and sensor readings |
+| Devices           | Device registry browser                     |
+| Rules             | Natural language rule management            |
+| Config            | JSON configuration editor                   |
+| Membership Editor | Fuzzy membership function editor            |
+| Logs              | Log file browser and search                 |
 
 Click any page name in the sidebar to navigate to it. The sidebar can be
 collapsed by clicking the `×` button at the top of the panel.
@@ -153,39 +151,42 @@ ______________________________________________________________________
 
 ### 4.1 Dashboard
 
-**Purpose:** Real-time overview of all sensor readings from connected IoT
-devices.
+**Purpose:** System overview, control, and real-time sensor readings.
 
-> 📸 _Screenshot: Dashboard page showing metric tiles for temperature, humidity,
-> and motion sensors with Auto-refresh toggle enabled._
+> 📸 _Screenshot: Dashboard page showing system status metrics, Stop System
+> button, Auto-refresh toggle, and sensor readings with zone and type filters._
 
 #### Key Features
 
+- **System status metrics** — Displays the current system state
+  (Running/Stopped), version, and uptime as metric tiles at the top of the page.
+- **System control button** — A **Stop System** button (or **Start System** when
+  stopped) allows controlling the IoT management system directly from the
+  dashboard.
 - **Auto-refresh toggle** — When enabled, the sensor tiles refresh automatically
   every second without a full page reload.
-- **Zone filter** — Narrow the display to sensors in a specific physical zone
-  (e.g., `living_room`, `bedroom`).
+- **Zone filter** — Narrow the sensor display to a specific physical zone (e.g.,
+  `living_room`, `bedroom`).
 - **Type filter** — Show only sensors of a specific class: `temperature`,
   `humidity`, `light_level`, or `motion`.
-- **Metric tiles** — Each sensor is displayed as a labelled metric card showing
-  the latest value (with unit) and the timestamp of the last update.
-- **No-data state** — If no readings have arrived yet, an info banner prompts
-  you to start the system.
+- **Sensor readings** — Each sensor is displayed as a labelled metric card
+  showing the latest value (with unit) and the timestamp of the last update.
 
-#### Reading the Display
+#### System Status Metrics
 
-Each sensor tile shows:
+The top of the Dashboard shows three metric tiles:
 
-- **Label**: the sensor ID (e.g., `temp_living_room`)
-- **Value**: the most recent reading with its unit (e.g., `23.50 °C`)
-- **Caption**: timestamp of when the reading was last received
+- **Status** — Current system state (`RUNNING`, `STOPPED`, etc.)
+- **Version** — System version number (e.g., `0.1.0`)
+- **Uptime** — How long the system has been running (e.g., `1h 10m 49s`)
 
 #### Common Workflow
 
 1. Navigate to **Dashboard** in the sidebar.
-2. Enable **Auto-refresh (1s)** to watch live data.
-3. Use the **zone** or **type** filters if you have many sensors.
-4. Watch metric tiles update in real time as MQTT messages arrive.
+2. Check the system status metrics at the top — verify State is `RUNNING`.
+3. Enable **Auto-refresh (1s)** to watch live sensor data.
+4. Use the **zone** or **type** filters if you have many sensors.
+5. Watch metric tiles update in real time as MQTT messages arrive.
 
 ______________________________________________________________________
 
@@ -422,59 +423,6 @@ monitor activity, and audit rule evaluations.
 
 ______________________________________________________________________
 
-### 4.7 System Control
-
-**Purpose:** Inspect the full system status — state, readiness, component
-availability, and initialization steps — and optionally shut the system down.
-
-> 📸 _Screenshot: System Control page showing State: RUNNING, Ready: True,
-> component checklist, collapsible initialization steps, and the Shutdown System
-> button with confirmation checkbox._
-
-#### Key Features
-
-- **State and readiness** — Displays the current orchestrator state (e.g.,
-  `RUNNING`, `INITIALIZING`, `STOPPED`) and whether the system is ready to
-  process sensor readings.
-- **Component checklist** — A ✅/❌ list of all system components (e.g.,
-  `config_manager`, `device_registry`, `fuzzy_engine`, `ollama_client`,
-  `mqtt_client`) and their availability.
-- **Initialization steps** — An expandable panel listing all 10 initialization
-  steps with completion status and any error messages.
-- **Shutdown button** — Shuts down the running IoT management system. Requires
-  checking the **Confirm shutdown** checkbox first to prevent accidental
-  shutdown.
-
-#### Interpreting System State
-
-| State          | Meaning                                                    |
-| -------------- | ---------------------------------------------------------- |
-| `INITIALIZING` | System is starting up, steps are completing in sequence    |
-| `RUNNING`      | System is fully operational, processing sensor readings    |
-| `STOPPED`      | System is not running; start it with `iot-fuzzy-llm start` |
-| `ERROR`        | A component failed during initialization                   |
-
-#### Common Workflow — Verify System is Healthy
-
-1. Navigate to **System Control**.
-2. Check that **State** shows `RUNNING` and **Ready** shows `True`.
-3. Expand **Initialization Steps** to confirm all 10 steps completed (✅).
-4. Check the component list — all components should show ✅.
-
-#### Common Workflow — Shutdown the System
-
-1. Navigate to **System Control**.
-2. Check the **Confirm shutdown** checkbox.
-3. Click **Shutdown System**.
-4. A success message confirms the shutdown.
-
-> [!WARNING]
-> Shutting down the system stops all MQTT subscriptions, sensor processing, and
-> rule evaluation. Devices will no longer receive automated commands until the
-> system is restarted.
-
-______________________________________________________________________
-
 ## 5. Common Workflows
 
 ### Initial Setup and Verification
@@ -491,8 +439,8 @@ ______________________________________________________________________
    streamlit run src/interfaces/web/streamlit_app.py
    ```
 4. Open `http://localhost:8501` in your browser.
-5. Navigate to **System Control** and verify State = `RUNNING`, Ready = `True`.
-6. Navigate to **Dashboard** to confirm sensor readings are arriving.
+5. Navigate to **Dashboard** and verify Status = `RUNNING`.
+6. Confirm sensor readings are arriving in the sensor tiles below.
 
 ### Adding Your First Automation Rule
 
@@ -520,7 +468,7 @@ ______________________________________________________________________
 
 ### Diagnosing Why a Rule Is Not Triggering
 
-1. Navigate to **System Control** — confirm the system is `RUNNING`.
+1. Navigate to **Dashboard** — confirm the system Status is `RUNNING`.
 2. Navigate to **Dashboard** — confirm the relevant sensor is reporting
    readings.
 3. Navigate to **Rules** — confirm the relevant rule is **Enabled**.
@@ -546,8 +494,8 @@ Both interfaces expose the same underlying system. Choose based on your context.
 | Edit configuration        | Text editor + reload  | Config page (in-browser)   |
 | Edit membership functions | Text editor           | Membership Editor page     |
 | View logs                 | `log tail --category` | Logs page                  |
-| System status             | `status`              | System Control page        |
-| Shutdown system           | `stop`                | System Control → Shutdown  |
+| System status             | `status`              | Dashboard (top metrics)    |
+| Shutdown system           | `stop`                | Dashboard → Stop System    |
 | JSON/scripting output     | `--format json`       | Not supported              |
 | Tag-based rule filtering  | `rule list --tag`     | Not supported              |
 | SSH / headless access     | ✅ Native             | ❌ Requires browser        |
@@ -609,7 +557,7 @@ running.
 
 **Checklist:**
 
-1. Verify the system is `RUNNING` — navigate to **System Control**.
+1. Verify the system is `RUNNING` — check the Status metric on **Dashboard**.
 2. Check that MQTT is connected — look for `mqtt_client: ✅` in the component
    list.
 3. Verify devices have sensors with the correct MQTT topics in **Config →

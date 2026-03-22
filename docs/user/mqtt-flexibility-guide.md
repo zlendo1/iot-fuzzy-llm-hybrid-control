@@ -70,25 +70,25 @@ device.
 "payload_mapping": {
   "value_field": "temperature",
   "unit_field": "unit",
-  "timestamp_field": "time",
-  "data_type": "float",
-  "scale_factor": 1.0
+  "timestamp_field": "time"
 }
 ```
 
 ### Field Reference
 
-| Field             | Type   | Required | Default   | Description                                       |
-| ----------------- | ------ | -------- | --------- | ------------------------------------------------- |
-| `value_field`     | string | No       | `"value"` | JSON key containing the sensor reading            |
-| `unit_field`      | string | No       | —         | JSON key containing the unit string (optional)    |
-| `timestamp_field` | string | No       | —         | JSON key containing the timestamp (optional)      |
-| `data_type`       | string | No       | `"float"` | Value type: `"float"`, `"int"`, or `"bool"`       |
-| `scale_factor`    | number | No       | `1.0`     | Multiplier applied to the raw value after reading |
+| Field             | Type   | Required | Description                                    |
+| ----------------- | ------ | -------- | ---------------------------------------------- |
+| `value_field`     | string | **Yes**  | JSON key containing the sensor reading         |
+| `unit_field`      | string | No       | JSON key containing the unit string (optional) |
+| `timestamp_field` | string | No       | JSON key containing the timestamp (optional)   |
 
-> **Note:** If `value_field` is omitted, the system falls back to the key
-> `"value"` for backward compatibility. See
+> **Note:** The `payload_mapping` block itself is optional. If omitted entirely,
+> the system reads `{"value": N}` for backward compatibility. However, when
+> `payload_mapping` is present, `value_field` is required. See
 > [Section 6](#6-backward-compatibility) for details.
+>
+> The schema enforces `additionalProperties: false` — only the three fields
+> above are accepted.
 
 ### Nested Field Access
 
@@ -100,19 +100,6 @@ Use dot notation to reach values inside nested JSON objects:
 
 This reads `payload["StatusSNS"]["DS18B20"]["Temperature"]` from the incoming
 MQTT message.
-
-### The `scale_factor` Field
-
-Use `scale_factor` when the device reports in a different unit than your
-membership functions expect. For example, if a device publishes millivolts but
-your fuzzy logic uses volts:
-
-```json
-"scale_factor": 0.001
-```
-
-The raw value is multiplied by `scale_factor` before being passed to the fuzzy
-engine. Default is `1.0` (no scaling).
 
 ### Complete Sensor Example with Payload Mapping
 
@@ -131,14 +118,12 @@ engine. Default is `1.0` (no scaling).
     "payload_mapping": {
       "value_field": "temperature",
       "unit_field": "unit",
-      "timestamp_field": "time",
-      "data_type": "float",
-      "scale_factor": 1.0
+      "timestamp_field": "time"
     }
   },
   "constraints": {
-    "min": -40,
-    "max": 85
+    "min": -10,
+    "max": 60
   }
 }
 ```
@@ -279,34 +264,19 @@ mqtt_config.json — topic_patterns key absent: will add default patterns.
 Run without --dry-run to apply changes.
 ```
 
-### Migrate with Backup (Recommended)
-
-```bash
-python -m src.interfaces config migrate --backup
-```
-
-This creates timestamped backups before writing:
-
-```
-config/devices.json.backup.20260317_143022
-config/mqtt_config.json.backup.20260317_143022
-```
-
-Then applies the migration. You can restore a backup at any time:
-
-```bash
-cp config/devices.json.backup.20260317_143022 config/devices.json
-python -m src.interfaces config validate
-```
-
-### Migrate Without Backup
+### Apply Migration
 
 ```bash
 python -m src.interfaces config migrate
 ```
 
-> **Warning:** This overwrites your configuration files without a backup. Use
-> `--backup` unless you are in version control and can revert via `git`.
+The command automatically creates `.bak` backups before modifying any file. You
+can restore a backup at any time:
+
+```bash
+cp config/devices.json.bak config/devices.json
+python -m src.interfaces config validate
+```
 
 ### After Migration
 
@@ -351,9 +321,7 @@ Zigbee2MQTT publishes combined sensor readings as a single JSON message:
     "topic": "zigbee2mqtt/Living Room Sensor",
     "qos": 0,
     "payload_mapping": {
-      "value_field": "temperature",
-      "data_type": "float",
-      "scale_factor": 1.0
+      "value_field": "temperature"
     }
   },
   "constraints": {
@@ -378,8 +346,7 @@ A second device can subscribe to the **same topic** but map `humidity`:
     "topic": "zigbee2mqtt/Living Room Sensor",
     "qos": 0,
     "payload_mapping": {
-      "value_field": "humidity",
-      "data_type": "float"
+      "value_field": "humidity"
     }
   },
   "constraints": {
@@ -422,9 +389,7 @@ Tasmota publishes telemetry in deeply nested JSON:
     "qos": 0,
     "payload_mapping": {
       "value_field": "DS18B20.Temperature",
-      "timestamp_field": "Time",
-      "data_type": "float",
-      "scale_factor": 1.0
+      "timestamp_field": "Time"
     }
   },
   "constraints": {
@@ -459,9 +424,7 @@ For sensors that publish a compact format with non-standard field names:
     "payload_mapping": {
       "value_field": "v",
       "unit_field": "u",
-      "timestamp_field": "ts",
-      "data_type": "float",
-      "scale_factor": 1.0
+      "timestamp_field": "ts"
     }
   },
   "constraints": {
@@ -546,24 +509,6 @@ pattern.
 **Fix:** If you want a device to use a pattern, remove (or do not set) its
 `mqtt.topic`. Only devices without an explicit topic inherit from
 `topic_patterns`.
-
-______________________________________________________________________
-
-### `scale_factor` produces unexpected values
-
-**Cause:** The raw value is being multiplied before being checked against
-`constraints.min` and `constraints.max`, which may reject scaled values that are
-out of range.
-
-**Fix:** Ensure your `constraints` are set in the **scaled** unit. For example,
-if `scale_factor: 0.001` converts millivolts to volts, set constraints in volts:
-
-```json
-"constraints": {
-  "min": 0.0,
-  "max": 5.0
-}
-```
 
 ______________________________________________________________________
 

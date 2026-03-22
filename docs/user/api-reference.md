@@ -879,18 +879,27 @@ ______________________________________________________________________
 ## Exception Hierarchy
 
 ```
-Exception
+IoTFuzzyLLMError (base)
 ├── ConfigurationError    # Configuration loading/validation errors
 ├── ValidationError       # Schema validation errors
 ├── RuleError            # Rule management errors
 ├── DeviceError          # Device registry errors
-├── FuzzyEngineError     # Fuzzy processing errors
-└── OllamaError          # LLM client errors
-    ├── OllamaConnectionError
-    ├── OllamaTimeoutError
-    ├── OllamaModelNotFoundError
-    └── OllamaGenerationError
+│   └── MQTTError        # MQTT-specific errors
+├── OllamaError          # LLM client errors
+│   ├── OllamaConnectionError
+│   ├── OllamaTimeoutError
+│   ├── OllamaModelNotFoundError
+│   └── OllamaGenerationError
+└── FuzzyEngineError     # Fuzzy processing errors (separate base)
 ```
+
+- `IoTFuzzyLLMError` extends `Exception` and is the base class for all system
+  exceptions
+- `MQTTError` extends `DeviceError` (not a direct child of IoTFuzzyLLMError)
+- `FuzzyEngineError` extends `Exception` directly, not `IoTFuzzyLLMError`
+  (defined in `src.data_processing.fuzzy_engine`)
+- All other exceptions extend `IoTFuzzyLLMError` (defined in
+  `src.common.exceptions`)
 
 ______________________________________________________________________
 
@@ -947,12 +956,14 @@ In-browser JSON configuration editor with schema validation and reload support.
 
 #### MembershipFunctionEditor
 
-Visual drag-point graph editor for adjusting fuzzy membership functions.
+JSON-based editor for viewing and modifying fuzzy membership function
+configurations.
 
 - **Page**: Membership Editor (`pages/5_Membership_Editor.py`)
 
 #### LogViewer
 
-Live log streaming panel with filtering and search capabilities.
+Log viewing panel with category filtering, level filtering, search, and manual
+refresh.
 
 - **Page**: Logs (`pages/6_Logs.py`)

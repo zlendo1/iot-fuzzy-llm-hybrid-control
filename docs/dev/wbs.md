@@ -34,7 +34,7 @@ linguistic concepts for LLM-based natural language rule processing.
 
 - End-to-end response: < 5 seconds
 - LLM inference: < 3 seconds
-- Fuzzy processing: < 100 ms
+- Fuzzy processing: < 50 ms
 - Memory footprint: 2-4 GB total (edge-optimized)
 - Rule interpretation accuracy: ≥ 85%
 
@@ -191,7 +191,7 @@ ______________________________________________________________________
 - [ ] Load membership functions from JSON at startup
 - [ ] Compute membership degrees for all configured terms
 - [ ] Generate linguistic descriptions (e.g., "temperature is hot (0.85)")
-- [ ] Process 20 sensors within 100ms (NFR-PERF-003)
+- [ ] Process 20 sensors within 50ms (NFR-PERF-003)
 - [ ] Validate JSON configurations against schema
 - [ ] Cache fuzzification results with 300s TTL
 
@@ -369,13 +369,13 @@ ______________________________________________________________________
 
 **Performance Benchmarks:**
 
-| Metric             | Target  | Test Method                  |
-| ------------------ | ------- | ---------------------------- |
-| Fuzzy processing   | < 100ms | 20 sensors batch processing  |
-| LLM inference      | < 3s    | Average over 50 rule evals   |
-| End-to-end latency | < 5s    | Sensor → actuator command    |
-| Memory footprint   | < 4GB   | Peak usage under load (edge) |
-| Concurrent rules   | 50      | Parallel rule evaluation     |
+| Metric             | Target | Test Method                  |
+| ------------------ | ------ | ---------------------------- |
+| Fuzzy processing   | < 50ms | 20 sensors batch processing  |
+| LLM inference      | < 3s   | Average over 50 rule evals   |
+| End-to-end latency | < 5s   | Sensor → actuator command    |
+| Memory footprint   | < 4GB  | Peak usage under load (edge) |
+| Concurrent rules   | 50     | Parallel rule evaluation     |
 
 **Acceptance Criteria:**
 

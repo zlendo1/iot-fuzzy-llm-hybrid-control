@@ -154,11 +154,12 @@ iot-fuzzy-llm --grpc-host localhost --grpc-port 50051 status
 > [!NOTE]
 > The `status` command connects to a running application via the gRPC interface
 > (default: `localhost:50051`). The gRPC port can be customized with
-> `--grpc-port` or by setting the `GRPC_PORT` environment variable.
+> `--grpc-port` or by setting the `IOT_GRPC_PORT` environment variable.
 
 **Status Output (after start):**
 
 ```
+✓ Connected to running application.
 System State: RUNNING
 Ready: Yes
 Uptime (seconds): 124
@@ -191,19 +192,20 @@ iot-fuzzy-llm --format json rule list
 **Example Output:**
 
 ```
-ID           | Enabled | Text                                               
--------------+---------+----------------------------------------------------
-climate_001  | Yes     | If the living room temperature is hot and humidity 
-             |         | is high, turn on the air conditioner and set it to 
-             |         | cooling mode at 22 degrees                         
--------------+---------+----------------------------------------------------
-climate_002  | Yes     | If the living room temperature is warm and         
-             |         | humidity is comfortable, no action is needed       
--------------+---------+----------------------------------------------------
-lighting_001 | Yes     | When motion is detected in the hallway and the     
-             |         | light level is dark, turn on the hallway light     
+ID            | Enabled | Text
+--------------+---------+----------------------------------------------------
+climate_001   | Yes     | If the living room temperature is hot and humidity
+              |         | is high, turn on the air conditioner and set it to
+              |         | cooling mode at 22 degrees
+--------------+---------+----------------------------------------------------
+climate_002   | Yes     | If the living room temperature is warm and
+              |         | humidity is comfortable, no action is needed
+--------------+---------+----------------------------------------------------
+lighting_001  | Yes     | When motion is detected in the hallway and the
+              |         | light level is dark, turn on the hallway light
+...
 
-Total: 3 rule(s)
+Total: 10 rule(s)
 ```
 
 ### Adding Rules
@@ -230,6 +232,12 @@ iot-fuzzy-llm rule add -t comfort -t climate "When temperature is cold, turn on 
 | `--priority N`  | Priority 1-100 (default: 50)                    |
 | `-t, --tag TAG` | Add tag (can be used multiple times)            |
 
+> [!NOTE]
+> The `--id`, `--priority`, and `--tag` options are accepted by the CLI but not
+> currently passed to the gRPC `AddRule` call. The rule will receive an
+> auto-generated ID regardless of `--id`. These options may be implemented in a
+> future release.
+
 ### Viewing Rule Details
 
 ```bash
@@ -240,7 +248,7 @@ iot-fuzzy-llm rule show climate_001
 
 ```
 Rule ID: climate_001
-Text: When living room temperature is hot, turn on the AC and set it to 22 degrees
+Text: If the living room temperature is hot and humidity is high, turn on the air conditioner and set it to cooling mode at 22 degrees
 Enabled: Yes
 ```
 
@@ -281,14 +289,14 @@ iot-fuzzy-llm --format json device list
 **Example Output:**
 
 ```
-ID                      | Name                           | Type     | Class       | Location
-------------------------+--------------------------------+----------+-------------+------------
-temp_living_room        | Living Room Temperature Sensor | sensor   | temperature | living_room
-motion_hallway          | Hallway Motion Sensor          | sensor   | motion      | hallway
-ac_living_room          | Living Room Air Conditioner    | actuator | thermostat  | living_room
-light_hallway           | Hallway Light                  | actuator | light       | hallway
+ID                      | Name                              | Type     | Class           | Location
+------------------------+-----------------------------------+----------+-----------------+-------------
+temp_living_room        | Living Room Temperature Sensor    | sensor   | -               | living_room
+humidity_living_room    | Living Room Humidity Sensor       | sensor   | -               | living_room
+ac_living_room          | Living Room Air Conditioner       | actuator | set_temperature | living_room
+light_hallway           | Hallway Light                     | actuator | turn_on         | hallway
 
-Total: 4 device(s)
+Total: 14 device(s)
 ```
 
 ### Viewing Device Status
@@ -298,15 +306,15 @@ Total: 4 device(s)
 iot-fuzzy-llm device status
 
 # Status for a specific device
-iot-fuzzy-llm device status living_room_ac
+iot-fuzzy-llm device status ac_living_room
 ```
 
 **Example Output:**
 
 ```
-Living Room AC (ac_living_room)
+Living Room Air Conditioner (ac_living_room)
   Type: actuator
-  Class: thermostat
+  Class: set_temperature
   Location: living_room
   Status: registered
   Capabilities: set_temperature, set_mode, turn_on, turn_off
@@ -329,13 +337,13 @@ iot-fuzzy-llm --format json sensor list
 **Example Output:**
 
 ```
-ID                      | Name                           | Class       | Location    | Unit
-------------------------+--------------------------------+-------------+-------------+-----
-temp_living_room        | Living Room Temperature Sensor | temperature | living_room | °C
-humidity_living_room    | Living Room Humidity Sensor    | humidity    | living_room | %
-motion_hallway          | Hallway Motion Sensor          | motion      | hallway     | -
+ID                      | Name                              | Class | Location    | Unit
+------------------------+-----------------------------------+-------+-------------+-----
+temp_living_room        | Living Room Temperature Sensor    | -     | living_room | -
+humidity_living_room    | Living Room Humidity Sensor       | -     | living_room | -
+motion_hallway          | Hallway Motion Sensor             | -     | hallway     | -
 
-Total: 3 sensor(s)
+Total: 7 sensor(s)
 ```
 
 ### Viewing Sensor Status
@@ -345,14 +353,14 @@ Total: 3 sensor(s)
 iot-fuzzy-llm sensor status
 
 # Status for a specific sensor
-iot-fuzzy-llm sensor status living_room_temp
+iot-fuzzy-llm sensor status temp_living_room
 ```
 
 **Example Output:**
 
 ```
-Living Room Temp (temp_living_room)
-  Class: temperature
+Living Room Temperature Sensor (temp_living_room)
+  Class: N/A
   Location: living_room
   Unit: N/A
   Status: registered
@@ -376,9 +384,8 @@ iot-fuzzy-llm config validate
 
 Loaded configurations:
   ✓ devices
-  ✓ mqtt
-  ✓ llm
-  ✓ membership_functions
+  ✓ llm_config
+  ✓ mqtt_config
 ```
 
 ### Reloading Configuration
@@ -437,13 +444,13 @@ iot-fuzzy-llm log tail --category rules
 **Example Output:**
 
 ```
-Last 5 entries from system.log:
+Last 5 entries from category:
 
-2026-02-05T14:20:00 [INFO] System initialized successfully
-2026-02-05T14:20:01 [INFO] Connected to MQTT broker
-2026-02-05T14:22:00 [INFO] Rule rule_001 triggered
-2026-02-05T14:22:01 [INFO] Command sent: living_room_ac turn_on
-2026-02-05T14:22:02 [INFO] Actuator confirmed: living_room_ac
+2026-03-22 21:35:50.548869 [INFO] ConfigurationManager initialized
+2026-03-22 21:35:50.551329 [INFO] MQTT manager initialized
+2026-03-22 21:35:51.102844 [INFO] Ollama client initialized
+2026-03-22 21:35:51.103102 [INFO] System initialized successfully
+2026-03-22 21:35:51.103298 [INFO] System started
 ```
 
 ______________________________________________________________________
@@ -541,9 +548,9 @@ iot-fuzzy-llm device list
 ```
 
 ```
-ID                      | Name                           | Type     | Class       | Location
-------------------------+--------------------------------+----------+-------------+------------
-temp_living_room        | Living Room Temperature Sensor | sensor   | temperature | living_room
+ID                      | Name                              | Type     | Class           | Location
+------------------------+-----------------------------------+----------+-----------------+-------------
+temp_living_room        | Living Room Temperature Sensor    | sensor   | -               | living_room
 ```
 
 ### JSON Format
@@ -557,11 +564,11 @@ iot-fuzzy-llm --format json device list
 ```json
 [
   {
-    "id": "living_room_temp",
-    "name": "Living Room Temp",
+    "id": "temp_living_room",
+    "name": "Living Room Temperature Sensor",
     "type": "sensor",
-    "device_class": "temperature",
-    "location": "Living Room"
+    "device_class": "-",
+    "location": "living_room"
   }
 ]
 ```
@@ -624,66 +631,51 @@ docker compose up -d
 # Web UI available at http://localhost:8501
 ```
 
-### 11.2 Real-Time Monitoring
+### 11.2 Dashboard
 
-The monitoring dashboard displays live updates for:
+The main dashboard page provides:
 
-- **Sensor Readings** — Current values and fuzzy membership scores for all
-  configured sensors, updated in real time as MQTT messages arrive.
-- **Rule Evaluations** — Which rules are currently active, their condition
-  evaluation results, and LLM reasoning output.
-- **Device Commands** — Recent commands sent to actuators with timestamps and
-  execution status.
-- **System Health** — Connection status for MQTT broker and Ollama service,
-  memory usage, and processing latency.
+- **System Status** — Current state (Running/Stopped), readiness, version, and
+  uptime displayed as metric tiles.
+- **System Control** — Start and stop buttons for the IoT management system.
+- **Auto-Refresh** — Toggle for automatic page refresh to show updated sensor
+  readings.
+- **Sensor Readings** — Current values for all configured sensors with zone and
+  type filters.
 
-### 11.3 System Control
+### 11.3 Rule Management
 
-The control panel allows you to:
+The rule management page provides:
 
-- Start and stop the IoT management system
-- Trigger manual rule evaluation cycles
-- Reload configuration without restarting
-- View and manage active MQTT subscriptions
+- A text input form to add new natural language rules
+- Expandable cards for each rule showing full rule text
+- Enable/disable toggle for each rule
+- Delete button with confirmation for removing rules
 
-### 11.4 Rule Management
+### 11.4 Configuration Editing
 
-The rule management interface provides:
+The configuration editor supports **direct JSON editing in-browser**:
 
-- A table view of all rules (enabled/disabled status, creation date, last
-  triggered)
-- Add new natural language rules via a text input
-- Enable, disable, or delete existing rules with one click
-- View the LLM interpretation and action extracted for each rule
+- Three tabs for `devices.json`, `mqtt_config.json`, and `llm_config.json`
+- JSON text area editor for each configuration file
+- Save button to persist changes with automatic backup
 
-### 11.5 Configuration Editing
+### 11.5 Membership Function Editor
 
-The configuration editor allows **direct JSON editing in-browser**:
+The membership function editor provides a **JSON-based editor** for adjusting
+fuzzy membership functions:
 
-- Edit `devices.json`, `mqtt_config.json`, `llm_config.json` in a syntax-
-  highlighted JSON editor
-- Automatic schema validation before saving
-- One-click configuration reload after saving
-- Revision history with restore capability
+- Sensor type selector dropdown to choose which membership functions to edit
+- JSON viewer showing the current membership function configuration
+- Text area editor for modifying the JSON directly
+- Save button to persist changes to the membership functions file
 
-### 11.6 Visual Membership Function Editor
-
-The membership function editor provides a **drag-point graph interface** for
-adjusting fuzzy sets:
-
-- Visual graph showing all linguistic terms for a sensor type (e.g., cold,
-  comfortable, hot for temperature)
-- Drag control points to reshape membership function curves
-- Live preview of how a specific sensor value maps to each linguistic term
-- Save changes directly to the membership functions JSON file without manual
-  editing
-
-### 11.7 Log Viewing
+### 11.6 Log Viewing
 
 The log viewer provides:
 
-- Live-streaming log output with colour-coded severity levels
-- Filtering by log level (DEBUG, INFO, WARNING, ERROR)
-- Filtering by component (fuzzy engine, LLM client, MQTT, rule interpreter)
-- Full-text search across log history
-- Export logs to a file
+- Category selector (system, commands, sensors, errors, rules)
+- Log level filter
+- Text search across log entries
+- Manual refresh button to load latest entries
+- Tabular log display using a dataframe view

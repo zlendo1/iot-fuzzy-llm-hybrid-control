@@ -72,7 +72,7 @@ required for thesis evaluation:
 
 - End-to-end response: < 5 seconds (measured for evaluation)
 - LLM inference: < 3 seconds
-- Fuzzy processing: < 100 ms
+- Fuzzy processing: < 50 ms
 - Concurrent rules: 50 (sufficient for demo scenario)
 
 ______________________________________________________________________

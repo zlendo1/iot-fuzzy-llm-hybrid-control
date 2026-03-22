@@ -6,10 +6,11 @@ Uses real gRPC server (not mocked) with mocked MQTT and Ollama backends.
 
 from __future__ import annotations
 
+import re
 import socket
 import time
+from collections.abc import Generator
 from pathlib import Path
-from typing import Generator
 
 import pytest
 from click.testing import CliRunner
@@ -496,6 +497,263 @@ def test_cli_multiple_commands_same_session(
             ],
         )
         assert result3.exit_code == 0
+
+    finally:
+        app.stop()
+        assert _wait_for_state(app, ApplicationState.STOPPED)
+
+
+def _add_rule_and_get_id(runner: CliRunner, grpc_port: int, rule_text: str) -> str:
+    """Add a rule via CLI and return its ID."""
+    result = runner.invoke(
+        cli,
+        [
+            "--grpc-host",
+            "localhost",
+            "--grpc-port",
+            str(grpc_port),
+            "rule",
+            "add",
+            rule_text,
+        ],
+    )
+    assert result.exit_code == 0, f"Failed to add rule: {result.output}"
+    match = re.search(r"Rule added with ID:\s*(\S+)", result.output)
+    assert match is not None, f"Could not extract rule ID from: {result.output}"
+    return match.group(1)
+
+
+@pytest.mark.integration
+def test_cli_show_rule_via_grpc(
+    config_directory: Path,
+    rules_directory: Path,
+    logs_directory: Path,
+    grpc_port: int,
+) -> None:
+    """Test CLI show rule command via gRPC."""
+    app = Application(
+        ApplicationConfig(
+            config_dir=config_directory,
+            rules_dir=rules_directory,
+            logs_dir=logs_directory,
+            grpc_port=grpc_port,
+            skip_mqtt=True,
+            skip_ollama=True,
+        )
+    )
+
+    assert app.start() is True
+    assert _wait_for_state(app, ApplicationState.RUNNING)
+    time.sleep(0.2)
+
+    try:
+        runner = CliRunner()
+        rule_text = "If living room is hot, turn on AC"
+        rule_id = _add_rule_and_get_id(runner, grpc_port, rule_text)
+
+        result = runner.invoke(
+            cli,
+            [
+                "--grpc-host",
+                "localhost",
+                "--grpc-port",
+                str(grpc_port),
+                "rule",
+                "show",
+                rule_id,
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert "Rule ID:" in result.output
+        assert rule_text in result.output
+
+    finally:
+        app.stop()
+        assert _wait_for_state(app, ApplicationState.STOPPED)
+
+
+@pytest.mark.integration
+def test_cli_enable_rule_via_grpc(
+    config_directory: Path,
+    rules_directory: Path,
+    logs_directory: Path,
+    grpc_port: int,
+) -> None:
+    """Test CLI enable rule command via gRPC."""
+    app = Application(
+        ApplicationConfig(
+            config_dir=config_directory,
+            rules_dir=rules_directory,
+            logs_dir=logs_directory,
+            grpc_port=grpc_port,
+            skip_mqtt=True,
+            skip_ollama=True,
+        )
+    )
+
+    assert app.start() is True
+    assert _wait_for_state(app, ApplicationState.RUNNING)
+    time.sleep(0.2)
+
+    try:
+        runner = CliRunner()
+        rule_id = _add_rule_and_get_id(
+            runner, grpc_port, "If bedroom is cold, turn on heater"
+        )
+
+        result = runner.invoke(
+            cli,
+            [
+                "--grpc-host",
+                "localhost",
+                "--grpc-port",
+                str(grpc_port),
+                "rule",
+                "enable",
+                rule_id,
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert "enabled" in result.output.lower()
+
+    finally:
+        app.stop()
+        assert _wait_for_state(app, ApplicationState.STOPPED)
+
+
+@pytest.mark.integration
+def test_cli_disable_rule_via_grpc(
+    config_directory: Path,
+    rules_directory: Path,
+    logs_directory: Path,
+    grpc_port: int,
+) -> None:
+    """Test CLI disable rule command via gRPC."""
+    app = Application(
+        ApplicationConfig(
+            config_dir=config_directory,
+            rules_dir=rules_directory,
+            logs_dir=logs_directory,
+            grpc_port=grpc_port,
+            skip_mqtt=True,
+            skip_ollama=True,
+        )
+    )
+
+    assert app.start() is True
+    assert _wait_for_state(app, ApplicationState.RUNNING)
+    time.sleep(0.2)
+
+    try:
+        runner = CliRunner()
+        rule_id = _add_rule_and_get_id(
+            runner, grpc_port, "If kitchen is smoky, turn on exhaust fan"
+        )
+
+        result = runner.invoke(
+            cli,
+            [
+                "--grpc-host",
+                "localhost",
+                "--grpc-port",
+                str(grpc_port),
+                "rule",
+                "disable",
+                rule_id,
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert "disabled" in result.output.lower()
+
+    finally:
+        app.stop()
+        assert _wait_for_state(app, ApplicationState.STOPPED)
+
+
+@pytest.mark.integration
+def test_cli_delete_rule_via_grpc(
+    config_directory: Path,
+    rules_directory: Path,
+    logs_directory: Path,
+    grpc_port: int,
+) -> None:
+    """Test CLI delete rule command via gRPC."""
+    app = Application(
+        ApplicationConfig(
+            config_dir=config_directory,
+            rules_dir=rules_directory,
+            logs_dir=logs_directory,
+            grpc_port=grpc_port,
+            skip_mqtt=True,
+            skip_ollama=True,
+        )
+    )
+
+    assert app.start() is True
+    assert _wait_for_state(app, ApplicationState.RUNNING)
+    time.sleep(0.2)
+
+    try:
+        runner = CliRunner()
+        rule_id = _add_rule_and_get_id(
+            runner, grpc_port, "If garage is dark, turn on light"
+        )
+
+        result = runner.invoke(
+            cli,
+            [
+                "--grpc-host",
+                "localhost",
+                "--grpc-port",
+                str(grpc_port),
+                "rule",
+                "delete",
+                rule_id,
+                "--yes",
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert "deleted" in result.output.lower()
+
+    finally:
+        app.stop()
+        assert _wait_for_state(app, ApplicationState.STOPPED)
+
+
+@pytest.mark.integration
+def test_cli_evaluate_rules_via_grpc(
+    config_directory: Path,
+    rules_directory: Path,
+    logs_directory: Path,
+    grpc_port: int,
+) -> None:
+    """Test evaluate rules gRPC call reports pipelines not initialized."""
+    from src.common.exceptions import IoTFuzzyLLMError
+    from src.interfaces.rpc.client import GrpcClient
+
+    app = Application(
+        ApplicationConfig(
+            config_dir=config_directory,
+            rules_dir=rules_directory,
+            logs_dir=logs_directory,
+            grpc_port=grpc_port,
+            skip_mqtt=True,
+            skip_ollama=True,
+        )
+    )
+
+    assert app.start() is True
+    assert _wait_for_state(app, ApplicationState.RUNNING)
+    time.sleep(0.2)
+
+    try:
+        with GrpcClient("localhost", grpc_port) as client:
+            with pytest.raises(IoTFuzzyLLMError, match="Pipelines are not initialized"):
+                client.evaluate_rules()
 
     finally:
         app.stop()

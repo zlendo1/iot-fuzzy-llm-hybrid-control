@@ -8,8 +8,8 @@ from __future__ import annotations
 
 import socket
 import time
+from collections.abc import Generator
 from pathlib import Path
-from typing import Generator
 from unittest.mock import patch
 
 import pytest

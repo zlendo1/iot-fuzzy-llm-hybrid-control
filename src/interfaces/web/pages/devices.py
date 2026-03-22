@@ -4,7 +4,6 @@ import streamlit as st
 
 from src.interfaces.web.bridge import get_bridge
 from src.interfaces.web.components.common import (
-    render_error_message,
     render_header,
     render_status_badge,
 )

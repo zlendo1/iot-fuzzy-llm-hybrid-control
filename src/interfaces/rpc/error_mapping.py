@@ -18,7 +18,7 @@ from src.common.exceptions import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Awaitable
+    pass
 
 
 def exception_to_status(exc: Exception) -> grpc.StatusCode:

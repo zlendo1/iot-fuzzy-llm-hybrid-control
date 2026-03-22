@@ -575,8 +575,8 @@ class TestRuleCommands:
     def test_rule_show_not_found(
         self, cli_runner: CliRunner, temp_dirs: dict[str, Path]
     ) -> None:
-        from src.interfaces.cli import cli
         from src.common.exceptions import IoTFuzzyLLMError
+        from src.interfaces.cli import cli
 
         with patch("src.interfaces.cli.GrpcClient") as mock_client_cls:
             mock_client = MagicMock()
@@ -647,8 +647,8 @@ class TestRuleCommands:
     def test_rule_enable_not_found(
         self, cli_runner: CliRunner, temp_dirs: dict[str, Path]
     ) -> None:
-        from src.interfaces.cli import cli
         from src.common.exceptions import IoTFuzzyLLMError
+        from src.interfaces.cli import cli
 
         with patch("src.interfaces.cli.GrpcClient") as mock_client_cls:
             mock_client = MagicMock()
@@ -685,8 +685,8 @@ class TestRuleCommands:
     def test_rule_disable_not_found(
         self, cli_runner: CliRunner, temp_dirs: dict[str, Path]
     ) -> None:
-        from src.interfaces.cli import cli
         from src.common.exceptions import IoTFuzzyLLMError
+        from src.interfaces.cli import cli
 
         with patch("src.interfaces.cli.GrpcClient") as mock_client_cls:
             mock_client = MagicMock()
@@ -761,8 +761,8 @@ class TestRuleCommands:
     def test_rule_delete_not_found(
         self, cli_runner: CliRunner, temp_dirs: dict[str, Path]
     ) -> None:
-        from src.interfaces.cli import cli
         from src.common.exceptions import IoTFuzzyLLMError
+        from src.interfaces.cli import cli
 
         with patch("src.interfaces.cli.GrpcClient") as mock_client_cls:
             mock_client = MagicMock()
@@ -829,8 +829,8 @@ class TestSensorCommands:
     def test_sensor_list_no_config(
         self, cli_runner: CliRunner, temp_dirs: dict[str, Path]
     ) -> None:
-        from src.interfaces.cli import cli
         from src.common.exceptions import IoTFuzzyLLMError
+        from src.interfaces.cli import cli
 
         with patch("src.interfaces.rpc.client.GrpcClient") as mock_client_cls:
             mock_client = MagicMock()
@@ -967,8 +967,8 @@ class TestSensorCommands:
         temp_dirs: dict[str, Path],
         sample_devices_config: Path,
     ) -> None:
-        from src.interfaces.cli import cli
         from src.common.exceptions import IoTFuzzyLLMError
+        from src.interfaces.cli import cli
 
         with patch("src.interfaces.rpc.client.GrpcClient") as mock_client_cls:
             mock_client = MagicMock()
@@ -1160,8 +1160,8 @@ class TestDeviceCommands:
         temp_dirs: dict[str, Path],
         sample_devices_config: Path,
     ) -> None:
-        from src.interfaces.cli import cli
         from src.common.exceptions import IoTFuzzyLLMError
+        from src.interfaces.cli import cli
 
         with patch("src.interfaces.rpc.client.GrpcClient") as mock_client_cls:
             mock_client = MagicMock()
@@ -1373,8 +1373,8 @@ class TestSystemCommands:
     def test_status_command_shows_error_when_grpc_unavailable(
         self, cli_runner: CliRunner, temp_dirs: dict[str, Path]
     ) -> None:
-        from src.interfaces.cli import cli
         from src.common.exceptions import IoTFuzzyLLMError
+        from src.interfaces.cli import cli
 
         with patch("src.interfaces.cli.GrpcClient") as mock_client_cls:
             mock_client_cls.return_value.__enter__.side_effect = IoTFuzzyLLMError(
@@ -1521,8 +1521,8 @@ class TestErrorHandling:
     def test_handle_errors_decorator_catches_rule_error(
         self, cli_runner: CliRunner, temp_dirs: dict[str, Path], sample_rules_file: Path
     ) -> None:
-        from src.interfaces.cli import cli
         from src.common.exceptions import RuleError
+        from src.interfaces.cli import cli
 
         with patch("src.interfaces.cli.GrpcClient") as mock_client_cls:
             mock_client = MagicMock()

@@ -351,7 +351,6 @@ class TestApplicationGrpcIntegration:
         assert status["is_running"] is False
 
     def test_is_running_property(self, tmp_path: Path) -> None:
-        from pathlib import Path
         from unittest.mock import patch
 
         from src.application import Application, ApplicationConfig

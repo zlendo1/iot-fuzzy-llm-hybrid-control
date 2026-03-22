@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-import json
 import importlib
+import json
 from collections.abc import Sequence
 from datetime import datetime, timezone
 from pathlib import Path
-from unittest.mock import MagicMock
 from typing import Any
+from unittest.mock import MagicMock
 
 from google.protobuf.timestamp_pb2 import Timestamp
 

@@ -447,8 +447,8 @@ class GrpcClient:
         offset: int = 0,
         level_filter: str = "",
         category_filter: str = "",
-        from_time: str = "",
-        to_time: str = "",
+        from_time: str = "",  # noqa: ARG002
+        to_time: str = "",  # noqa: ARG002
     ) -> dict[str, Any]:
         if not self._logs_stub:
             raise IoTFuzzyLLMError("Not connected - call connect() first")

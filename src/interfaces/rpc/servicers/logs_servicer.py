@@ -11,6 +11,7 @@ from src.common.logging import get_logger
 from src.configuration.logging_manager import LogCategory, LoggingManager
 from src.interfaces.rpc.error_mapping import handle_grpc_errors
 from src.interfaces.rpc.generated import logs_pb2_grpc
+from src.interfaces.rpc.generated.common_pb2 import PaginationResponse
 from src.interfaces.rpc.generated.logs_pb2 import (
     GetLogCategoriesResponse,
     GetLogEntriesResponse,
@@ -18,7 +19,6 @@ from src.interfaces.rpc.generated.logs_pb2 import (
     LogEntry,
     LogStats,
 )
-from src.interfaces.rpc.generated.common_pb2 import PaginationResponse
 
 logger = get_logger(__name__)
 
@@ -110,9 +110,11 @@ class LogsServicer(logs_pb2_grpc.LogsServiceServicer):
         for entry in raw_entries:
             category = entry.get("category", "")
             normalized = self._normalize_entry(entry, category)
-            if normalized is not None:
-                if normalized["timestamp"] >= self._session_start:
-                    entries.append(normalized)
+            if (
+                normalized is not None
+                and normalized["timestamp"] >= self._session_start
+            ):
+                entries.append(normalized)
         return entries
 
     def _normalize_entry(

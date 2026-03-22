@@ -6,11 +6,9 @@ Uses real gRPC server (not mocked) with mocked MQTT and Ollama backends.
 
 from __future__ import annotations
 
-import json
 import socket
 import time
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 import pytest
 from click.testing import CliRunner

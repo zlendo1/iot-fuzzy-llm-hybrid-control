@@ -7,9 +7,9 @@ device monitoring, and configuration management.
 from __future__ import annotations
 
 import json
-import typing
 import sys
 import textwrap
+import typing
 from pathlib import Path
 from typing import Any
 
@@ -363,7 +363,11 @@ def rule() -> None:
 @pass_context
 @handle_errors
 def rule_add(
-    ctx: CLIContext, text: str, rule_id: str | None, priority: int, tag: tuple[str, ...]
+    ctx: CLIContext,
+    text: str,
+    rule_id: str | None,  # noqa: ARG001
+    priority: int,  # noqa: ARG001
+    tag: tuple[str, ...],  # noqa: ARG001
 ) -> None:
     """Add a new natural language rule.
 
@@ -390,7 +394,7 @@ def rule_add(
 @click.option("--tag", "-t", help="Filter by tag.")
 @pass_context
 @handle_errors
-def rule_list(ctx: CLIContext, enabled_only: bool, tag: str | None) -> None:
+def rule_list(ctx: CLIContext, enabled_only: bool, tag: str | None) -> None:  # noqa: ARG001
     """List all rules."""
     with GrpcClient(ctx.grpc_host, ctx.grpc_port) as client:
         try:

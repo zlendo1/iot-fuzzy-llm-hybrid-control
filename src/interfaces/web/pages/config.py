@@ -47,9 +47,7 @@ def _render_config_editor(
             return
 
         result = bridge.update_config(config_name, parsed, version)
-        if result is not None and result.get("success"):
-            st.success(f"Saved {config_name} configuration.")
-        elif result is not None and "new_version" in result:
+        if result is not None and result.get("success") or result is not None and "new_version" in result:
             st.success(f"Saved {config_name} configuration.")
         else:
             error_msg = (

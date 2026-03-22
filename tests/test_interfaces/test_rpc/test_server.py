@@ -11,7 +11,6 @@ import pytest
 
 if TYPE_CHECKING:
     from src.configuration.system_orchestrator import SystemOrchestrator
-    from src.interfaces.rpc.server import GrpcServer
 
 
 @pytest.fixture

@@ -77,7 +77,7 @@ def render() -> None:
                 st.rerun()
             else:
                 st.error("Failed to start system")
-    elif current_state == "running":
+    elif current_state == "running":  # noqa: SIM102
         if st.button("⏹️ Stop System", type="secondary"):
             if bridge.shutdown():
                 st.success("Shutdown initiated!")

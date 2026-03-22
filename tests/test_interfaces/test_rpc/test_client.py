@@ -2,14 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Any
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, patch
 
 import grpc
 import pytest
 
 from src.common.exceptions import (
-    ConfigurationError,
     DeviceError,
     IoTFuzzyLLMError,
     RuleError,

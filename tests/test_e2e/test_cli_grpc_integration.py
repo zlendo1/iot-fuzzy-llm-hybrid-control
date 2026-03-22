@@ -999,3 +999,332 @@ def test_device_send_command_via_grpc(
     finally:
         app.stop()
         assert _wait_for_state(app, ApplicationState.STOPPED)
+
+
+@pytest.mark.integration
+def test_config_validate_via_grpc(
+    config_directory: Path,
+    rules_directory: Path,
+    logs_directory: Path,
+    grpc_port: int,
+) -> None:
+    """Test config validate command calls gRPC ValidateConfig and displays result."""
+    app = Application(
+        ApplicationConfig(
+            config_dir=config_directory,
+            rules_dir=rules_directory,
+            logs_dir=logs_directory,
+            grpc_port=grpc_port,
+            skip_mqtt=True,
+            skip_ollama=True,
+        )
+    )
+
+    assert app.start() is True
+    assert _wait_for_state(app, ApplicationState.RUNNING)
+    time.sleep(0.2)
+
+    try:
+        runner = CliRunner()
+        result = runner.invoke(
+            cli,
+            [
+                "--grpc-host",
+                "localhost",
+                "--grpc-port",
+                str(grpc_port),
+                "config",
+                "validate",
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert "valid" in result.output.lower()
+        assert "mqtt_config" in result.output or "devices" in result.output
+
+    finally:
+        app.stop()
+        assert _wait_for_state(app, ApplicationState.STOPPED)
+
+
+@pytest.mark.integration
+def test_config_reload_via_grpc(
+    config_directory: Path,
+    rules_directory: Path,
+    logs_directory: Path,
+    grpc_port: int,
+) -> None:
+    """Test gRPC ReloadConfig call returns success/failure response."""
+    from src.interfaces.rpc.client import GrpcClient
+
+    app = Application(
+        ApplicationConfig(
+            config_dir=config_directory,
+            rules_dir=rules_directory,
+            logs_dir=logs_directory,
+            grpc_port=grpc_port,
+            skip_mqtt=True,
+            skip_ollama=True,
+        )
+    )
+
+    assert app.start() is True
+    assert _wait_for_state(app, ApplicationState.RUNNING)
+    time.sleep(0.2)
+
+    try:
+        with GrpcClient("localhost", grpc_port) as client:
+            result = client.reload_config()
+
+            assert "success" in result
+            assert "message" in result
+            assert isinstance(result["success"], bool)
+
+    finally:
+        app.stop()
+        assert _wait_for_state(app, ApplicationState.STOPPED)
+
+
+@pytest.mark.integration
+def test_config_show_via_grpc(
+    config_directory: Path,
+    rules_directory: Path,
+    logs_directory: Path,
+    grpc_port: int,
+) -> None:
+    """Test gRPC GetConfig retrieves config content."""
+    from src.interfaces.rpc.client import GrpcClient
+
+    app = Application(
+        ApplicationConfig(
+            config_dir=config_directory,
+            rules_dir=rules_directory,
+            logs_dir=logs_directory,
+            grpc_port=grpc_port,
+            skip_mqtt=True,
+            skip_ollama=True,
+        )
+    )
+
+    assert app.start() is True
+    assert _wait_for_state(app, ApplicationState.RUNNING)
+    time.sleep(0.2)
+
+    try:
+        with GrpcClient("localhost", grpc_port) as client:
+            result = client.get_config("devices")
+
+            assert "content" in result
+            assert "version" in result
+            assert "devices" in result["content"]
+            assert isinstance(result["content"]["devices"], list)
+
+    finally:
+        app.stop()
+        assert _wait_for_state(app, ApplicationState.STOPPED)
+
+
+@pytest.mark.integration
+def test_config_migrate_via_grpc(
+    config_directory: Path,
+    rules_directory: Path,
+    logs_directory: Path,
+    grpc_port: int,
+) -> None:
+    """Test config migrate command shows migration status."""
+    app = Application(
+        ApplicationConfig(
+            config_dir=config_directory,
+            rules_dir=rules_directory,
+            logs_dir=logs_directory,
+            grpc_port=grpc_port,
+            skip_mqtt=True,
+            skip_ollama=True,
+        )
+    )
+
+    assert app.start() is True
+    assert _wait_for_state(app, ApplicationState.RUNNING)
+    time.sleep(0.2)
+
+    try:
+        runner = CliRunner()
+        result = runner.invoke(
+            cli,
+            [
+                "--grpc-host",
+                "localhost",
+                "--grpc-port",
+                str(grpc_port),
+                "config",
+                "migrate",
+                "--dry-run",
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert (
+            "up-to-date" in result.output.lower()
+            or "change" in result.output.lower()
+            or "dry-run" in result.output.lower()
+        )
+
+    finally:
+        app.stop()
+        assert _wait_for_state(app, ApplicationState.STOPPED)
+
+
+@pytest.mark.integration
+def test_membership_list_via_grpc(
+    config_directory: Path,
+    rules_directory: Path,
+    logs_directory: Path,
+    grpc_port: int,
+) -> None:
+    """Test gRPC ListSensorTypes returns available sensor types."""
+    from src.interfaces.rpc.client import GrpcClient
+
+    app = Application(
+        ApplicationConfig(
+            config_dir=config_directory,
+            rules_dir=rules_directory,
+            logs_dir=logs_directory,
+            grpc_port=grpc_port,
+            skip_mqtt=True,
+            skip_ollama=True,
+        )
+    )
+
+    assert app.start() is True
+    assert _wait_for_state(app, ApplicationState.RUNNING)
+    time.sleep(0.2)
+
+    try:
+        with GrpcClient("localhost", grpc_port) as client:
+            sensor_types = client.list_sensor_types()
+
+            assert isinstance(sensor_types, list)
+            assert "temperature" in sensor_types
+            assert "humidity" in sensor_types
+
+    finally:
+        app.stop()
+        assert _wait_for_state(app, ApplicationState.STOPPED)
+
+
+@pytest.mark.integration
+def test_membership_show_via_grpc(
+    config_directory: Path,
+    rules_directory: Path,
+    logs_directory: Path,
+    grpc_port: int,
+) -> None:
+    """Test gRPC GetMembershipFunctions returns MF details for a sensor type."""
+    from src.interfaces.rpc.client import GrpcClient
+
+    app = Application(
+        ApplicationConfig(
+            config_dir=config_directory,
+            rules_dir=rules_directory,
+            logs_dir=logs_directory,
+            grpc_port=grpc_port,
+            skip_mqtt=True,
+            skip_ollama=True,
+        )
+    )
+
+    assert app.start() is True
+    assert _wait_for_state(app, ApplicationState.RUNNING)
+    time.sleep(0.2)
+
+    try:
+        with GrpcClient("localhost", grpc_port) as client:
+            result = client.get_membership_functions("temperature")
+
+            assert result["sensor_type"] == "temperature"
+            assert "linguistic_variables" in result
+            assert isinstance(result["linguistic_variables"], list)
+            var_names = [lv["name"] for lv in result["linguistic_variables"]]
+            assert "cold" in var_names or "hot" in var_names
+
+    finally:
+        app.stop()
+        assert _wait_for_state(app, ApplicationState.STOPPED)
+
+
+@pytest.mark.integration
+def test_log_categories_via_grpc(
+    config_directory: Path,
+    rules_directory: Path,
+    logs_directory: Path,
+    grpc_port: int,
+) -> None:
+    """Test gRPC GetLogCategories returns available log categories."""
+    from src.interfaces.rpc.client import GrpcClient
+
+    app = Application(
+        ApplicationConfig(
+            config_dir=config_directory,
+            rules_dir=rules_directory,
+            logs_dir=logs_directory,
+            grpc_port=grpc_port,
+            skip_mqtt=True,
+            skip_ollama=True,
+        )
+    )
+
+    assert app.start() is True
+    assert _wait_for_state(app, ApplicationState.RUNNING)
+    time.sleep(0.2)
+
+    try:
+        with GrpcClient("localhost", grpc_port) as client:
+            categories = client.get_log_categories()
+
+            assert isinstance(categories, list)
+            assert len(categories) > 0
+
+    finally:
+        app.stop()
+        assert _wait_for_state(app, ApplicationState.STOPPED)
+
+
+@pytest.mark.integration
+def test_log_stats_via_grpc(
+    config_directory: Path,
+    rules_directory: Path,
+    logs_directory: Path,
+    grpc_port: int,
+) -> None:
+    """Test gRPC GetLogStats returns log statistics."""
+    from src.interfaces.rpc.client import GrpcClient
+
+    app = Application(
+        ApplicationConfig(
+            config_dir=config_directory,
+            rules_dir=rules_directory,
+            logs_dir=logs_directory,
+            grpc_port=grpc_port,
+            skip_mqtt=True,
+            skip_ollama=True,
+        )
+    )
+
+    assert app.start() is True
+    assert _wait_for_state(app, ApplicationState.RUNNING)
+    time.sleep(0.2)
+
+    try:
+        with GrpcClient("localhost", grpc_port) as client:
+            stats = client.get_log_stats()
+
+            assert "total" in stats
+            assert "by_level" in stats
+            assert "by_category" in stats
+            assert isinstance(stats["total"], int)
+            assert isinstance(stats["by_level"], dict)
+            assert isinstance(stats["by_category"], dict)
+
+    finally:
+        app.stop()
+        assert _wait_for_state(app, ApplicationState.STOPPED)

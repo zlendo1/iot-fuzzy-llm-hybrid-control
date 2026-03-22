@@ -9,6 +9,7 @@ from __future__ import annotations
 import socket
 import time
 from pathlib import Path
+from typing import Generator
 
 import pytest
 from click.testing import CliRunner
@@ -57,7 +58,7 @@ def running_app(
     rules_directory: Path,
     logs_directory: Path,
     grpc_port: int,
-) -> Application:
+) -> Generator[Application, None, None]:
     """Start Application with gRPC server for integration tests."""
     app = Application(
         ApplicationConfig(

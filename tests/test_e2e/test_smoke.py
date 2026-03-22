@@ -56,7 +56,6 @@ def test_sensor_reading_flows_through_fuzzy_pipeline(
         "src.interfaces.web.pages.config",
         "src.interfaces.web.pages.membership_editor",
         "src.interfaces.web.pages.logs",
-        "src.interfaces.web.pages.system_control",
     ],
 )
 def test_web_pages_importable(module_path: str) -> None:

@@ -32,7 +32,6 @@ PAGE_FILES = [
     "src/interfaces/web/pages/config.py",
     "src/interfaces/web/pages/membership_editor.py",
     "src/interfaces/web/pages/logs.py",
-    "src/interfaces/web/pages/system_control.py",
 ]
 
 
@@ -301,43 +300,6 @@ def test_web_membership_editor_page_loads_via_grpc(
 
     try:
         at = AppTest.from_file("src/interfaces/web/pages/membership_editor.py")
-        with patch.dict(
-            "os.environ", {"STREAMLIT_GRPC_PORT": str(grpc_port)}, clear=False
-        ):
-            at.run(timeout=10)
-
-        assert not at.exception, f"Streamlit error: {at.exception}"
-
-    finally:
-        app.stop()
-        assert _wait_for_state(app, ApplicationState.STOPPED)
-
-
-@pytest.mark.integration
-def test_web_system_control_page_loads_via_grpc(
-    config_directory: Path,
-    rules_directory: Path,
-    logs_directory: Path,
-    grpc_port: int,
-) -> None:
-    """Test system control page loads via gRPC."""
-    app = Application(
-        ApplicationConfig(
-            config_dir=config_directory,
-            rules_dir=rules_directory,
-            logs_dir=logs_directory,
-            grpc_port=grpc_port,
-            skip_mqtt=True,
-            skip_ollama=True,
-        )
-    )
-
-    assert app.start() is True
-    assert _wait_for_state(app, ApplicationState.RUNNING)
-    time.sleep(0.2)
-
-    try:
-        at = AppTest.from_file("src/interfaces/web/pages/system_control.py")
         with patch.dict(
             "os.environ", {"STREAMLIT_GRPC_PORT": str(grpc_port)}, clear=False
         ):

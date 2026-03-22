@@ -24,7 +24,6 @@ PAGE_FILES = [
     "src/interfaces/web/pages/config.py",
     "src/interfaces/web/pages/membership_editor.py",
     "src/interfaces/web/pages/logs.py",
-    "src/interfaces/web/pages/system_control.py",
 ]
 
 

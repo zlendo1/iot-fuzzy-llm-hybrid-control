@@ -48,33 +48,43 @@ def render() -> None:
 
     current_state = status.get("state", "unknown")
 
-    st.subheader("System Control")
-    col_status, col_action = st.columns([2, 1])
+    st.subheader("System Overview")
 
-    with col_status:
+    uptime_seconds = status.get("uptime_seconds", 0)
+    version = status.get("version", "unknown")
+
+    hours, remainder = divmod(int(uptime_seconds), 3600)
+    minutes, seconds = divmod(remainder, 60)
+    uptime_str = f"{hours}h {minutes}m {seconds}s"
+
+    col_state, col_version, col_uptime = st.columns(3)
+    with col_state:
         if current_state == "running":
-            st.success("🟢 System is running")
+            st.metric("Status", "RUNNING")
         elif current_state == "stopped":
-            st.info("🟡 System is stopped (ready to start)")
+            st.metric("Status", "STOPPED")
         else:
-            st.warning(f"⚪ System state: {current_state}")
+            st.metric("Status", current_state.upper())
+    with col_version:
+        st.metric("Version", version)
+    with col_uptime:
+        st.metric("Uptime", uptime_str)
 
-    with col_action:
-        if current_state == "stopped":
-            if st.button("▶️ Start System", type="primary", width="stretch"):
-                if bridge.start():
-                    st.success("System started!")
-                    st.rerun()
-                else:
-                    st.error("Failed to start system")
-        elif current_state == "running":
-            if st.button("⏹️ Stop System", type="secondary", width="stretch"):
-                if bridge.shutdown():
-                    st.success("Shutdown initiated!")
-                    set_shutdown_initiated()
-                    st.rerun()
-                else:
-                    st.error("Failed to stop system")
+    if current_state == "stopped":
+        if st.button("▶️ Start System", type="primary"):
+            if bridge.start():
+                st.success("System started!")
+                st.rerun()
+            else:
+                st.error("Failed to start system")
+    elif current_state == "running":
+        if st.button("⏹️ Stop System", type="secondary"):
+            if bridge.shutdown():
+                st.success("Shutdown initiated!")
+                set_shutdown_initiated()
+                st.rerun()
+            else:
+                st.error("Failed to stop system")
 
     st.divider()
 

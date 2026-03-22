@@ -13,7 +13,6 @@ PAGES: tuple[tuple[str, str], ...] = (
     ("config", "src/interfaces/web/pages/config.py"),
     ("membership_editor", "src/interfaces/web/pages/membership_editor.py"),
     ("logs", "src/interfaces/web/pages/logs.py"),
-    ("system_control", "src/interfaces/web/pages/system_control.py"),
 )
 
 

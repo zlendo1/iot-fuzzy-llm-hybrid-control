@@ -109,15 +109,6 @@ class TestPageModuleImports:
         except ImportError as e:
             pytest.fail(f"Failed to import logs page: {e}")
 
-    def test_system_control_page_module_can_be_imported(self) -> None:
-        """Verify system_control.py exists and can be imported."""
-        try:
-            from src.interfaces.web.pages import system_control  # type: ignore
-
-            assert system_control is not None
-        except ImportError as e:
-            pytest.fail(f"Failed to import system_control page: {e}")
-
 
 @pytest.mark.unit
 class TestPageRenderFunctions:
@@ -164,13 +155,6 @@ class TestPageRenderFunctions:
 
         assert hasattr(logs, "render")
         assert callable(logs.render)
-
-    def test_system_control_render_function_exists(self) -> None:
-        """Verify system_control page has render() function."""
-        from src.interfaces.web.pages import system_control  # type: ignore
-
-        assert hasattr(system_control, "render")
-        assert callable(system_control.render)
 
 
 @pytest.mark.unit

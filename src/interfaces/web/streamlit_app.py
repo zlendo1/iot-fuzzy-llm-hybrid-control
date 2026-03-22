@@ -35,11 +35,6 @@ PAGES = [
     st.Page(
         SCRIPT_DIR / "pages" / "logs.py", title="Logs", icon=":material/description:"
     ),
-    st.Page(
-        SCRIPT_DIR / "pages" / "system_control.py",
-        title="System Control",
-        icon=":material/tune:",
-    ),
 ]
 
 

@@ -61,6 +61,7 @@ services:
       - iot-network
     ports:
       - "${IOT_STATUS_PORT:-8080}:8080"
+      - "${IOT_GRPC_PORT:-50051}:50051"
     environment:
       - MQTT_HOST=mosquitto
       - MQTT_PORT=1883
@@ -95,6 +96,8 @@ services:
       - "${WEB_PORT:-8501}:8501"
     environment:
       - IOT_APP_URL=http://app:8080
+      - IOT_GRPC_HOST=app
+      - IOT_GRPC_PORT=50051
       - MQTT_HOST=mosquitto
       - MQTT_PORT=1883
       - OLLAMA_HOST=ollama

@@ -151,4 +151,4 @@ def test_get_bridge_returns_cached_instance() -> None:
         second = bridge_module.get_bridge()
 
     assert first is second
-    mocked_bridge.assert_called_once_with()
+    mocked_bridge.assert_called_once_with(grpc_host="localhost", grpc_port=50051)

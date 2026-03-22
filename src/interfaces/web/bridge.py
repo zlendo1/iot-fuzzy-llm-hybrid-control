@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from typing import Any, Protocol
 
 import streamlit as st
@@ -476,4 +477,6 @@ class OrchestratorBridge:
 
 @st.cache_resource
 def get_bridge() -> OrchestratorBridge:
-    return OrchestratorBridge()
+    grpc_host = os.environ.get("IOT_GRPC_HOST", "localhost")
+    grpc_port = int(os.environ.get("IOT_GRPC_PORT", "50051"))
+    return OrchestratorBridge(grpc_host=grpc_host, grpc_port=grpc_port)

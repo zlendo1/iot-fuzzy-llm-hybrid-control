@@ -70,7 +70,7 @@ services:
       - OLLAMA_MODEL=${OLLAMA_MODEL:-qwen3:0.6b}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - IOT_STATUS_PORT=${IOT_STATUS_PORT:-8080}
-      - IOT_AUTO_START=false
+      - IOT_AUTO_START=true
     healthcheck:
       test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
       interval: 30s

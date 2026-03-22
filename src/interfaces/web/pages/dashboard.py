@@ -61,14 +61,14 @@ def render() -> None:
 
     with col_action:
         if current_state == "idle":
-            if st.button("▶️ Start System", type="primary", use_container_width=True):
+            if st.button("▶️ Start System", type="primary", width="stretch"):
                 if bridge.start():
                     st.success("System started!")
                     st.rerun()
                 else:
                     st.error("Failed to start system")
         elif current_state == "running":
-            if st.button("⏹️ Stop System", type="secondary", use_container_width=True):
+            if st.button("⏹️ Stop System", type="secondary", width="stretch"):
                 if bridge.shutdown():
                     st.success("Shutdown initiated!")
                     set_shutdown_initiated()

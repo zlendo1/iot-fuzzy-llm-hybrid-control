@@ -96,7 +96,7 @@ def render() -> None:
         return
 
     display_entries = _entries_for_display(filtered)
-    st.dataframe(display_entries, use_container_width=True)
+    st.dataframe(display_entries, width="stretch")
 
 
 if __name__ == "__main__":

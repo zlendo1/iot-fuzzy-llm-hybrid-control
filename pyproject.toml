@@ -181,6 +181,7 @@ markers = [
     "performance: Performance tests (verify latency targets from ADD Section 8.1)",
     "stress: Stress/load tests (verify system limits)",
     "slow: Slow tests (skipped in quick runs)",
+    "docker: marks tests requiring Docker Compose services (deselect with '-m \"not docker\"')",
 ]
 filterwarnings = [
     "ignore::DeprecationWarning",

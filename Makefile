@@ -1,6 +1,6 @@
 .PHONY: help build up down restart logs logs-app logs-web ps shell shell-mqtt shell-web \
 	install dev dev-deps dev-web \
-	test test-unit test-int coverage coverage-html \
+	test test-unit test-int docker-test coverage coverage-html \
 	lint format check typecheck \
 	proto proto-clean \
 	clean clean-docker clean-all reset \
@@ -46,6 +46,7 @@ help:
 	@echo "  make test           Run all tests"
 	@echo "  make test-unit      Run unit tests only"
 	@echo "  make test-int       Run integration tests only"
+	@echo "  make docker-test    Run Docker E2E tests (requires Docker Compose)"
 	@echo "  make coverage       Run tests with coverage report"
 	@echo "  make coverage-html  Generate HTML coverage report"
 	@echo ""
@@ -144,6 +145,9 @@ test-unit: $(VENV)
 
 test-int: $(VENV)
 	$(VENV_BIN)/pytest tests/ -v -m "integration"
+
+docker-test: $(VENV) ## Run Docker E2E tests (requires running Docker Compose services)
+	$(VENV_BIN)/pytest -m docker -v --tb=short
 
 coverage: $(VENV)
 	$(VENV_BIN)/pytest tests/ --cov=src --cov-report=term-missing

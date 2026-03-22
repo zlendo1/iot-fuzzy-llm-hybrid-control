@@ -8,6 +8,7 @@ from typing import Any
 import jsonschema
 import grpc
 
+from src.common.exceptions import ConfigurationError
 from src.common.logging import get_logger
 from src.configuration.config_manager import ConfigurationManager
 from src.interfaces.rpc.generated import config_pb2, config_pb2_grpc
@@ -30,7 +31,7 @@ class ConfigServicer(config_pb2_grpc.ConfigServiceServicer):
         try:
             data = self._config_manager.load_config(request.name, validate=False)
             content = json.dumps(data, indent=2)
-        except FileNotFoundError as exc:
+        except (FileNotFoundError, ConfigurationError) as exc:
             context.abort(grpc.StatusCode.NOT_FOUND, str(exc))
             return config_pb2.GetConfigResponse()
         except Exception as exc:
@@ -54,7 +55,7 @@ class ConfigServicer(config_pb2_grpc.ConfigServiceServicer):
         try:
             current_data = self._config_manager.load_config(name, validate=False)
             current_content = json.dumps(current_data, indent=2)
-        except FileNotFoundError:
+        except (FileNotFoundError, ConfigurationError):
             context.abort(
                 grpc.StatusCode.NOT_FOUND, f"Configuration file not found: {name}"
             )

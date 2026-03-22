@@ -86,7 +86,7 @@ make logs
 | ----------- | ------------- | ----- | --------------------- |
 | MQTT Broker | iot-mosquitto | 1883  | Mosquitto MQTT broker |
 | Ollama      | iot-ollama    | 11434 | LLM inference service |
-| App         | iot-app       | -     | Main application      |
+| App         | iot-app       | 50051 | Main application gRPC |
 
 ### Environment Variables
 

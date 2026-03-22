@@ -37,7 +37,7 @@ The demo showcases a smart home with:
 
 ```bash
 # Check all containers are running
-docker-compose ps
+docker compose ps
 ```
 
 **Verification**: Confirm all 3 containers show `running (healthy)`:
@@ -57,32 +57,14 @@ iot-fuzzy-llm status
 ```
 
 **Verification**: Confirm the output shows "Connected to running application"
-and component status:
+and system status:
 
 ```
-Connected to running application
-
-System Status
-=============
-State: running
-Running: Yes
-
-Statistics:
-  Readings processed: 0
-  Rules evaluated: 0
-  Commands generated: 0
-  Commands sent: 0
-  Errors: 0
-  Uptime: 45.2s
-
-Components:
-  config_manager:   available
-  logging_manager:  available
-  rule_manager:     available
-  device_registry:  available
-  fuzzy_pipeline:   available
-  mqtt_manager:     available
-  device_monitor:   available
+✓ Connected to running application.
+System State: RUNNING
+Ready: Yes
+Uptime (seconds): 45
+Version: 0.1.0
 ```
 
 > [!NOTE]
@@ -101,21 +83,17 @@ iot-fuzzy-llm rule list
 text:
 
 ```
-ID           | Enabled | Priority | Text                                               | Tags
--------------+---------+----------+----------------------------------------------------+-----------------------------
-climate_001  | Yes     | 1        | If the living room temperature is hot and humidity | climate, cooling, comfort
-             |         |          | is high, turn on the air conditioner and set it to |
-             |         |          | cooling mode at 22 degrees                         |
--------------+---------+----------+----------------------------------------------------+-----------------------------
-climate_002  | Yes     | 2        | If the living room temperature is warm and         | climate, comfort
-             |         |          | humidity is comfortable, no action is needed       |
--------------+---------+----------+----------------------------------------------------+-----------------------------
-lighting_001 | Yes     | 1        | When motion is detected in the hallway and the     | lighting, motion, safety
-             |         |          | light level is dark, turn on the hallway light     |
--------------+---------+----------+----------------------------------------------------+-----------------------------
-lighting_002 | Yes     | 2        | When motion is detected in the living room and the | lighting, motion, comfort
-             |         |          | light level is dim, turn on the living room light  |
-             |         |          | and set brightness to 70 percent                   |
+ID           | Enabled | Text                                               
+-------------+---------+----------------------------------------------------
+climate_001  | Yes     | If the living room temperature is hot and humidity 
+             |         | is high, turn on the air conditioner and set it to 
+             |         | cooling mode at 22 degrees                         
+-------------+---------+----------------------------------------------------
+climate_002  | Yes     | If the living room temperature is warm and         
+             |         | humidity is comfortable, no action is needed       
+-------------+---------+----------------------------------------------------
+lighting_001 | Yes     | When motion is detected in the hallway and the     
+             |         | light level is dark, turn on the hallway light     
 ...
 
 Total: 10 rule(s)
@@ -260,10 +238,8 @@ iot-fuzzy-llm rule add --id night_mode \
 **Verification**: Confirm rule was added:
 
 ```
-Rule added successfully.
-  ID: night_mode
+✓ Rule added with ID: night_mode
   Text: If no motion detected for 30 minutes after 11pm, turn off all lights
-  Priority: 50
   Enabled: Yes
 ```
 
@@ -275,7 +251,7 @@ iot-fuzzy-llm rule disable climate_002
 **Verification**: Confirm rule was disabled:
 
 ```
-Rule 'climate_002' disabled.
+✓ Rule climate_002 disabled.
 ```
 
 ```bash
@@ -286,7 +262,7 @@ iot-fuzzy-llm rule enable climate_002
 **Verification**: Confirm rule was enabled:
 
 ```
-Rule 'climate_002' enabled.
+✓ Rule climate_002 enabled.
 ```
 
 ```bash
@@ -297,14 +273,9 @@ iot-fuzzy-llm rule show climate_001
 **Verification**: Confirm rule details are displayed:
 
 ```
-Rule: climate_001
-=================
-Text: If the living room is hot and humid, turn on the air conditioner
+Rule ID: climate_001
+Text: If the living room temperature is hot and humidity is high, turn on the air conditioner
 Enabled: Yes
-Priority: 80
-Created: 2026-02-05T10:00:00
-Trigger Count: 3
-Last Triggered: 2026-02-05T14:22:00
 ```
 
 ### Step 9: Sensor Status Demo
@@ -314,30 +285,26 @@ Last Triggered: 2026-02-05T14:22:00
 iot-fuzzy-llm sensor status
 ```
 
-**Verification**: Confirm 7 sensors are displayed with their configuration:
+**Verification**: Confirm sensors are displayed with their configuration:
 
 ```
 Living Room Temperature Sensor (temp_living_room)
   Class: temperature
   Location: living_room
-  Unit: °C
+  Unit: N/A
   Status: registered
-  MQTT Topic: home/living_room/temperature
 
 Living Room Humidity Sensor (humidity_living_room)
   Class: humidity
   Location: living_room
-  Unit: %
+  Unit: N/A
   Status: registered
-  MQTT Topic: home/living_room/humidity
 
 Bedroom Temperature Sensor (temp_bedroom)
   Class: temperature
   Location: bedroom
-  Unit: °C
+  Unit: N/A
   Status: registered
-  MQTT Topic: home/bedroom/temperature
-
 ...
 ```
 
@@ -351,17 +318,14 @@ iot-fuzzy-llm config validate
 **Verification**: Confirm all configurations pass validation:
 
 ```
-Configuration Validation
-========================
+ℹ Validating configuration files...
+✓ All configuration files are valid.
 
-Validating configuration files...
-
-  ✓ devices.json         Valid (14 devices)
-  ✓ mqtt_config.json     Valid
-  ✓ llm_config.json      Valid
-  ✓ membership_functions Valid (4 sensor types)
-
-All configuration files are valid.
+Loaded configurations:
+  ✓ devices
+  ✓ mqtt
+  ✓ llm
+  ✓ membership_functions
 ```
 
 ## Expected Outputs

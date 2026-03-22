@@ -100,23 +100,16 @@ curl http://localhost:11434/api/generate -d '{
 
 **Causes & Solutions**:
 
-| Cause               | Solution                                       |
-| ------------------- | ---------------------------------------------- |
-| Rules disabled      | `python -m src.main rule list` to check status |
-| Wrong sensor topic  | Verify topic matches devices.json              |
-| Fuzzy threshold     | Value may not meet membership threshold        |
-| LLM parsing failure | Check logs for response parsing errors         |
+| Cause               | Solution                                              |
+| ------------------- | ----------------------------------------------------- |
+| Rules disabled      | `python3 -m src.interfaces rule list` to check status |
+| Wrong sensor topic  | Verify topic matches devices.json                     |
+| Fuzzy threshold     | Value may not meet membership threshold               |
+| LLM parsing failure | Check logs for response parsing errors                |
 
 ```bash
 # Verify rules are loaded
-python -m src.main rule list
-
-# Check sensor processing
-tail -f logs/system.log | grep "fuzzify"
-
-# Enable debug logging
-export LOG_LEVEL=DEBUG
-make restart
+python3 -m src.interfaces rule list
 ```
 
 ### 5. Commands Not Published
@@ -174,18 +167,13 @@ curl http://localhost:11434/api/generate -d '{
 | Cause             | Solution                                         |
 | ----------------- | ------------------------------------------------ |
 | Invalid JSON      | Validate JSON syntax: `python -m json.tool file` |
-| Schema violation  | Run `python -m src.main config validate`         |
+| Schema violation  | Run `python3 -m src.interfaces config validate`  |
 | Missing file      | Check all required configs exist                 |
 | Permission denied | Check file permissions: `ls -la config/`         |
 
 ```bash
 # Validate all configs
-python -m src.main config validate
-
-# Check JSON syntax
-python -m json.tool config/devices.json > /dev/null
-python -m json.tool config/mqtt_config.json > /dev/null
-python -m json.tool rules/active_rules.json > /dev/null
+python3 -m src.interfaces config validate
 ```
 
 ### 8. Membership Function Issues
@@ -211,6 +199,30 @@ engine.load_configs_from_directory(Path('config/membership_functions'))
 result = engine.fuzzify('temperature', 32.0)
 print(result)
 "
+```
+
+### 9. gRPC Connection Issues
+
+**Symptom**: "Connection refused" on port 50051, "gRPC server unavailable"
+
+**Causes & Solutions**:
+
+| Cause                      | Solution                                        |
+| -------------------------- | ----------------------------------------------- |
+| System not started         | Run `iot-fuzzy-llm start` or `make up`          |
+| App container unresponsive | Check status with `make ps`, restart if needed  |
+| Wrong host/port            | Verify with `--grpc-host` and `--grpc-port`     |
+| Firewall blocking 50051    | Ensure port 50051 is open for local connections |
+
+```bash
+# Check if port 50051 is listening
+netstat -tlnp | grep 50051
+
+# Verify app container health
+make ps
+
+# Test connection with verbose output
+iot-fuzzy-llm -v status
 ```
 
 ## Log Analysis

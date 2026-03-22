@@ -39,9 +39,15 @@ Before using the CLI, ensure:
 
 ### First Run
 
+The CLI can be accessed using the `iot-fuzzy-llm` command (if installed via
+`pip install -e .`) or by running the module directly:
+
 ```bash
-# Check system status
+# Using installed command
 iot-fuzzy-llm status
+
+# Using python module (if not installed)
+python3 -m src.interfaces status
 
 # Start the system
 iot-fuzzy-llm start
@@ -138,9 +144,6 @@ iot-fuzzy-llm stop
 # Basic status
 iot-fuzzy-llm status
 
-# Detailed status with initialization steps
-iot-fuzzy-llm -v status
-
 # JSON output for scripting
 iot-fuzzy-llm --format json status
 
@@ -158,13 +161,8 @@ iot-fuzzy-llm --grpc-host localhost --grpc-port 50051 status
 ```
 System State: RUNNING
 Ready: Yes
-
-Components:
-  ✓ config_manager: available
-  ✓ device_registry: available
-  ✓ fuzzy_engine: available
-  ✓ ollama_client: available
-  ✓ mqtt_client: available
+Uptime (seconds): 124
+Version: 0.1.0
 ```
 
 ______________________________________________________________________
@@ -193,17 +191,17 @@ iot-fuzzy-llm --format json rule list
 **Example Output:**
 
 ```
-ID           | Enabled | Priority | Text                                               | Tags
--------------+---------+----------+----------------------------------------------------+-----------------------------
-climate_001  | Yes     | 1        | If the living room temperature is hot and humidity | climate, cooling, comfort
-             |         |          | is high, turn on the air conditioner and set it to |
-             |         |          | cooling mode at 22 degrees                         |
--------------+---------+----------+----------------------------------------------------+-----------------------------
-climate_002  | Yes     | 2        | If the living room temperature is warm and         | climate, comfort
-             |         |          | humidity is comfortable, no action is needed       |
--------------+---------+----------+----------------------------------------------------+-----------------------------
-lighting_001 | Yes     | 1        | When motion is detected in the hallway and the     | lighting, motion, safety
-             |         |          | light level is dark, turn on the hallway light     |
+ID           | Enabled | Text                                               
+-------------+---------+----------------------------------------------------
+climate_001  | Yes     | If the living room temperature is hot and humidity 
+             |         | is high, turn on the air conditioner and set it to 
+             |         | cooling mode at 22 degrees                         
+-------------+---------+----------------------------------------------------
+climate_002  | Yes     | If the living room temperature is warm and         
+             |         | humidity is comfortable, no action is needed       
+-------------+---------+----------------------------------------------------
+lighting_001 | Yes     | When motion is detected in the hallway and the     
+             |         | light level is dark, turn on the hallway light     
 
 Total: 3 rule(s)
 ```
@@ -235,20 +233,15 @@ iot-fuzzy-llm rule add -t comfort -t climate "When temperature is cold, turn on 
 ### Viewing Rule Details
 
 ```bash
-iot-fuzzy-llm rule show <rule_id>
+iot-fuzzy-llm rule show climate_001
 ```
 
 **Example Output:**
 
 ```
-Rule ID: rule_001
+Rule ID: climate_001
 Text: When living room temperature is hot, turn on the AC and set it to 22 degrees
 Enabled: Yes
-Priority: 80
-Tags: comfort, climate
-Created: 2026-02-05T10:30:00
-Trigger Count: 15
-Last Triggered: 2026-02-05T14:22:00
 ```
 
 ### Enabling and Disabling Rules
@@ -311,14 +304,12 @@ iot-fuzzy-llm device status living_room_ac
 **Example Output:**
 
 ```
-Living Room AC (living_room_ac)
+Living Room AC (ac_living_room)
   Type: actuator
   Class: thermostat
-  Location: Living Room
+  Location: living_room
   Status: registered
-  Capabilities: turn_on, turn_off, set_temperature
-  MQTT Topic: home/living_room/ac/status
-  Command Topic: home/living_room/ac/set
+  Capabilities: set_temperature, set_mode, turn_on, turn_off
 ```
 
 ______________________________________________________________________
@@ -360,12 +351,11 @@ iot-fuzzy-llm sensor status living_room_temp
 **Example Output:**
 
 ```
-Living Room Temp (living_room_temp)
+Living Room Temp (temp_living_room)
   Class: temperature
-  Location: Living Room
-  Unit: celsius
+  Location: living_room
+  Unit: N/A
   Status: registered
-  MQTT Topic: home/living_room/temperature
 ```
 
 ______________________________________________________________________
@@ -398,6 +388,21 @@ Reload configuration at runtime without restarting:
 ```bash
 iot-fuzzy-llm config reload
 ```
+
+### Migrating Configuration
+
+Migrate configuration files to the latest schema format:
+
+```bash
+iot-fuzzy-llm config migrate
+
+# Preview changes without modifying files
+iot-fuzzy-llm config migrate --dry-run
+```
+
+The migration command detects missing required fields in `devices.json` and
+`mqtt_config.json` and adds them with default values. It creates `.bak` backups
+before modifying any file.
 
 ______________________________________________________________________
 

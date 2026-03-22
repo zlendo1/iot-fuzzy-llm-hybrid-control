@@ -151,6 +151,12 @@ iot-fuzzy-llm device status [device_id]
 iot-fuzzy-llm config validate
 ```
 
+**`config migrate`** - Migrate configuration files to the latest schema format
+
+```bash
+iot-fuzzy-llm config migrate [--dry-run]
+```
+
 **`config reload`** - Reload configuration at runtime
 
 ```bash

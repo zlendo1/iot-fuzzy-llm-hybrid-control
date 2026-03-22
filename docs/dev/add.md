@@ -669,6 +669,25 @@ natively. The following services must be installed on the host:
 | LLM Runtime | Ollama             | 11434 | \`curl -fsSL https://ollama.com/install.sh |
 | IoT System  | Python Application | —     | `pip install -r requirements.txt`          |
 
+### 6.7 Docker E2E Testing
+
+The system includes a suite of containerized end-to-end tests that verify the
+full stack (CLI ↔ gRPC ↔ Orchestrator ↔ MQTT/Ollama) in a production-like
+environment.
+
+- **Location**: `tests/test_e2e/test_docker_e2e.py`
+- **Prerequisite**: All services must be running (`make up`)
+- **Command**: `make docker-test`
+
+**Verification Coverage**:
+
+1. **Lifecycle**: Real status reports from gRPC service
+2. **Devices**: Sensor and actuator registry retrieval
+3. **Rules**: Persistence, addition, and pagination from storage
+4. **Configuration**: Visibility of core config files via gRPC
+5. **Logs**: Real-time log retrieval and tailing
+6. **Robustness**: Graceful skipping if Ollama/models are unavailable
+
 ______________________________________________________________________
 
 ## 7. Security Architecture

@@ -291,24 +291,35 @@ class TestRuleCommands:
     ) -> None:
         from src.interfaces.cli import cli
 
-        result = cli_runner.invoke(
-            cli,
-            [
-                "--rules-dir",
-                str(temp_dirs["rules"]),
-                "rule",
-                "add",
-                "When temperature is high, turn on fan",
-                "--priority",
-                "75",
-                "--tag",
-                "climate",
-            ],
-        )
+        with patch("src.interfaces.cli.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.add_rule.return_value = {
+                "rule": {
+                    "id": "rule_123",
+                    "text": "When temperature is high, turn on fan",
+                    "enabled": True,
+                }
+            }
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+            result = cli_runner.invoke(
+                cli,
+                [
+                    "rule",
+                    "add",
+                    "When temperature is high, turn on fan",
+                    "--priority",
+                    "75",
+                    "--tag",
+                    "climate",
+                ],
+            )
 
         assert result.exit_code == 0
         assert "Rule added with ID:" in result.output
-        assert "Priority: 75" in result.output
+        assert "Text: When temperature is high, turn on fan" in result.output
+        assert "Enabled: Yes" in result.output
 
     @pytest.mark.unit
     def test_rule_add_with_custom_id(
@@ -316,18 +327,28 @@ class TestRuleCommands:
     ) -> None:
         from src.interfaces.cli import cli
 
-        result = cli_runner.invoke(
-            cli,
-            [
-                "--rules-dir",
-                str(temp_dirs["rules"]),
-                "rule",
-                "add",
-                "Custom rule text",
-                "--id",
-                "my_custom_rule",
-            ],
-        )
+        with patch("src.interfaces.cli.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.add_rule.return_value = {
+                "rule": {
+                    "id": "my_custom_rule",
+                    "text": "Custom rule text",
+                    "enabled": True,
+                }
+            }
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+            result = cli_runner.invoke(
+                cli,
+                [
+                    "rule",
+                    "add",
+                    "Custom rule text",
+                    "--id",
+                    "my_custom_rule",
+                ],
+            )
 
         assert result.exit_code == 0
         assert "my_custom_rule" in result.output
@@ -338,23 +359,33 @@ class TestRuleCommands:
     ) -> None:
         from src.interfaces.cli import cli
 
-        result = cli_runner.invoke(
-            cli,
-            [
-                "--rules-dir",
-                str(temp_dirs["rules"]),
-                "--format",
-                "json",
-                "rule",
-                "add",
-                "Test rule",
-            ],
-        )
+        with patch("src.interfaces.cli.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.add_rule.return_value = {
+                "rule": {
+                    "id": "rule_json_1",
+                    "text": "Test rule",
+                    "enabled": True,
+                }
+            }
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+            result = cli_runner.invoke(
+                cli,
+                [
+                    "--format",
+                    "json",
+                    "rule",
+                    "add",
+                    "Test rule",
+                ],
+            )
 
         assert result.exit_code == 0
         data = json.loads(result.output)
-        assert "rule_id" in data
-        assert data["rule_text"] == "Test rule"
+        assert "id" in data
+        assert data["text"] == "Test rule"
 
     @pytest.mark.unit
     def test_rule_list_all(
@@ -365,10 +396,26 @@ class TestRuleCommands:
     ) -> None:
         from src.interfaces.cli import cli
 
-        result = cli_runner.invoke(
-            cli,
-            ["--rules-dir", str(temp_dirs["rules"]), "rule", "list"],
-        )
+        with patch("src.interfaces.cli.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.list_rules.return_value = {
+                "rules": [
+                    {
+                        "id": "rule_001",
+                        "text": "When temperature is hot, turn on AC",
+                        "enabled": True,
+                    },
+                    {
+                        "id": "rule_002",
+                        "text": "When humidity is high, activate dehumidifier",
+                        "enabled": False,
+                    },
+                ]
+            }
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+            result = cli_runner.invoke(cli, ["rule", "list"])
 
         assert result.exit_code == 0
         assert "rule_001" in result.output
@@ -384,10 +431,26 @@ class TestRuleCommands:
     ) -> None:
         from src.interfaces.cli import cli
 
-        result = cli_runner.invoke(
-            cli,
-            ["--rules-dir", str(temp_dirs["rules"]), "rule", "list", "--enabled-only"],
-        )
+        with patch("src.interfaces.cli.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.list_rules.return_value = {
+                "rules": [
+                    {
+                        "id": "rule_001",
+                        "text": "When temperature is hot, turn on AC",
+                        "enabled": True,
+                    },
+                    {
+                        "id": "rule_002",
+                        "text": "When humidity is high, activate dehumidifier",
+                        "enabled": False,
+                    },
+                ]
+            }
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+            result = cli_runner.invoke(cli, ["rule", "list", "--enabled-only"])
 
         assert result.exit_code == 0
         assert "rule_001" in result.output
@@ -403,17 +466,21 @@ class TestRuleCommands:
     ) -> None:
         from src.interfaces.cli import cli
 
-        result = cli_runner.invoke(
-            cli,
-            [
-                "--rules-dir",
-                str(temp_dirs["rules"]),
-                "rule",
-                "list",
-                "--tag",
-                "climate",
-            ],
-        )
+        with patch("src.interfaces.cli.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.list_rules.return_value = {
+                "rules": [
+                    {
+                        "id": "rule_001",
+                        "text": "When temperature is hot, turn on AC",
+                        "enabled": True,
+                    }
+                ]
+            }
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+            result = cli_runner.invoke(cli, ["rule", "list", "--tag", "climate"])
 
         assert result.exit_code == 0
         assert "rule_001" in result.output
@@ -425,10 +492,13 @@ class TestRuleCommands:
     ) -> None:
         from src.interfaces.cli import cli
 
-        result = cli_runner.invoke(
-            cli,
-            ["--rules-dir", str(temp_dirs["rules"]), "rule", "list"],
-        )
+        with patch("src.interfaces.cli.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.list_rules.return_value = {"rules": []}
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+            result = cli_runner.invoke(cli, ["rule", "list"])
 
         assert result.exit_code == 0
         assert "No rules found." in result.output
@@ -442,17 +512,34 @@ class TestRuleCommands:
     ) -> None:
         from src.interfaces.cli import cli
 
-        result = cli_runner.invoke(
-            cli,
-            [
-                "--rules-dir",
-                str(temp_dirs["rules"]),
-                "--format",
-                "json",
-                "rule",
-                "list",
-            ],
-        )
+        with patch("src.interfaces.cli.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.list_rules.return_value = {
+                "rules": [
+                    {
+                        "id": "rule_001",
+                        "text": "When temperature is hot, turn on AC",
+                        "enabled": True,
+                    },
+                    {
+                        "id": "rule_002",
+                        "text": "When humidity is high, activate dehumidifier",
+                        "enabled": False,
+                    },
+                ]
+            }
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+            result = cli_runner.invoke(
+                cli,
+                [
+                    "--format",
+                    "json",
+                    "rule",
+                    "list",
+                ],
+            )
 
         assert result.exit_code == 0
         data = json.loads(result.output)
@@ -467,27 +554,37 @@ class TestRuleCommands:
     ) -> None:
         from src.interfaces.cli import cli
 
-        result = cli_runner.invoke(
-            cli,
-            ["--rules-dir", str(temp_dirs["rules"]), "rule", "show", "rule_001"],
-        )
+        with patch("src.interfaces.cli.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.get_rule.return_value = {
+                "id": "rule_001",
+                "text": "When temperature is hot, turn on AC",
+                "enabled": True,
+            }
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+            result = cli_runner.invoke(cli, ["rule", "show", "rule_001"])
 
         assert result.exit_code == 0
         assert "Rule ID: rule_001" in result.output
         assert "When temperature is hot, turn on AC" in result.output
-        assert "Priority: 50" in result.output
-        assert "Trigger Count: 5" in result.output
+        assert "Enabled: Yes" in result.output
 
     @pytest.mark.unit
     def test_rule_show_not_found(
         self, cli_runner: CliRunner, temp_dirs: dict[str, Path]
     ) -> None:
         from src.interfaces.cli import cli
+        from src.common.exceptions import IoTFuzzyLLMError
 
-        result = cli_runner.invoke(
-            cli,
-            ["--rules-dir", str(temp_dirs["rules"]), "rule", "show", "nonexistent"],
-        )
+        with patch("src.interfaces.cli.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.get_rule.side_effect = IoTFuzzyLLMError("Rule not found")
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+            result = cli_runner.invoke(cli, ["rule", "show", "nonexistent"])
 
         assert result.exit_code == 1
         assert "Rule not found" in result.output
@@ -501,22 +598,30 @@ class TestRuleCommands:
     ) -> None:
         from src.interfaces.cli import cli
 
-        result = cli_runner.invoke(
-            cli,
-            [
-                "--rules-dir",
-                str(temp_dirs["rules"]),
-                "--format",
-                "json",
-                "rule",
-                "show",
-                "rule_001",
-            ],
-        )
+        with patch("src.interfaces.cli.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.get_rule.return_value = {
+                "id": "rule_001",
+                "text": "When temperature is hot, turn on AC",
+                "enabled": True,
+            }
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+            result = cli_runner.invoke(
+                cli,
+                [
+                    "--format",
+                    "json",
+                    "rule",
+                    "show",
+                    "rule_001",
+                ],
+            )
 
         assert result.exit_code == 0
         data = json.loads(result.output)
-        assert data["rule_id"] == "rule_001"
+        assert data["id"] == "rule_001"
 
     @pytest.mark.unit
     def test_rule_enable(
@@ -527,10 +632,13 @@ class TestRuleCommands:
     ) -> None:
         from src.interfaces.cli import cli
 
-        result = cli_runner.invoke(
-            cli,
-            ["--rules-dir", str(temp_dirs["rules"]), "rule", "enable", "rule_002"],
-        )
+        with patch("src.interfaces.cli.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.enable_rule.return_value = {"success": True}
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+            result = cli_runner.invoke(cli, ["rule", "enable", "rule_002"])
 
         assert result.exit_code == 0
         assert "rule_002 enabled" in result.output
@@ -540,11 +648,15 @@ class TestRuleCommands:
         self, cli_runner: CliRunner, temp_dirs: dict[str, Path]
     ) -> None:
         from src.interfaces.cli import cli
+        from src.common.exceptions import IoTFuzzyLLMError
 
-        result = cli_runner.invoke(
-            cli,
-            ["--rules-dir", str(temp_dirs["rules"]), "rule", "enable", "nonexistent"],
-        )
+        with patch("src.interfaces.cli.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.enable_rule.side_effect = IoTFuzzyLLMError("Rule not found")
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+            result = cli_runner.invoke(cli, ["rule", "enable", "nonexistent"])
 
         assert result.exit_code == 1
         assert "Rule not found" in result.output
@@ -558,10 +670,13 @@ class TestRuleCommands:
     ) -> None:
         from src.interfaces.cli import cli
 
-        result = cli_runner.invoke(
-            cli,
-            ["--rules-dir", str(temp_dirs["rules"]), "rule", "disable", "rule_001"],
-        )
+        with patch("src.interfaces.cli.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.disable_rule.return_value = {"success": True}
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+            result = cli_runner.invoke(cli, ["rule", "disable", "rule_001"])
 
         assert result.exit_code == 0
         assert "rule_001 disabled" in result.output
@@ -571,11 +686,15 @@ class TestRuleCommands:
         self, cli_runner: CliRunner, temp_dirs: dict[str, Path]
     ) -> None:
         from src.interfaces.cli import cli
+        from src.common.exceptions import IoTFuzzyLLMError
 
-        result = cli_runner.invoke(
-            cli,
-            ["--rules-dir", str(temp_dirs["rules"]), "rule", "disable", "nonexistent"],
-        )
+        with patch("src.interfaces.cli.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.disable_rule.side_effect = IoTFuzzyLLMError("Rule not found")
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+            result = cli_runner.invoke(cli, ["rule", "disable", "nonexistent"])
 
         assert result.exit_code == 1
         assert "Rule not found" in result.output
@@ -589,17 +708,21 @@ class TestRuleCommands:
     ) -> None:
         from src.interfaces.cli import cli
 
-        result = cli_runner.invoke(
-            cli,
-            [
-                "--rules-dir",
-                str(temp_dirs["rules"]),
-                "rule",
-                "delete",
-                "rule_001",
-                "-y",
-            ],
-        )
+        with patch("src.interfaces.cli.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.remove_rule.return_value = {"success": True}
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+            result = cli_runner.invoke(
+                cli,
+                [
+                    "rule",
+                    "delete",
+                    "rule_001",
+                    "-y",
+                ],
+            )
 
         assert result.exit_code == 0
         assert "rule_001 deleted" in result.output
@@ -613,11 +736,23 @@ class TestRuleCommands:
     ) -> None:
         from src.interfaces.cli import cli
 
-        result = cli_runner.invoke(
-            cli,
-            ["--rules-dir", str(temp_dirs["rules"]), "rule", "delete", "rule_001"],
-            input="n\n",
-        )
+        with patch("src.interfaces.cli.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.get_rule.return_value = {
+                "id": "rule_001",
+                "text": "When temperature is hot, turn on AC",
+                "enabled": True,
+            }
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+            result = cli_runner.invoke(
+                cli,
+                ["rule", "delete", "rule_001"],
+                input="n\n",
+            )
+
+            mock_client.remove_rule.assert_not_called()
 
         assert result.exit_code == 0
         assert "Cancelled" in result.output
@@ -627,18 +762,23 @@ class TestRuleCommands:
         self, cli_runner: CliRunner, temp_dirs: dict[str, Path]
     ) -> None:
         from src.interfaces.cli import cli
+        from src.common.exceptions import IoTFuzzyLLMError
 
-        result = cli_runner.invoke(
-            cli,
-            [
-                "--rules-dir",
-                str(temp_dirs["rules"]),
-                "rule",
-                "delete",
-                "nonexistent",
-                "-y",
-            ],
-        )
+        with patch("src.interfaces.cli.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.remove_rule.side_effect = IoTFuzzyLLMError("Rule not found")
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+            result = cli_runner.invoke(
+                cli,
+                [
+                    "rule",
+                    "delete",
+                    "nonexistent",
+                    "-y",
+                ],
+            )
 
         assert result.exit_code == 1
         assert "Rule not found" in result.output
@@ -654,10 +794,31 @@ class TestSensorCommands:
     ) -> None:
         from src.interfaces.cli import cli
 
-        result = cli_runner.invoke(
-            cli,
-            ["--config-dir", str(temp_dirs["config"]), "sensor", "list"],
-        )
+        with patch("src.interfaces.rpc.client.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.list_devices.return_value = [
+                {
+                    "id": "sensor_temp_1",
+                    "name": "Living Room Temperature",
+                    "type": "sensor",
+                    "capabilities": ["temperature"],
+                    "location": "living_room",
+                },
+                {
+                    "id": "actuator_ac_1",
+                    "name": "AC Unit",
+                    "type": "actuator",
+                    "capabilities": ["turn_on", "turn_off", "set_temperature"],
+                    "location": "living_room",
+                },
+            ]
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+            result = cli_runner.invoke(
+                cli,
+                ["--config-dir", str(temp_dirs["config"]), "sensor", "list"],
+            )
 
         assert result.exit_code == 0
         assert "sensor_temp_1" in result.output
@@ -669,14 +830,21 @@ class TestSensorCommands:
         self, cli_runner: CliRunner, temp_dirs: dict[str, Path]
     ) -> None:
         from src.interfaces.cli import cli
+        from src.common.exceptions import IoTFuzzyLLMError
 
-        result = cli_runner.invoke(
-            cli,
-            ["--config-dir", str(temp_dirs["config"]), "sensor", "list"],
-        )
+        with patch("src.interfaces.rpc.client.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.list_devices.side_effect = IoTFuzzyLLMError("Config not found")
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+            result = cli_runner.invoke(
+                cli,
+                ["--config-dir", str(temp_dirs["config"]), "sensor", "list"],
+            )
 
         assert result.exit_code == 1
-        assert "Configuration error" in result.output or "not found" in result.output
+        assert "✗" in result.output
 
     @pytest.mark.unit
     def test_sensor_list_json_output(
@@ -687,17 +855,38 @@ class TestSensorCommands:
     ) -> None:
         from src.interfaces.cli import cli
 
-        result = cli_runner.invoke(
-            cli,
-            [
-                "--config-dir",
-                str(temp_dirs["config"]),
-                "--format",
-                "json",
-                "sensor",
-                "list",
-            ],
-        )
+        with patch("src.interfaces.rpc.client.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.list_devices.return_value = [
+                {
+                    "id": "sensor_temp_1",
+                    "name": "Living Room Temperature",
+                    "type": "sensor",
+                    "capabilities": ["temperature"],
+                    "location": "living_room",
+                },
+                {
+                    "id": "actuator_ac_1",
+                    "name": "AC Unit",
+                    "type": "actuator",
+                    "capabilities": ["climate"],
+                    "location": "living_room",
+                },
+            ]
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+            result = cli_runner.invoke(
+                cli,
+                [
+                    "--config-dir",
+                    str(temp_dirs["config"]),
+                    "--format",
+                    "json",
+                    "sensor",
+                    "list",
+                ],
+            )
 
         assert result.exit_code == 0
         data = json.loads(result.output)
@@ -713,10 +902,24 @@ class TestSensorCommands:
     ) -> None:
         from src.interfaces.cli import cli
 
-        result = cli_runner.invoke(
-            cli,
-            ["--config-dir", str(temp_dirs["config"]), "sensor", "status"],
-        )
+        with patch("src.interfaces.rpc.client.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.list_devices.return_value = [
+                {
+                    "id": "sensor_temp_1",
+                    "name": "Living Room Temperature",
+                    "type": "sensor",
+                    "capabilities": ["temperature"],
+                    "location": "living_room",
+                }
+            ]
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+            result = cli_runner.invoke(
+                cli,
+                ["--config-dir", str(temp_dirs["config"]), "sensor", "status"],
+            )
 
         assert result.exit_code == 0
         assert "Living Room Temperature" in result.output
@@ -731,16 +934,28 @@ class TestSensorCommands:
     ) -> None:
         from src.interfaces.cli import cli
 
-        result = cli_runner.invoke(
-            cli,
-            [
-                "--config-dir",
-                str(temp_dirs["config"]),
-                "sensor",
-                "status",
-                "sensor_temp_1",
-            ],
-        )
+        with patch("src.interfaces.rpc.client.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.get_device.return_value = {
+                "id": "sensor_temp_1",
+                "name": "Living Room Temperature",
+                "type": "sensor",
+                "capabilities": ["temperature"],
+                "location": "living_room",
+            }
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+            result = cli_runner.invoke(
+                cli,
+                [
+                    "--config-dir",
+                    str(temp_dirs["config"]),
+                    "sensor",
+                    "status",
+                    "sensor_temp_1",
+                ],
+            )
 
         assert result.exit_code == 0
         assert "sensor_temp_1" in result.output
@@ -753,17 +968,24 @@ class TestSensorCommands:
         sample_devices_config: Path,
     ) -> None:
         from src.interfaces.cli import cli
+        from src.common.exceptions import IoTFuzzyLLMError
 
-        result = cli_runner.invoke(
-            cli,
-            [
-                "--config-dir",
-                str(temp_dirs["config"]),
-                "sensor",
-                "status",
-                "nonexistent",
-            ],
-        )
+        with patch("src.interfaces.rpc.client.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.get_device.side_effect = IoTFuzzyLLMError("Sensor not found")
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+            result = cli_runner.invoke(
+                cli,
+                [
+                    "--config-dir",
+                    str(temp_dirs["config"]),
+                    "sensor",
+                    "status",
+                    "nonexistent",
+                ],
+            )
 
         assert result.exit_code == 1
         assert "Sensor not found" in result.output
@@ -779,10 +1001,31 @@ class TestDeviceCommands:
     ) -> None:
         from src.interfaces.cli import cli
 
-        result = cli_runner.invoke(
-            cli,
-            ["--config-dir", str(temp_dirs["config"]), "device", "list"],
-        )
+        with patch("src.interfaces.rpc.client.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.list_devices.return_value = [
+                {
+                    "id": "sensor_temp_1",
+                    "name": "Living Room Temperature",
+                    "type": "sensor",
+                    "capabilities": ["temperature"],
+                    "location": "living_room",
+                },
+                {
+                    "id": "actuator_ac_1",
+                    "name": "AC Unit",
+                    "type": "actuator",
+                    "capabilities": ["turn_on", "turn_off", "set_temperature"],
+                    "location": "living_room",
+                },
+            ]
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+            result = cli_runner.invoke(
+                cli,
+                ["--config-dir", str(temp_dirs["config"]), "device", "list"],
+            )
 
         assert result.exit_code == 0
         assert "sensor_temp_1" in result.output
@@ -798,17 +1041,38 @@ class TestDeviceCommands:
     ) -> None:
         from src.interfaces.cli import cli
 
-        result = cli_runner.invoke(
-            cli,
-            [
-                "--config-dir",
-                str(temp_dirs["config"]),
-                "--format",
-                "json",
-                "device",
-                "list",
-            ],
-        )
+        with patch("src.interfaces.rpc.client.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.list_devices.return_value = [
+                {
+                    "id": "sensor_temp_1",
+                    "name": "Living Room Temperature",
+                    "type": "sensor",
+                    "capabilities": ["temperature"],
+                    "location": "living_room",
+                },
+                {
+                    "id": "actuator_ac_1",
+                    "name": "AC Unit",
+                    "type": "actuator",
+                    "capabilities": ["turn_on", "turn_off", "set_temperature"],
+                    "location": "living_room",
+                },
+            ]
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+            result = cli_runner.invoke(
+                cli,
+                [
+                    "--config-dir",
+                    str(temp_dirs["config"]),
+                    "--format",
+                    "json",
+                    "device",
+                    "list",
+                ],
+            )
 
         assert result.exit_code == 0
         data = json.loads(result.output)
@@ -823,10 +1087,31 @@ class TestDeviceCommands:
     ) -> None:
         from src.interfaces.cli import cli
 
-        result = cli_runner.invoke(
-            cli,
-            ["--config-dir", str(temp_dirs["config"]), "device", "status"],
-        )
+        with patch("src.interfaces.rpc.client.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.list_devices.return_value = [
+                {
+                    "id": "sensor_temp_1",
+                    "name": "Living Room Temperature",
+                    "type": "sensor",
+                    "capabilities": ["temperature"],
+                    "location": "living_room",
+                },
+                {
+                    "id": "actuator_ac_1",
+                    "name": "AC Unit",
+                    "type": "actuator",
+                    "capabilities": ["turn_on", "turn_off", "set_temperature"],
+                    "location": "living_room",
+                },
+            ]
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+            result = cli_runner.invoke(
+                cli,
+                ["--config-dir", str(temp_dirs["config"]), "device", "status"],
+            )
 
         assert result.exit_code == 0
         assert "AC Unit" in result.output
@@ -841,16 +1126,28 @@ class TestDeviceCommands:
     ) -> None:
         from src.interfaces.cli import cli
 
-        result = cli_runner.invoke(
-            cli,
-            [
-                "--config-dir",
-                str(temp_dirs["config"]),
-                "device",
-                "status",
-                "actuator_ac_1",
-            ],
-        )
+        with patch("src.interfaces.rpc.client.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.get_device.return_value = {
+                "id": "actuator_ac_1",
+                "name": "AC Unit",
+                "type": "actuator",
+                "capabilities": ["turn_on", "turn_off", "set_temperature"],
+                "location": "living_room",
+            }
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+            result = cli_runner.invoke(
+                cli,
+                [
+                    "--config-dir",
+                    str(temp_dirs["config"]),
+                    "device",
+                    "status",
+                    "actuator_ac_1",
+                ],
+            )
 
         assert result.exit_code == 0
         assert "AC Unit" in result.output
@@ -864,17 +1161,24 @@ class TestDeviceCommands:
         sample_devices_config: Path,
     ) -> None:
         from src.interfaces.cli import cli
+        from src.common.exceptions import IoTFuzzyLLMError
 
-        result = cli_runner.invoke(
-            cli,
-            [
-                "--config-dir",
-                str(temp_dirs["config"]),
-                "device",
-                "status",
-                "nonexistent",
-            ],
-        )
+        with patch("src.interfaces.rpc.client.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.get_device.side_effect = IoTFuzzyLLMError("Device not found")
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+            result = cli_runner.invoke(
+                cli,
+                [
+                    "--config-dir",
+                    str(temp_dirs["config"]),
+                    "device",
+                    "status",
+                    "nonexistent",
+                ],
+            )
 
         assert result.exit_code == 1
         assert "Device not found" in result.output
@@ -887,10 +1191,24 @@ class TestConfigCommands:
     ) -> None:
         from src.interfaces.cli import cli
 
-        result = cli_runner.invoke(
-            cli,
-            ["--config-dir", str(temp_dirs["config"]), "config", "validate"],
-        )
+        with patch("src.interfaces.rpc.client.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.list_configs.return_value = ["devices", "mqtt_config"]
+            mock_client.get_config.side_effect = [
+                {"content": {"devices": []}},
+                {"content": {"broker": {"host": "localhost"}}},
+            ]
+            mock_client.validate_config.side_effect = [
+                {"valid": True, "errors": []},
+                {"valid": True, "errors": []},
+            ]
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+            result = cli_runner.invoke(
+                cli,
+                ["--config-dir", str(temp_dirs["config"]), "config", "validate"],
+            )
 
         assert result.exit_code == 0
         assert "valid" in result.output.lower()
@@ -927,13 +1245,19 @@ class TestLogCommands:
     ) -> None:
         from src.interfaces.cli import cli
 
-        result = cli_runner.invoke(
-            cli,
-            ["--logs-dir", str(temp_dirs["logs"]), "log", "tail"],
-        )
+        with patch("src.interfaces.rpc.client.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.get_log_entries.return_value = {"entries": []}
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+            result = cli_runner.invoke(
+                cli,
+                ["--logs-dir", str(temp_dirs["logs"]), "log", "tail"],
+            )
 
         assert result.exit_code == 0
-        assert "Log file not found" in result.output
+        assert "No log entries found." in result.output
 
     @pytest.mark.unit
     def test_log_tail_with_entries(
@@ -941,29 +1265,33 @@ class TestLogCommands:
     ) -> None:
         from src.interfaces.cli import cli
 
-        log_file = temp_dirs["logs"] / "system.log"
-        entries = [
-            json.dumps(
-                {
-                    "timestamp": "2024-01-01T00:00:00Z",
-                    "level": "INFO",
-                    "message": "Test entry 1",
-                }
-            ),
-            json.dumps(
-                {
-                    "timestamp": "2024-01-01T00:00:01Z",
-                    "level": "WARNING",
-                    "message": "Test entry 2",
-                }
-            ),
-        ]
-        log_file.write_text("\n".join(entries))
+        with patch("src.interfaces.rpc.client.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.get_log_entries.return_value = {
+                "entries": [
+                    {
+                        "timestamp": "2024-01-01T00:00:00Z",
+                        "level": "INFO",
+                        "message": "Test entry 1",
+                    },
+                    {
+                        "timestamp": "2024-01-01T00:00:01Z",
+                        "level": "WARNING",
+                        "message": "Test entry 2",
+                    },
+                ]
+            }
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
 
-        result = cli_runner.invoke(
-            cli,
-            ["--logs-dir", str(temp_dirs["logs"]), "log", "tail", "-n", "5"],
-        )
+            result = cli_runner.invoke(
+                cli,
+                ["--logs-dir", str(temp_dirs["logs"]), "log", "tail", "-n", "5"],
+            )
+
+            mock_client.get_log_entries.assert_called_once_with(
+                limit=5, category_filter="system", offset=0
+            )
 
         assert result.exit_code == 0
         assert "Test entry 1" in result.output
@@ -975,22 +1303,35 @@ class TestLogCommands:
     ) -> None:
         from src.interfaces.cli import cli
 
-        log_file = temp_dirs["logs"] / "errors.log"
-        log_file.write_text(
-            json.dumps({"level": "ERROR", "message": "An error occurred"})
-        )
+        with patch("src.interfaces.rpc.client.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.get_log_entries.return_value = {
+                "entries": [
+                    {
+                        "timestamp": "2024-01-01T00:00:00Z",
+                        "level": "ERROR",
+                        "message": "An error occurred",
+                    }
+                ]
+            }
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
 
-        result = cli_runner.invoke(
-            cli,
-            [
-                "--logs-dir",
-                str(temp_dirs["logs"]),
-                "log",
-                "tail",
-                "--category",
-                "errors",
-            ],
-        )
+            result = cli_runner.invoke(
+                cli,
+                [
+                    "--logs-dir",
+                    str(temp_dirs["logs"]),
+                    "log",
+                    "tail",
+                    "--category",
+                    "errors",
+                ],
+            )
+
+            mock_client.get_log_entries.assert_called_once_with(
+                limit=20, category_filter="errors", offset=0
+            )
 
         assert result.exit_code == 0
         assert "An error occurred" in result.output
@@ -1181,34 +1522,29 @@ class TestErrorHandling:
         self, cli_runner: CliRunner, temp_dirs: dict[str, Path], sample_rules_file: Path
     ) -> None:
         from src.interfaces.cli import cli
+        from src.common.exceptions import RuleError
 
-        cli_runner.invoke(
-            cli,
-            [
-                "--rules-dir",
-                str(temp_dirs["rules"]),
-                "rule",
-                "add",
-                "Test rule",
-                "--id",
-                "rule_001",
-            ],
-        )
-        result = cli_runner.invoke(
-            cli,
-            [
-                "--rules-dir",
-                str(temp_dirs["rules"]),
-                "rule",
-                "add",
-                "Duplicate rule",
-                "--id",
-                "rule_001",
-            ],
-        )
+        with patch("src.interfaces.cli.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.add_rule.side_effect = RuleError("Duplicate rule")
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+            result = cli_runner.invoke(
+                cli,
+                [
+                    "--rules-dir",
+                    str(temp_dirs["rules"]),
+                    "rule",
+                    "add",
+                    "Duplicate rule",
+                    "--id",
+                    "rule_001",
+                ],
+            )
 
         assert result.exit_code == 1
-        assert "Rule error" in result.output
+        assert "✗ Failed to add rule: Duplicate rule" in result.output
 
     @pytest.mark.unit
     def test_verbose_flag(

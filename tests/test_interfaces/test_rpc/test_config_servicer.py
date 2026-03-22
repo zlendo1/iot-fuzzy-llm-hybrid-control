@@ -112,7 +112,7 @@ class TestConfigServicer:
 
         assert response.success is True
         assert response.new_version == _version_for(new_content)
-        assert file_path.read_text(encoding="utf-8") == new_content
+        assert file_path.read_text(encoding="utf-8") == new_content + "\n"
 
     def test_update_config_aborts_on_version_conflict(self, servicer: Any) -> None:
         request = config_pb2.UpdateConfigRequest(

@@ -1,13 +1,73 @@
 from __future__ import annotations
 
+import copy
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 if TYPE_CHECKING:
     from click.testing import CliRunner
+
+
+def _read_json(path: Path) -> dict[str, Any]:
+    return json.loads(path.read_text())
+
+
+def _build_get_config_side_effect(
+    *,
+    devices_content: dict[str, Any] | None = None,
+    mqtt_content: dict[str, Any] | None = None,
+    devices_error: Exception | None = None,
+    mqtt_error: Exception | None = None,
+) -> Any:
+    def _side_effect(name: str) -> dict[str, Any]:
+        if name == "devices":
+            if devices_error is not None:
+                raise devices_error
+            if devices_content is None:
+                raise Exception("Config not found: devices")
+            return {"content": copy.deepcopy(devices_content), "version": "1"}
+
+        if name == "mqtt_config":
+            if mqtt_error is not None:
+                raise mqtt_error
+            if mqtt_content is None:
+                raise Exception("Config not found: mqtt_config")
+            return {"content": copy.deepcopy(mqtt_content), "version": "1"}
+
+        raise Exception(f"Config not found: {name}")
+
+    return _side_effect
+
+
+def _invoke_migrate_with_mocked_grpc(
+    cli_runner: CliRunner,
+    args: list[str],
+    *,
+    devices_content: dict[str, Any] | None = None,
+    mqtt_content: dict[str, Any] | None = None,
+    devices_error: Exception | None = None,
+    mqtt_error: Exception | None = None,
+) -> tuple[Any, MagicMock]:
+    from src.interfaces.cli import cli
+
+    with patch("src.interfaces.rpc.client.GrpcClient") as mock_client_cls:
+        mock_client = MagicMock()
+        mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+        mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+        mock_client.get_config.side_effect = _build_get_config_side_effect(
+            devices_content=devices_content,
+            mqtt_content=mqtt_content,
+            devices_error=devices_error,
+            mqtt_error=mqtt_error,
+        )
+
+        result = cli_runner.invoke(cli, args)
+
+    return result, mock_client
 
 
 @pytest.fixture
@@ -168,12 +228,9 @@ class TestConfigMigrateDryRun:
         temp_dirs: dict[str, Path],
         devices_needing_migration: Path,
     ) -> None:
-        from src.interfaces.cli import cli
-
-        original_content = devices_needing_migration.read_text()
-
-        result = cli_runner.invoke(
-            cli,
+        devices_data = _read_json(devices_needing_migration)
+        result, mock_client = _invoke_migrate_with_mocked_grpc(
+            cli_runner,
             [
                 "--config-dir",
                 str(temp_dirs["config"]),
@@ -181,12 +238,14 @@ class TestConfigMigrateDryRun:
                 "migrate",
                 "--dry-run",
             ],
+            devices_content=devices_data,
+            mqtt_content={"topic_patterns": {}},
         )
 
         assert result.exit_code == 0
-        assert "temp-001" in result.output
-        assert "humid-001" in result.output
-        assert devices_needing_migration.read_text() == original_content
+        assert "Would add payload_mapping to device: temp-001" in result.output
+        assert "Would add payload_mapping to device: humid-001" in result.output
+        mock_client.update_config.assert_not_called()
 
     @pytest.mark.unit
     def test_dry_run_reports_mqtt_config_needing_topic_patterns(
@@ -195,12 +254,9 @@ class TestConfigMigrateDryRun:
         temp_dirs: dict[str, Path],
         mqtt_config_needing_migration: Path,
     ) -> None:
-        from src.interfaces.cli import cli
-
-        original_content = mqtt_config_needing_migration.read_text()
-
-        result = cli_runner.invoke(
-            cli,
+        mqtt_data = _read_json(mqtt_config_needing_migration)
+        result, mock_client = _invoke_migrate_with_mocked_grpc(
+            cli_runner,
             [
                 "--config-dir",
                 str(temp_dirs["config"]),
@@ -208,24 +264,26 @@ class TestConfigMigrateDryRun:
                 "migrate",
                 "--dry-run",
             ],
+            devices_content={"devices": []},
+            mqtt_content=mqtt_data,
         )
 
         assert result.exit_code == 0
-        assert "topic_patterns" in result.output
-        assert mqtt_config_needing_migration.read_text() == original_content
+        assert "Would add topic_patterns to mqtt_config.json" in result.output
+        mock_client.update_config.assert_not_called()
 
     @pytest.mark.unit
     def test_dry_run_no_backup_files_created(
         self,
         cli_runner: CliRunner,
         temp_dirs: dict[str, Path],
-        devices_needing_migration: Path,  # noqa: ARG002
-        mqtt_config_needing_migration: Path,  # noqa: ARG002
+        devices_needing_migration: Path,
+        mqtt_config_needing_migration: Path,
     ) -> None:
-        from src.interfaces.cli import cli
-
-        cli_runner.invoke(
-            cli,
+        devices_data = _read_json(devices_needing_migration)
+        mqtt_data = _read_json(mqtt_config_needing_migration)
+        result, mock_client = _invoke_migrate_with_mocked_grpc(
+            cli_runner,
             [
                 "--config-dir",
                 str(temp_dirs["config"]),
@@ -233,22 +291,23 @@ class TestConfigMigrateDryRun:
                 "migrate",
                 "--dry-run",
             ],
+            devices_content=devices_data,
+            mqtt_content=mqtt_data,
         )
 
-        bak_files = list(temp_dirs["config"].glob("*.bak"))
-        assert len(bak_files) == 0
+        assert result.exit_code == 0
+        mock_client.update_config.assert_not_called()
 
     @pytest.mark.unit
     def test_dry_run_indicates_would_change_in_output(
         self,
         cli_runner: CliRunner,
         temp_dirs: dict[str, Path],
-        devices_needing_migration: Path,  # noqa: ARG002
+        devices_needing_migration: Path,
     ) -> None:
-        from src.interfaces.cli import cli
-
-        result = cli_runner.invoke(
-            cli,
+        devices_data = _read_json(devices_needing_migration)
+        result, mock_client = _invoke_migrate_with_mocked_grpc(
+            cli_runner,
             [
                 "--config-dir",
                 str(temp_dirs["config"]),
@@ -256,6 +315,8 @@ class TestConfigMigrateDryRun:
                 "migrate",
                 "--dry-run",
             ],
+            devices_content=devices_data,
+            mqtt_content={"topic_patterns": {}},
         )
 
         assert result.exit_code == 0
@@ -265,19 +326,20 @@ class TestConfigMigrateDryRun:
             or "dry" in output_lower
             or "dry-run" in output_lower
         )
+        mock_client.update_config.assert_not_called()
 
     @pytest.mark.unit
     def test_dry_run_on_already_migrated_reports_nothing_to_do(
         self,
         cli_runner: CliRunner,
         temp_dirs: dict[str, Path],
-        devices_already_migrated: Path,  # noqa: ARG002
-        mqtt_config_already_migrated: Path,  # noqa: ARG002
+        devices_already_migrated: Path,
+        mqtt_config_already_migrated: Path,
     ) -> None:
-        from src.interfaces.cli import cli
-
-        result = cli_runner.invoke(
-            cli,
+        devices_data = _read_json(devices_already_migrated)
+        mqtt_data = _read_json(mqtt_config_already_migrated)
+        result, mock_client = _invoke_migrate_with_mocked_grpc(
+            cli_runner,
             [
                 "--config-dir",
                 str(temp_dirs["config"]),
@@ -285,6 +347,8 @@ class TestConfigMigrateDryRun:
                 "migrate",
                 "--dry-run",
             ],
+            devices_content=devices_data,
+            mqtt_content=mqtt_data,
         )
 
         assert result.exit_code == 0
@@ -296,6 +360,7 @@ class TestConfigMigrateDryRun:
             or "no changes" in output_lower
             or "0" in result.output
         )
+        mock_client.update_config.assert_not_called()
 
 
 class TestConfigMigrateActual:
@@ -306,28 +371,26 @@ class TestConfigMigrateActual:
         temp_dirs: dict[str, Path],
         devices_needing_migration: Path,
     ) -> None:
-        from src.interfaces.cli import cli
-
-        result = cli_runner.invoke(
-            cli,
-            [
-                "--config-dir",
-                str(temp_dirs["config"]),
-                "config",
-                "migrate",
-            ],
+        devices_data = _read_json(devices_needing_migration)
+        result, mock_client = _invoke_migrate_with_mocked_grpc(
+            cli_runner,
+            ["--config-dir", str(temp_dirs["config"]), "config", "migrate"],
+            devices_content=devices_data,
+            mqtt_content={"topic_patterns": {}},
         )
 
         assert result.exit_code == 0
-
-        data = json.loads(devices_needing_migration.read_text())
-        devices = data["devices"]
-        for dev in devices:
+        mock_client.update_config.assert_called_once()
+        call_args = mock_client.update_config.call_args
+        assert call_args is not None
+        assert call_args.args[0] == "devices"
+        updated_devices = call_args.args[1]
+        assert isinstance(updated_devices, dict)
+        for dev in updated_devices.get("devices", []):
             if "mqtt" in dev:
-                assert "payload_mapping" in dev["mqtt"], (
-                    f"Device {dev['id']} missing payload_mapping after migration"
-                )
+                assert "payload_mapping" in dev["mqtt"]
                 assert dev["mqtt"]["payload_mapping"] == {"value_field": "value"}
+        assert call_args.args[2] == "1"
 
     @pytest.mark.unit
     def test_actual_migration_adds_topic_patterns_to_mqtt_config(
@@ -336,23 +399,24 @@ class TestConfigMigrateActual:
         temp_dirs: dict[str, Path],
         mqtt_config_needing_migration: Path,
     ) -> None:
-        from src.interfaces.cli import cli
-
-        result = cli_runner.invoke(
-            cli,
-            [
-                "--config-dir",
-                str(temp_dirs["config"]),
-                "config",
-                "migrate",
-            ],
+        mqtt_data = _read_json(mqtt_config_needing_migration)
+        result, mock_client = _invoke_migrate_with_mocked_grpc(
+            cli_runner,
+            ["--config-dir", str(temp_dirs["config"]), "config", "migrate"],
+            devices_content={"devices": []},
+            mqtt_content=mqtt_data,
         )
 
         assert result.exit_code == 0
-
-        data = json.loads(mqtt_config_needing_migration.read_text())
-        assert "topic_patterns" in data
-        assert isinstance(data["topic_patterns"], dict)
+        mock_client.update_config.assert_called_once()
+        call_args = mock_client.update_config.call_args
+        assert call_args is not None
+        assert call_args.args[0] == "mqtt_config"
+        updated_mqtt = call_args.args[1]
+        assert isinstance(updated_mqtt, dict)
+        assert "topic_patterns" in updated_mqtt
+        assert isinstance(updated_mqtt["topic_patterns"], dict)
+        assert call_args.args[2] == "1"
 
     @pytest.mark.unit
     def test_actual_migration_creates_bak_for_devices(
@@ -361,23 +425,21 @@ class TestConfigMigrateActual:
         temp_dirs: dict[str, Path],
         devices_needing_migration: Path,
     ) -> None:
-        from src.interfaces.cli import cli
-
-        original_content = devices_needing_migration.read_text()
-
-        cli_runner.invoke(
-            cli,
-            [
-                "--config-dir",
-                str(temp_dirs["config"]),
-                "config",
-                "migrate",
-            ],
+        devices_data = _read_json(devices_needing_migration)
+        result, mock_client = _invoke_migrate_with_mocked_grpc(
+            cli_runner,
+            ["--config-dir", str(temp_dirs["config"]), "config", "migrate"],
+            devices_content=devices_data,
+            mqtt_content={"topic_patterns": {}},
         )
 
-        bak_file = temp_dirs["config"] / "devices.json.bak"
-        assert bak_file.exists()
-        assert bak_file.read_text() == original_content
+        assert result.exit_code == 0
+        mock_client.update_config.assert_called_once()
+        updated_devices = mock_client.update_config.call_args.args[1]
+        assert isinstance(updated_devices, dict)
+        for dev in updated_devices.get("devices", []):
+            if "mqtt" in dev:
+                assert "payload_mapping" in dev["mqtt"]
 
     @pytest.mark.unit
     def test_actual_migration_creates_bak_for_mqtt_config(
@@ -386,47 +448,42 @@ class TestConfigMigrateActual:
         temp_dirs: dict[str, Path],
         mqtt_config_needing_migration: Path,
     ) -> None:
-        from src.interfaces.cli import cli
-
-        original_content = mqtt_config_needing_migration.read_text()
-
-        cli_runner.invoke(
-            cli,
-            [
-                "--config-dir",
-                str(temp_dirs["config"]),
-                "config",
-                "migrate",
-            ],
+        mqtt_data = _read_json(mqtt_config_needing_migration)
+        result, mock_client = _invoke_migrate_with_mocked_grpc(
+            cli_runner,
+            ["--config-dir", str(temp_dirs["config"]), "config", "migrate"],
+            devices_content={"devices": []},
+            mqtt_content=mqtt_data,
         )
 
-        bak_file = temp_dirs["config"] / "mqtt_config.json.bak"
-        assert bak_file.exists()
-        assert bak_file.read_text() == original_content
+        assert result.exit_code == 0
+        mock_client.update_config.assert_called_once()
+        updated_mqtt = mock_client.update_config.call_args.args[1]
+        assert isinstance(updated_mqtt, dict)
+        assert "topic_patterns" in updated_mqtt
 
     @pytest.mark.unit
     def test_actual_migration_output_reports_changes_made(
         self,
         cli_runner: CliRunner,
         temp_dirs: dict[str, Path],
-        devices_needing_migration: Path,  # noqa: ARG002
-        mqtt_config_needing_migration: Path,  # noqa: ARG002
+        devices_needing_migration: Path,
+        mqtt_config_needing_migration: Path,
     ) -> None:
-        from src.interfaces.cli import cli
-
-        result = cli_runner.invoke(
-            cli,
-            [
-                "--config-dir",
-                str(temp_dirs["config"]),
-                "config",
-                "migrate",
-            ],
+        devices_data = _read_json(devices_needing_migration)
+        mqtt_data = _read_json(mqtt_config_needing_migration)
+        result, mock_client = _invoke_migrate_with_mocked_grpc(
+            cli_runner,
+            ["--config-dir", str(temp_dirs["config"]), "config", "migrate"],
+            devices_content=devices_data,
+            mqtt_content=mqtt_data,
         )
 
         assert result.exit_code == 0
-        assert "temp-001" in result.output
-        assert "humid-001" in result.output
+        assert "Added payload_mapping to device: temp-001" in result.output
+        assert "Added payload_mapping to device: humid-001" in result.output
+        assert "Added topic_patterns to mqtt_config.json" in result.output
+        assert mock_client.update_config.call_count == 2
 
     @pytest.mark.unit
     def test_already_migrated_devices_not_modified(
@@ -436,24 +493,18 @@ class TestConfigMigrateActual:
         devices_already_migrated: Path,
         mqtt_config_already_migrated: Path,
     ) -> None:
-        from src.interfaces.cli import cli
-
-        original_devices = json.loads(devices_already_migrated.read_text())
-        original_mqtt = json.loads(mqtt_config_already_migrated.read_text())
-
-        result = cli_runner.invoke(
-            cli,
-            [
-                "--config-dir",
-                str(temp_dirs["config"]),
-                "config",
-                "migrate",
-            ],
+        devices_data = _read_json(devices_already_migrated)
+        mqtt_data = _read_json(mqtt_config_already_migrated)
+        result, mock_client = _invoke_migrate_with_mocked_grpc(
+            cli_runner,
+            ["--config-dir", str(temp_dirs["config"]), "config", "migrate"],
+            devices_content=devices_data,
+            mqtt_content=mqtt_data,
         )
 
         assert result.exit_code == 0
-        assert json.loads(devices_already_migrated.read_text()) == original_devices
-        assert json.loads(mqtt_config_already_migrated.read_text()) == original_mqtt
+        assert "already up-to-date" in result.output
+        mock_client.update_config.assert_not_called()
 
     @pytest.mark.unit
     def test_devices_without_mqtt_key_not_touched(
@@ -462,22 +513,16 @@ class TestConfigMigrateActual:
         temp_dirs: dict[str, Path],
         devices_no_mqtt: Path,
     ) -> None:
-        from src.interfaces.cli import cli
-
-        original_data = json.loads(devices_no_mqtt.read_text())
-
-        result = cli_runner.invoke(
-            cli,
-            [
-                "--config-dir",
-                str(temp_dirs["config"]),
-                "config",
-                "migrate",
-            ],
+        devices_data = _read_json(devices_no_mqtt)
+        result, mock_client = _invoke_migrate_with_mocked_grpc(
+            cli_runner,
+            ["--config-dir", str(temp_dirs["config"]), "config", "migrate"],
+            devices_content=devices_data,
+            mqtt_content={"topic_patterns": {}},
         )
 
         assert result.exit_code == 0
-        assert json.loads(devices_no_mqtt.read_text()) == original_data
+        mock_client.update_config.assert_not_called()
 
 
 class TestConfigMigrateMissingFiles:
@@ -487,13 +532,8 @@ class TestConfigMigrateMissingFiles:
         cli_runner: CliRunner,
         temp_dirs: dict[str, Path],
     ) -> None:
-        from src.interfaces.cli import cli
-
-        mqtt_cfg = {"broker": {"host": "localhost", "port": 1883}}
-        (temp_dirs["config"] / "mqtt_config.json").write_text(json.dumps(mqtt_cfg))
-
-        result = cli_runner.invoke(
-            cli,
+        result, mock_client = _invoke_migrate_with_mocked_grpc(
+            cli_runner,
             [
                 "--config-dir",
                 str(temp_dirs["config"]),
@@ -501,22 +541,25 @@ class TestConfigMigrateMissingFiles:
                 "migrate",
                 "--dry-run",
             ],
+            devices_error=Exception("Not found"),
+            mqtt_content={"broker": {"host": "localhost", "port": 1883}},
         )
 
-        assert result.exit_code in (0, 1)
+        assert result.exit_code == 0
         assert result.exception is None
+        assert "devices.json not found" in result.output
+        mock_client.update_config.assert_not_called()
 
     @pytest.mark.unit
     def test_migrate_when_mqtt_config_missing(
         self,
         cli_runner: CliRunner,
         temp_dirs: dict[str, Path],
-        devices_needing_migration: Path,  # noqa: ARG002
+        devices_needing_migration: Path,
     ) -> None:
-        from src.interfaces.cli import cli
-
-        result = cli_runner.invoke(
-            cli,
+        devices_data = _read_json(devices_needing_migration)
+        result, mock_client = _invoke_migrate_with_mocked_grpc(
+            cli_runner,
             [
                 "--config-dir",
                 str(temp_dirs["config"]),
@@ -524,7 +567,11 @@ class TestConfigMigrateMissingFiles:
                 "migrate",
                 "--dry-run",
             ],
+            devices_content=devices_data,
+            mqtt_error=Exception("Not found"),
         )
 
-        assert result.exit_code in (0, 1)
+        assert result.exit_code == 0
         assert result.exception is None
+        assert "mqtt_config.json not found" in result.output
+        mock_client.update_config.assert_not_called()

@@ -20,29 +20,35 @@ PAGES: tuple[tuple[str, str], ...] = (
 def _build_bridge_mock() -> MagicMock:
     mock_bridge = MagicMock()
 
-    mock_registry = MagicMock()
-    mock_registry.all_devices.return_value = []
-    mock_registry.get_locations.return_value = []
-    mock_bridge.get_device_registry.return_value = mock_registry
-
-    mock_rule_manager = MagicMock()
-    mock_rule_manager.get_all_rules.return_value = []
-    mock_bridge.get_rule_manager.return_value = mock_rule_manager
-
-    mock_config_manager = MagicMock()
-    mock_config_manager.load_config.return_value = {"key": "value"}
-    mock_bridge.get_config_manager.return_value = mock_config_manager
-
-    mock_orchestrator = MagicMock()
-    mock_orchestrator.state.value = "ready"
-    mock_orchestrator.is_ready = True
-    mock_orchestrator.get_system_status.return_value = {
-        "state": "ready",
-        "is_ready": True,
-        "initialization_steps": [],
-        "components": {"config_manager": True, "mqtt_manager": False},
+    mock_bridge.is_app_running.return_value = True
+    mock_bridge.get_devices.return_value = []
+    mock_bridge.get_rules.return_value = []
+    mock_bridge.get_config.return_value = {"key": "value"}
+    mock_bridge.list_configs.return_value = []
+    mock_bridge.validate_config.return_value = {"valid": True, "errors": []}
+    mock_bridge.reload_config.return_value = {"success": True}
+    mock_bridge.get_system_status.return_value = {
+        "state": "running",
+        "is_running": True,
+        "orchestrator": {"is_ready": True, "components": {}},
     }
-    mock_bridge.get_orchestrator.return_value = mock_orchestrator
+    mock_bridge.get_status.return_value = {
+        "status": "RUNNING",
+        "uptime_seconds": 10,
+        "version": "0.1.0",
+    }
+    mock_bridge.shutdown.return_value = True
+    mock_bridge.list_sensor_types.return_value = []
+    mock_bridge.get_membership_functions.return_value = {}
+    mock_bridge.update_membership_function.return_value = {"success": True}
+    mock_bridge.get_log_entries.return_value = {"entries": [], "total_count": 0}
+    mock_bridge.get_log_categories.return_value = []
+    mock_bridge.get_log_stats.return_value = {}
+    mock_bridge.add_rule.return_value = {"id": "r1", "text": "test", "enabled": True}
+    mock_bridge.remove_rule.return_value = True
+    mock_bridge.enable_rule.return_value = True
+    mock_bridge.disable_rule.return_value = True
+    mock_bridge.update_config.return_value = {"success": True}
 
     return mock_bridge
 
@@ -77,18 +83,13 @@ def test_bridge_returns_expected_types_from_mock() -> None:
         mock_bridge.return_value = _build_bridge_mock()
         bridge = mock_bridge.return_value
 
-    registry = bridge.get_device_registry()
-    rule_manager = bridge.get_rule_manager()
-    config_manager = bridge.get_config_manager()
-    orchestrator = bridge.get_orchestrator()
-
-    assert registry.all_devices() == []
-    assert registry.get_locations() == []
-    assert rule_manager.get_all_rules() == []
-    assert config_manager.load_config() == {"key": "value"}
-    status = orchestrator.get_system_status()
-    assert status["state"] == "ready"
-    assert status["is_ready"] is True
+    assert bridge.get_devices() == []
+    assert bridge.get_rules() == []
+    assert bridge.get_config() == {"key": "value"}
+    assert bridge.is_app_running() is True
+    status = bridge.get_system_status()
+    assert status["state"] == "running"
+    assert status["is_running"] is True
 
 
 @pytest.mark.integration

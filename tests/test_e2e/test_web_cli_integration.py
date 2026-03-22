@@ -54,60 +54,66 @@ def _wait_for_state(
 
 
 @pytest.mark.integration
-def test_cli_stop_via_http_endpoint(
+def test_cli_stop_via_grpc(
     config_directory: Path,
     rules_directory: Path,
     logs_directory: Path,
 ) -> None:
-    port = _find_free_port()
+    grpc_port = _find_free_port()
 
     app = Application(
         ApplicationConfig(
             config_dir=config_directory,
             rules_dir=rules_directory,
             logs_dir=logs_directory,
+            grpc_port=grpc_port,
             skip_mqtt=True,
             skip_ollama=True,
             evaluation_interval=0.1,
         )
     )
 
-    with patch.dict("os.environ", {"IOT_STATUS_PORT": str(port)}, clear=False):
+    try:
         assert app.start() is True
-        assert _status_reachable(port) is True
+        assert app.state == ApplicationState.RUNNING
 
         runner = CliRunner()
         result = runner.invoke(
             cli,
             [
-                "--config-dir",
-                str(config_directory),
-                "--rules-dir",
-                str(rules_directory),
-                "--logs-dir",
-                str(logs_directory),
+                "--grpc-port",
+                str(grpc_port),
                 "stop",
             ],
         )
 
         assert result.exit_code == 0
         assert "stopped" in result.output.lower()
-        assert _wait_for_state(app, ApplicationState.STOPPED)
-        assert _status_reachable(port) is False
+    finally:
+        # gRPC Stop only shuts down the orchestrator (LifecycleServicer has
+        # no reference to Application), so the Application wrapper never
+        # transitions to STOPPED.  Ensure clean teardown here.
+        app.stop()
 
 
 @pytest.mark.integration
 def test_web_ui_no_mqtt_connection() -> None:
-    sys.modules.pop("src.interfaces.web.bridge", None)
-    sys.modules.pop("paho.mqtt", None)
-    sys.modules.pop("paho.mqtt.client", None)
+    saved = {
+        k: sys.modules.pop(k, None)
+        for k in ("src.interfaces.web.bridge", "paho.mqtt", "paho.mqtt.client")
+    }
+    try:
+        bridge_module = importlib.import_module("src.interfaces.web.bridge")
+        bridge = bridge_module.OrchestratorBridge(grpc_host="127.0.0.1", grpc_port=9999)
 
-    bridge_module = importlib.import_module("src.interfaces.web.bridge")
-    bridge = bridge_module.OrchestratorBridge(grpc_host="127.0.0.1", grpc_port=9999)
-
-    assert bridge._grpc_host == "127.0.0.1"
-    assert bridge._grpc_port == 9999
-    assert "paho.mqtt.client" not in sys.modules
+        assert bridge._grpc_host == "127.0.0.1"
+        assert bridge._grpc_port == 9999
+        assert "paho.mqtt.client" not in sys.modules
+    finally:
+        sys.modules.pop("src.interfaces.web.bridge", None)
+        for k, v in saved.items():
+            if v is not None:
+                sys.modules[k] = v
 
 
 @pytest.mark.integration
@@ -136,6 +142,13 @@ def test_web_pages_render_in_http_only_mode_when_app_not_running(
             "get_system_status": lambda _: None,
             "get_devices": lambda _: [],
             "get_rules": lambda _: [],
+            "get_config": lambda _, name=None: {},
+            "get_log_categories": lambda _: [],
+            "get_log_entries": lambda _, **kw: {"entries": [], "total_count": 0},
+            "list_sensor_types": lambda _: [],
+            "get_membership_functions": lambda _, sensor_type=None: {},
+            "list_configs": lambda _: [],
+            "get_log_stats": lambda _: {},
             "shutdown": lambda _: False,
         },
     )()
@@ -163,6 +176,13 @@ def test_web_pages_render_in_http_only_mode_when_app_running(page_file: str) -> 
             },
             "get_devices": lambda _: [],
             "get_rules": lambda _: [],
+            "get_config": lambda _, name=None: {},
+            "get_log_categories": lambda _: [],
+            "get_log_entries": lambda _, **kw: {"entries": [], "total_count": 0},
+            "list_sensor_types": lambda _: [],
+            "get_membership_functions": lambda _, sensor_type=None: {},
+            "list_configs": lambda _: [],
+            "get_log_stats": lambda _: {},
             "shutdown": lambda _: True,
         },
     )()

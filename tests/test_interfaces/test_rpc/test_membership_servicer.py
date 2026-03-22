@@ -33,7 +33,9 @@ def _write_membership_file(config_dir: Path, sensor_type: str = "temperature") -
             },
         ],
     }
-    file_path = config_dir / f"{sensor_type}.json"
+    mf_dir = config_dir / "membership_functions"
+    mf_dir.mkdir(parents=True, exist_ok=True)
+    file_path = mf_dir / f"{sensor_type}.json"
     file_path.write_text(json.dumps(payload), encoding="utf-8")
     return file_path
 
@@ -42,9 +44,11 @@ class TestMembershipServicer:
     def test_list_sensor_types_returns_json_file_stems(self, tmp_path: Path) -> None:
         _write_membership_file(tmp_path, sensor_type="temperature")
         _write_membership_file(tmp_path, sensor_type="humidity")
-        (tmp_path / "README.md").write_text("ignore", encoding="utf-8")
+        (tmp_path / "membership_functions" / "README.md").write_text(
+            "ignore", encoding="utf-8"
+        )
 
-        servicer = MembershipServicer(config_dir=tmp_path)
+        servicer = MembershipServicer(config_dir=tmp_path / "membership_functions")
         response = servicer.ListSensorTypes(
             membership_pb2.ListSensorTypesRequest(),
             MagicMock(),
@@ -54,7 +58,7 @@ class TestMembershipServicer:
 
     def test_get_membership_functions_maps_json_to_proto(self, tmp_path: Path) -> None:
         _write_membership_file(tmp_path, sensor_type="temperature")
-        servicer = MembershipServicer(config_dir=tmp_path)
+        servicer = MembershipServicer(config_dir=tmp_path / "membership_functions")
         context = MagicMock()
 
         response = servicer.GetMembershipFunctions(
@@ -80,7 +84,8 @@ class TestMembershipServicer:
         self,
         tmp_path: Path,
     ) -> None:
-        servicer = MembershipServicer(config_dir=tmp_path)
+        (tmp_path / "membership_functions").mkdir()
+        servicer = MembershipServicer(config_dir=tmp_path / "membership_functions")
         context = MagicMock()
 
         servicer.GetMembershipFunctions(
@@ -98,7 +103,7 @@ class TestMembershipServicer:
         tmp_path: Path,
     ) -> None:
         file_path = _write_membership_file(tmp_path, sensor_type="temperature")
-        servicer = MembershipServicer(config_dir=tmp_path)
+        servicer = MembershipServicer(config_dir=tmp_path / "membership_functions")
 
         request = membership_pb2.UpdateMembershipFunctionRequest(
             sensor_type="temperature",
@@ -129,7 +134,7 @@ class TestMembershipServicer:
         self, tmp_path: Path
     ) -> None:
         _write_membership_file(tmp_path, sensor_type="temperature")
-        servicer = MembershipServicer(config_dir=tmp_path)
+        servicer = MembershipServicer(config_dir=tmp_path / "membership_functions")
         request = membership_pb2.UpdateMembershipFunctionRequest(
             sensor_type="temperature",
             variable_name="cold",
@@ -140,13 +145,12 @@ class TestMembershipServicer:
             ),
         )
 
-        with patch(
-            "src.interfaces.rpc.servicers.membership_servicer.os.replace"
-        ) as replace:
+        with patch("src.common.utils.os.replace") as replace:
             response = servicer.UpdateMembershipFunction(request, MagicMock())
 
         assert response.success is True
-        replace.assert_called_once()
-        source_path, target_path = replace.call_args[0]
+        assert replace.call_count >= 1  # backup + actual save both use atomic replace
+        # Last call is the actual membership file save
+        source_path, target_path = replace.call_args_list[-1][0]
         assert source_path != str(target_path)
-        assert target_path == tmp_path / "temperature.json"
+        assert target_path == tmp_path / "membership_functions" / "temperature.json"

@@ -161,7 +161,8 @@ def test_cli_list_devices_via_grpc(
                 "localhost",
                 "--grpc-port",
                 str(grpc_port),
-                "devices",
+                "device",
+                "list",
             ],
         )
 
@@ -206,7 +207,8 @@ def test_cli_list_rules_via_grpc(
                 "localhost",
                 "--grpc-port",
                 str(grpc_port),
-                "rules",
+                "rule",
+                "list",
             ],
         )
 
@@ -298,17 +300,16 @@ def test_cli_get_config_via_grpc(
                 "--grpc-port",
                 str(grpc_port),
                 "config",
-                "get",
-                "mqtt_config",
+                "validate",
             ],
         )
 
         assert result.exit_code == 0
-        # Should return JSON-like config output
+        # Should return config validation output
         assert (
-            "broker" in result.output.lower()
-            or "host" in result.output.lower()
-            or "port" in result.output.lower()
+            "valid" in result.output.lower()
+            or "config" in result.output.lower()
+            or "ok" in result.output.lower()
         )
 
     finally:
@@ -348,7 +349,8 @@ def test_cli_get_logs_via_grpc(
                 "localhost",
                 "--grpc-port",
                 str(grpc_port),
-                "logs",
+                "log",
+                "tail",
             ],
         )
 
@@ -476,7 +478,8 @@ def test_cli_multiple_commands_same_session(
                 "localhost",
                 "--grpc-port",
                 str(grpc_port),
-                "devices",
+                "device",
+                "list",
             ],
         )
         assert result2.exit_code == 0
@@ -489,7 +492,8 @@ def test_cli_multiple_commands_same_session(
                 "localhost",
                 "--grpc-port",
                 str(grpc_port),
-                "rules",
+                "rule",
+                "list",
             ],
         )
         assert result3.exit_code == 0

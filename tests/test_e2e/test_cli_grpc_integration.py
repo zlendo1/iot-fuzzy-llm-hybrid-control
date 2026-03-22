@@ -1328,3 +1328,188 @@ def test_log_stats_via_grpc(
     finally:
         app.stop()
         assert _wait_for_state(app, ApplicationState.STOPPED)
+
+
+@pytest.mark.integration
+def test_cli_invalid_device_id_error(
+    config_directory: Path,
+    rules_directory: Path,
+    logs_directory: Path,
+    grpc_port: int,
+) -> None:
+    """Test CLI handles non-existent device ID gracefully."""
+    app = Application(
+        ApplicationConfig(
+            config_dir=config_directory,
+            rules_dir=rules_directory,
+            logs_dir=logs_directory,
+            grpc_port=grpc_port,
+            skip_mqtt=True,
+            skip_ollama=True,
+        )
+    )
+
+    assert app.start() is True
+    assert _wait_for_state(app, ApplicationState.RUNNING)
+    time.sleep(0.2)
+
+    try:
+        runner = CliRunner()
+        result = runner.invoke(
+            cli,
+            [
+                "--grpc-host",
+                "localhost",
+                "--grpc-port",
+                str(grpc_port),
+                "device",
+                "status",
+                "nonexistent_device_12345",
+            ],
+        )
+
+        assert result.exit_code != 0 or "not found" in result.output.lower()
+        assert "Traceback (most recent call last)" not in result.output
+
+    finally:
+        app.stop()
+        assert _wait_for_state(app, ApplicationState.STOPPED)
+
+
+@pytest.mark.integration
+def test_cli_invalid_rule_id_error(
+    config_directory: Path,
+    rules_directory: Path,
+    logs_directory: Path,
+    grpc_port: int,
+) -> None:
+    """Test CLI handles non-existent rule ID gracefully."""
+    app = Application(
+        ApplicationConfig(
+            config_dir=config_directory,
+            rules_dir=rules_directory,
+            logs_dir=logs_directory,
+            grpc_port=grpc_port,
+            skip_mqtt=True,
+            skip_ollama=True,
+        )
+    )
+
+    assert app.start() is True
+    assert _wait_for_state(app, ApplicationState.RUNNING)
+    time.sleep(0.2)
+
+    try:
+        runner = CliRunner()
+        result = runner.invoke(
+            cli,
+            [
+                "--grpc-host",
+                "localhost",
+                "--grpc-port",
+                str(grpc_port),
+                "rule",
+                "show",
+                "nonexistent_rule_xyz",
+            ],
+        )
+
+        assert result.exit_code != 0 or "not found" in result.output.lower()
+        assert "Traceback (most recent call last)" not in result.output
+
+    finally:
+        app.stop()
+        assert _wait_for_state(app, ApplicationState.STOPPED)
+
+
+@pytest.mark.integration
+def test_cli_invalid_sensor_id_error(
+    config_directory: Path,
+    rules_directory: Path,
+    logs_directory: Path,
+    grpc_port: int,
+) -> None:
+    """Test CLI handles non-existent sensor ID gracefully."""
+    app = Application(
+        ApplicationConfig(
+            config_dir=config_directory,
+            rules_dir=rules_directory,
+            logs_dir=logs_directory,
+            grpc_port=grpc_port,
+            skip_mqtt=True,
+            skip_ollama=True,
+        )
+    )
+
+    assert app.start() is True
+    assert _wait_for_state(app, ApplicationState.RUNNING)
+    time.sleep(0.2)
+
+    try:
+        runner = CliRunner()
+        result = runner.invoke(
+            cli,
+            [
+                "--grpc-host",
+                "localhost",
+                "--grpc-port",
+                str(grpc_port),
+                "sensor",
+                "status",
+                "nonexistent_sensor_abc",
+            ],
+        )
+
+        assert result.exit_code != 0 or "not found" in result.output.lower()
+        assert "Traceback (most recent call last)" not in result.output
+
+    finally:
+        app.stop()
+        assert _wait_for_state(app, ApplicationState.STOPPED)
+
+
+@pytest.mark.integration
+def test_cli_server_error_response(
+    config_directory: Path,
+    rules_directory: Path,
+    logs_directory: Path,
+    grpc_port: int,
+) -> None:
+    """Test CLI handles gRPC error status gracefully when server returns error."""
+    app = Application(
+        ApplicationConfig(
+            config_dir=config_directory,
+            rules_dir=rules_directory,
+            logs_dir=logs_directory,
+            grpc_port=grpc_port,
+            skip_mqtt=True,
+            skip_ollama=True,
+        )
+    )
+
+    assert app.start() is True
+    assert _wait_for_state(app, ApplicationState.RUNNING)
+    time.sleep(0.2)
+
+    try:
+        runner = CliRunner()
+        result = runner.invoke(
+            cli,
+            [
+                "--grpc-host",
+                "localhost",
+                "--grpc-port",
+                str(grpc_port),
+                "rule",
+                "delete",
+                "definitely_not_a_real_rule_id",
+                "--yes",
+            ],
+        )
+
+        assert result.exit_code != 0 or "not found" in result.output.lower()
+        assert "Traceback (most recent call last)" not in result.output
+
+    finally:
+        app.stop()
+        assert _wait_for_state(app, ApplicationState.STOPPED)

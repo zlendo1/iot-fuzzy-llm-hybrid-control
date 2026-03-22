@@ -1339,6 +1339,131 @@ class TestLogCommands:
 
 class TestSystemCommands:
     @pytest.mark.unit
+    def test_start_command_success(
+        self, cli_runner: CliRunner, temp_dirs: dict[str, Path]
+    ) -> None:
+        from src.interfaces.cli import cli
+
+        with patch("src.interfaces.cli.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.start.return_value = {
+                "success": True,
+                "message": "System started successfully",
+            }
+            mock_client_cls.return_value.__enter__.return_value = mock_client
+
+            result = cli_runner.invoke(
+                cli,
+                [
+                    "--config-dir",
+                    str(temp_dirs["config"]),
+                    "--rules-dir",
+                    str(temp_dirs["rules"]),
+                    "--logs-dir",
+                    str(temp_dirs["logs"]),
+                    "start",
+                ],
+            )
+
+            mock_client.start.assert_called_once()
+
+        assert result.exit_code == 0
+        assert "started" in result.output.lower() or "success" in result.output.lower()
+
+    @pytest.mark.unit
+    def test_start_command_failure(
+        self, cli_runner: CliRunner, temp_dirs: dict[str, Path]
+    ) -> None:
+        from src.interfaces.cli import cli
+
+        with patch("src.interfaces.cli.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.start.return_value = {
+                "success": False,
+                "message": "System failed to start.",
+            }
+            mock_client_cls.return_value.__enter__.return_value = mock_client
+
+            result = cli_runner.invoke(
+                cli,
+                [
+                    "--config-dir",
+                    str(temp_dirs["config"]),
+                    "--rules-dir",
+                    str(temp_dirs["rules"]),
+                    "--logs-dir",
+                    str(temp_dirs["logs"]),
+                    "start",
+                ],
+            )
+
+        assert result.exit_code == 1
+        assert "failed" in result.output.lower()
+
+    @pytest.mark.unit
+    def test_start_command_with_skip_flags(
+        self, cli_runner: CliRunner, temp_dirs: dict[str, Path]
+    ) -> None:
+        from src.interfaces.cli import cli
+
+        with patch("src.interfaces.cli.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.start.return_value = {
+                "success": True,
+                "message": "System started successfully",
+            }
+            mock_client_cls.return_value.__enter__.return_value = mock_client
+
+            result = cli_runner.invoke(
+                cli,
+                [
+                    "--config-dir",
+                    str(temp_dirs["config"]),
+                    "--rules-dir",
+                    str(temp_dirs["rules"]),
+                    "--logs-dir",
+                    str(temp_dirs["logs"]),
+                    "start",
+                    "--skip-mqtt",
+                    "--skip-ollama",
+                ],
+            )
+
+            mock_client.start.assert_called_once()
+
+        assert result.exit_code == 0
+
+    @pytest.mark.unit
+    def test_start_command_uses_grpc_options(
+        self, cli_runner: CliRunner, temp_dirs: dict[str, Path]
+    ) -> None:
+        from src.interfaces.cli import cli
+
+        with patch("src.interfaces.cli.GrpcClient") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.start.return_value = {"success": True, "message": "ok"}
+            mock_client_cls.return_value.__enter__.return_value = mock_client
+            result = cli_runner.invoke(
+                cli,
+                [
+                    "--grpc-host",
+                    "127.0.0.1",
+                    "--grpc-port",
+                    "50052",
+                    "--config-dir",
+                    str(temp_dirs["config"]),
+                    "--rules-dir",
+                    str(temp_dirs["rules"]),
+                    "--logs-dir",
+                    str(temp_dirs["logs"]),
+                    "start",
+                ],
+            )
+            mock_client_cls.assert_called_once_with("127.0.0.1", 50052)
+
+        assert result.exit_code == 0
+
+    @pytest.mark.unit
     def test_status_command(
         self, cli_runner: CliRunner, temp_dirs: dict[str, Path]
     ) -> None:

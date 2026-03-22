@@ -316,7 +316,7 @@ class TestLifecycleServiceMethods:
                                 client.connect()
                                 result = client.get_status()
 
-                                assert result["status"] == "RUNNING"
+                                assert result["state"] == "running"
                                 assert result["uptime_seconds"] == 120
                                 assert result["version"] == "0.1.0"
 

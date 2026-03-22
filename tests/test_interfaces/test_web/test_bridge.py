@@ -39,7 +39,7 @@ def test_get_status_error() -> None:
 def test_is_app_running_when_up() -> None:
     with patch("src.interfaces.web.bridge._build_grpc_client") as mock_builder:
         mock_client = MagicMock()
-        mock_client.get_status.return_value = {"status": "RUNNING"}
+        mock_client.get_status.return_value = {"state": "running"}
         mock_builder.return_value = mock_client
 
         bridge = OrchestratorBridge()
@@ -115,7 +115,7 @@ def test_shutdown() -> None:
 def test_is_connected() -> None:
     with patch("src.interfaces.web.bridge._build_grpc_client") as mock_builder:
         mock_client = MagicMock()
-        mock_client.get_status.return_value = {"status": "RUNNING"}
+        mock_client.get_status.return_value = {"state": "running"}
         mock_builder.return_value = mock_client
 
         bridge = OrchestratorBridge()

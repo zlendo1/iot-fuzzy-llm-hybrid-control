@@ -54,13 +54,13 @@ def render() -> None:
     with col_status:
         if current_state == "running":
             st.success("🟢 System is running")
-        elif current_state == "idle":
-            st.info("🟡 System is idle (ready to start)")
+        elif current_state == "stopped":
+            st.info("🟡 System is stopped (ready to start)")
         else:
             st.warning(f"⚪ System state: {current_state}")
 
     with col_action:
-        if current_state == "idle":
+        if current_state == "stopped":
             if st.button("▶️ Start System", type="primary", width="stretch"):
                 if bridge.start():
                     st.success("System started!")

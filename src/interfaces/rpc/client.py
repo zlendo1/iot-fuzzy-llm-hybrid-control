@@ -126,7 +126,7 @@ class GrpcClient:
             )
             state_name = common_pb2.SystemState.Name(response.status.state)
             return {
-                "status": state_name,
+                "state": state_name.lower(),
                 "uptime_seconds": response.status.uptime_seconds,
                 "version": response.status.version,
             }

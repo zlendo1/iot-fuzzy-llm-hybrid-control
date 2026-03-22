@@ -331,8 +331,8 @@ def status(ctx: CLIContext) -> None:
 
     click.echo(ctx.formatter.success("Connected to running application."))
 
-    state = str(status_data.get("status", "unknown"))
-    is_ready = state.upper() in {"RUNNING", "READY"}
+    state = str(status_data.get("state", "unknown"))
+    is_ready = state.lower() in {"running", "ready"}
 
     click.echo(f"System State: {state.upper()}")
     click.echo(f"Ready: {'Yes' if is_ready else 'No'}")

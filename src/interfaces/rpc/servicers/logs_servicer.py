@@ -29,10 +29,14 @@ _MESSAGE_KEY = "message"
 
 
 class LogsServicer(logs_pb2_grpc.LogsServiceServicer):
-    def __init__(self, log_dir: Path | None = None) -> None:
+    def __init__(
+        self,
+        log_dir: Path | None = None,
+        session_start: datetime | None = None,
+    ) -> None:
         log_path = log_dir or Path("logs")
         self._logging_manager = LoggingManager(log_dir=log_path)
-        self._session_start = datetime.now(timezone.utc)
+        self._session_start = session_start or datetime.now(timezone.utc)
 
     @handle_grpc_errors
     def GetLogEntries(

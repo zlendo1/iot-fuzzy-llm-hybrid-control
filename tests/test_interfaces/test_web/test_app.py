@@ -36,11 +36,11 @@ class TestNavigationStructure:
 
         assert hasattr(streamlit_app, "PAGES")
 
-    def test_pages_list_has_seven_entries(self) -> None:
-        """Verify PAGES list contains exactly 7 entries."""
+    def test_pages_list_has_six_entries(self) -> None:
+        """Verify PAGES list contains exactly 6 entries."""
         from src.interfaces.web import streamlit_app  # type: ignore
 
-        assert len(streamlit_app.PAGES) == 7
+        assert len(streamlit_app.PAGES) == 6
 
     def test_pages_list_contains_valid_objects(self) -> None:
         """Verify each entry in PAGES is a valid page object."""

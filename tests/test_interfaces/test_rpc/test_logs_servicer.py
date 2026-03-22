@@ -21,6 +21,14 @@ LogsServicer = importlib.import_module(
     "src.interfaces.rpc.servicers.logs_servicer"
 ).LogsServicer
 
+# Session start far in the past so test entries (dated 2026-03-19) are not
+# filtered out by the session-start gate.
+_TEST_SESSION_START = datetime(2020, 1, 1, tzinfo=timezone.utc)
+
+
+def _make_servicer(tmp_path: Path) -> Any:
+    return LogsServicer(log_dir=tmp_path, session_start=_TEST_SESSION_START)
+
 
 def _write_json_lines(log_file: Path, entries: Sequence[dict[str, Any]]) -> None:
     log_file.write_text(
@@ -40,7 +48,9 @@ def _ts(value: str) -> Timestamp:
 
 class TestLogsServicerGetLogEntries:
     def test_returns_empty_when_log_directory_missing(self, tmp_path: Path) -> None:
-        servicer = LogsServicer(log_dir=tmp_path / "missing")
+        servicer = LogsServicer(
+            log_dir=tmp_path / "missing", session_start=_TEST_SESSION_START
+        )
 
         response = servicer.GetLogEntries(GetLogEntriesRequest(), MagicMock())
 
@@ -61,7 +71,7 @@ class TestLogsServicerGetLogEntries:
         ]
         _write_json_lines(tmp_path / "system.json", entries)
 
-        servicer = LogsServicer(log_dir=tmp_path)
+        servicer = _make_servicer(tmp_path)
         response = servicer.GetLogEntries(GetLogEntriesRequest(), MagicMock())
 
         assert len(response.entries) == 100
@@ -82,7 +92,7 @@ class TestLogsServicerGetLogEntries:
         ]
         _write_json_lines(tmp_path / "system.json", entries)
 
-        servicer = LogsServicer(log_dir=tmp_path)
+        servicer = _make_servicer(tmp_path)
         request = GetLogEntriesRequest()
         request.pagination.limit = 2
         request.pagination.offset = 1
@@ -120,7 +130,7 @@ class TestLogsServicerGetLogEntries:
             ],
         )
 
-        servicer = LogsServicer(log_dir=tmp_path)
+        servicer = _make_servicer(tmp_path)
         request = GetLogEntriesRequest(
             level_filter="ERROR",
             category_filter="system",
@@ -150,7 +160,7 @@ class TestLogsServicerGetLogEntries:
             ],
         )
 
-        servicer = LogsServicer(log_dir=tmp_path)
+        servicer = _make_servicer(tmp_path)
         response = servicer.GetLogEntries(GetLogEntriesRequest(), MagicMock())
 
         assert len(response.entries) == 1
@@ -187,10 +197,16 @@ class TestLogsServicerGetLogCategories:
             ],
         )
 
-        servicer = LogsServicer(log_dir=tmp_path)
+        servicer = _make_servicer(tmp_path)
         response = servicer.GetLogCategories(GetLogCategoriesRequest(), MagicMock())
 
-        assert response.categories == ["commands", "system"]
+        assert response.categories == [
+            "commands",
+            "errors",
+            "rules",
+            "sensors",
+            "system",
+        ]
 
 
 class TestLogsServicerGetLogStats:
@@ -224,7 +240,7 @@ class TestLogsServicerGetLogStats:
             ],
         )
 
-        servicer = LogsServicer(log_dir=tmp_path)
+        servicer = _make_servicer(tmp_path)
         response = servicer.GetLogStats(GetLogStatsRequest(), MagicMock())
 
         assert response.stats.total_entries == 3
@@ -250,7 +266,7 @@ class TestLogsServicerGetLogStats:
             ],
         )
 
-        servicer = LogsServicer(log_dir=tmp_path)
+        servicer = _make_servicer(tmp_path)
         request = GetLogStatsRequest(
             level_filter="ERROR",
             category_filter="system",

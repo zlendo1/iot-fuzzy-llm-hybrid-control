@@ -1,5 +1,0 @@
-=== CLI HTTP Shutdown Integration ===
-✓ App started
-ℹ Stopping system...
-✓ ✓ Application stopped successfully.
-✓ PASS: App stopped via CLI HTTP shutdown

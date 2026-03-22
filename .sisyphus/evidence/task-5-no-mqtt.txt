@@ -1,3 +1,0 @@
-=== Checking for MQTT imports in bridge.py ===
-✓ No MQTT imports found
-✓ No MQTT modules in sys.modules

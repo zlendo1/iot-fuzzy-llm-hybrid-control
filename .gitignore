@@ -215,3 +215,6 @@ __marimo__/
 
 # Generated gRPC protobuf files
 src/interfaces/rpc/generated/*_pb2*.py
+
+# Automatic Python env initialization
+.envrc

@@ -1,6 +1,6 @@
 # AGENTS.md - Fuzzy-LLM Hybrid IoT Management System
 
-<!-- Generated: 2026-03-19 | Commit: 9ed969e | Branch: main -->
+<!-- Generated: 2026-03-22 | Commit: 5d21410 | Branch: main -->
 
 > AI Agent guidance for working with this codebase.
 
@@ -150,20 +150,30 @@ make typecheck     # mypy strict
 
 ```
 iot-master/
+├── AGENTS.md            # ← You are here (project overview)
 ├── config/              # JSON configs (devices, MQTT, LLM, membership functions)
 │   ├── schemas/         # JSON schema validation
 │   └── membership_functions/  # Fuzzy MF definitions per sensor type
 ├── docker/              # Dockerfiles for app, mosquitto, ollama
 ├── docs/                # user/ and dev/ documentation
 ├── rules/               # Natural language rules (active_rules.json)
-├── src/                 # Source code (see src/AGENTS.md for details)
+├── src/                 # Source code
+│   ├── AGENTS.md        # Source code guide (layer-by-layer)
 │   ├── common/          # Shared utilities, exceptions, logging
 │   ├── configuration/   # Orchestrator, ConfigManager, RuleManager, LoggingManager
+│   │   └── AGENTS.md    # Orchestrator init sequence, config patterns
 │   ├── control_reasoning/ # RulePipeline, OllamaClient, CommandGenerator
+│   │   └── AGENTS.md    # Pipeline stages, LLM integration
 │   ├── data_processing/ # FuzzyPipeline, FuzzyEngine, MembershipFunctions
+│   │   └── AGENTS.md    # Fuzzy logic, membership functions
 │   ├── device_interface/ # MQTTManager, DeviceRegistry, DeviceMonitor
-│   └── interfaces/      # CLI + Web UI (Streamlit)
-│       └── web/         # Dashboard, device pages, rule editor
+│   │   └── AGENTS.md    # MQTT patterns, device models
+│   └── interfaces/      # CLI + gRPC + Web UI
+│       ├── AGENTS.md    # Interface architecture overview
+│       ├── rpc/         # gRPC server, client, 6 servicers
+│       │   └── AGENTS.md  # Service definitions, proto workflow
+│       └── web/         # Streamlit dashboard
+│           └── AGENTS.md  # Bridge pattern, page organization
 └── tests/               # Mirrors src/ structure
 ```
 
@@ -205,4 +215,19 @@ python -m src.interfaces rule add "If bedroom is cold, turn on heater"
 - [docs/user/user-guide.md](docs/user/user-guide.md) - CLI usage
 - [docs/user/configuration-guide.md](docs/user/configuration-guide.md) - Config
   reference
-- [src/AGENTS.md](src/AGENTS.md) - Source code details
+
+## AGENTS.md Hierarchy
+
+Each source layer has its own AGENTS.md with layer-specific guidance:
+
+| File                                                      | Scope                         |
+| --------------------------------------------------------- | ----------------------------- |
+| [AGENTS.md](AGENTS.md)                                    | Project overview (this file)  |
+| [src/AGENTS.md](src/AGENTS.md)                            | Source code, all layers       |
+| [src/configuration/](src/configuration/AGENTS.md)         | Orchestrator, config, logging |
+| [src/control_reasoning/](src/control_reasoning/AGENTS.md) | Rule pipeline, LLM            |
+| [src/data_processing/](src/data_processing/AGENTS.md)     | Fuzzy logic, MFs              |
+| [src/device_interface/](src/device_interface/AGENTS.md)   | MQTT, devices                 |
+| [src/interfaces/](src/interfaces/AGENTS.md)               | CLI + interface overview      |
+| [src/interfaces/rpc/](src/interfaces/rpc/AGENTS.md)       | gRPC services                 |
+| [src/interfaces/web/](src/interfaces/web/AGENTS.md)       | Streamlit dashboard           |

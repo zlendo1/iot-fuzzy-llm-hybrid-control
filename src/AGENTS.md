@@ -1,6 +1,6 @@
 # src/AGENTS.md - Source Code Guide
 
-<!-- Generated: 2026-03-19 | Commit: 9ed969e | Branch: main -->
+<!-- Generated: 2026-03-22 | Commit: 5d21410 | Branch: main -->
 
 > Layer-by-layer guide for AI agents working with the source code.
 
@@ -29,6 +29,10 @@ device_interface/   MQTTCommunicationManager (COORDINATOR)
 
 ## Layer 1: User Interface (`interfaces/`)
 
+> Detailed guidance: [interfaces/AGENTS.md](interfaces/AGENTS.md),
+> [interfaces/rpc/AGENTS.md](interfaces/rpc/AGENTS.md),
+> [interfaces/web/AGENTS.md](interfaces/web/AGENTS.md)
+
 **Purpose**: User interaction via CLI and Web UI
 
 | File          | Responsibility                                          |
@@ -38,41 +42,12 @@ device_interface/   MQTTCommunicationManager (COORDINATOR)
 | `web/`        | Streamlit dashboard (see below)                         |
 | `rpc/`        | gRPC server, client, 6 servicers (port 50051)           |
 
-### Web UI (`interfaces/web/`)
-
-| File                 | Responsibility                                    |
-| -------------------- | ------------------------------------------------- |
-| `streamlit_app.py`   | Main entry, navigation sidebar                    |
-| `bridge.py`          | OrchestratorBridge - connects UI to system layers |
-| `session.py`         | Streamlit session state management                |
-| `data_queue.py`      | Sensor data queue for real-time updates           |
-| `components/`        | Shared UI components (header, badges, errors)     |
-| `pages/dashboard.py` | Sensor metrics, auto-refresh fragments            |
-| `pages/devices.py`   | Device listing with expandable details            |
-| `pages/rules.py`     | Rule management and editing                       |
-| `pages/config.py`    | Configuration editing interface                   |
-| `pages/logs.py`      | Log viewing and filtering                         |
-
-**Key Pattern**: CLI/Web query orchestrator for status, delegate to managers for
-operations.
-
-### RPC Interface (`interfaces/rpc/`)
-
-gRPC-based unified RPC layer. CLI and Web UI use `GrpcClient` to communicate
-with the running application. Server starts automatically with the application.
-
-| File               | Responsibility                                                                  |
-| ------------------ | ------------------------------------------------------------------------------- |
-| `server.py`        | GrpcServer - registers 6 services on port 50051                                 |
-| `client.py`        | GrpcClient - typed Python wrapper for all RPC calls                             |
-| `error_mapping.py` | Maps gRPC status codes ↔ exception hierarchy                                    |
-| `servicers/`       | 6 service implementations (lifecycle, rules, devices, config, logs, membership) |
-| `generated/`       | Auto-generated protobuf/gRPC Python code                                        |
-
-**Key Pattern**: Servicers delegate to layer managers (ConfigurationManager,
-RuleManager, etc.) — they do NOT access files directly.
+**Key Pattern**: CLI and Web UI are equivalent thin clients. All operations go
+through gRPC. See sub-directory AGENTS.md files for detailed structure.
 
 ## Layer 2: Configuration & Management (`configuration/`)
+
+> Detailed guidance: [configuration/AGENTS.md](configuration/AGENTS.md)
 
 **Coordinator**: `SystemOrchestrator`
 
@@ -86,10 +61,12 @@ RuleManager, etc.) — they do NOT access files directly.
 **Initialization Steps** (in order):
 
 1. Load config → 2. Init logging → 3. Populate registry → 4. Connect MQTT →
-2. Verify Ollama → 6. Load membership functions → 7. Load rules → 7b. Init rule
-   pipeline → 8. Start device monitor → 9. Init interfaces → 10. Ready
+2. Verify Ollama → 6. Load membership functions → 7. Load rules → 8. Init rule
+   pipeline → 9. Start device monitor → 10. Ready
 
 ## Layer 3: Control & Reasoning (`control_reasoning/`)
+
+> Detailed guidance: [control_reasoning/AGENTS.md](control_reasoning/AGENTS.md)
 
 **Coordinator**: `RuleProcessingPipeline`
 
@@ -111,6 +88,8 @@ LinguisticDescriptions → PromptBuilder → OllamaClient → ResponseParser →
 ```
 
 ## Layer 4: Data Processing (`data_processing/`)
+
+> Detailed guidance: [data_processing/AGENTS.md](data_processing/AGENTS.md)
 
 **Coordinator**: `FuzzyProcessingPipeline`
 
@@ -135,6 +114,8 @@ class LinguisticDescription:
 
 ## Layer 5: Device Interface (`device_interface/`)
 
+> Detailed guidance: [device_interface/AGENTS.md](device_interface/AGENTS.md)
+
 **Coordinator**: `MQTTCommunicationManager`
 
 | File                       | Responsibility                                                |
@@ -145,6 +126,8 @@ class LinguisticDescription:
 | `device_monitor.py`        | Tracks device availability, timeout detection                 |
 | `messages.py`              | `SensorReading`, `DeviceCommand`, `CommandType` dataclasses   |
 | `models.py`                | `Device`, `Sensor`, `Actuator` models                         |
+| `payload_formatter.py`     | MQTT payload serialization/deserialization                    |
+| `topic_resolver.py`        | MQTT topic construction from device/sensor config             |
 
 ## Shared Utilities (`common/`)
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import threading
+import time
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
@@ -50,6 +51,7 @@ class SystemOrchestrator:
 
     _state: SystemState = field(default=SystemState.UNINITIALIZED, init=False)
     _lock: threading.RLock = field(default_factory=threading.RLock, repr=False)
+    _start_time: float | None = field(default=None, init=False, repr=False)
 
     _config_manager: ConfigurationManager | None = field(
         default=None, init=False, repr=False
@@ -192,6 +194,7 @@ class SystemOrchestrator:
                 self._step_10_enter_ready_state()
 
                 self._state = SystemState.READY
+                self._start_time = time.time()
                 logger.info("System initialization completed successfully")
                 return True
 
@@ -456,9 +459,12 @@ class SystemOrchestrator:
             return True
 
     def get_system_status(self) -> dict[str, Any]:
+        uptime = time.time() - self._start_time if self._start_time else 0.0
         return {
             "state": self._state.value,
             "is_ready": self.is_ready,
+            "uptime_seconds": uptime,
+            "version": "0.1.0",
             "initialization_steps": [
                 {
                     "name": step.name,

@@ -71,10 +71,13 @@ class LifecycleServicer(lifecycle_pb2_grpc.LifecycleServiceServicer):
         status = self._orchestrator.get_system_status()
         state_value = str(status.get("state", "unknown")).lower()
         state_mapping = {
+            "initializing": common_pb2.SystemState.STARTING,
             "starting": common_pb2.SystemState.STARTING,
+            "ready": common_pb2.SystemState.RUNNING,
             "running": common_pb2.SystemState.RUNNING,
             "stopping": common_pb2.SystemState.STOPPING,
             "stopped": common_pb2.SystemState.STOPPED,
+            "uninitialized": common_pb2.SystemState.STOPPED,
             "error": common_pb2.SystemState.ERROR,
         }
         mapped_state = state_mapping.get(state_value, common_pb2.SystemState.UNKNOWN)

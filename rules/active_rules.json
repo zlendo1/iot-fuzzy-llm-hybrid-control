@@ -6,8 +6,14 @@
       "priority": 1,
       "enabled": true,
       "created_timestamp": "2025-02-05T12:00:00Z",
+      "last_triggered": null,
+      "trigger_count": 0,
       "metadata": {
-        "tags": ["climate", "cooling", "comfort"],
+        "tags": [
+          "climate",
+          "cooling",
+          "comfort"
+        ],
         "category": "climate_control",
         "description": "Activates AC when conditions are uncomfortably hot and humid"
       }
@@ -18,8 +24,13 @@
       "priority": 2,
       "enabled": true,
       "created_timestamp": "2025-02-05T12:00:00Z",
+      "last_triggered": null,
+      "trigger_count": 0,
       "metadata": {
-        "tags": ["climate", "comfort"],
+        "tags": [
+          "climate",
+          "comfort"
+        ],
         "category": "climate_control",
         "description": "Prevents unnecessary AC activation when conditions are acceptable"
       }
@@ -30,8 +41,14 @@
       "priority": 1,
       "enabled": true,
       "created_timestamp": "2025-02-05T12:00:00Z",
+      "last_triggered": null,
+      "trigger_count": 0,
       "metadata": {
-        "tags": ["lighting", "motion", "safety"],
+        "tags": [
+          "lighting",
+          "motion",
+          "safety"
+        ],
         "category": "lighting_control",
         "description": "Automatic lighting for safety when someone walks through dark hallway"
       }
@@ -42,8 +59,14 @@
       "priority": 2,
       "enabled": true,
       "created_timestamp": "2025-02-05T12:00:00Z",
+      "last_triggered": null,
+      "trigger_count": 0,
       "metadata": {
-        "tags": ["lighting", "motion", "comfort"],
+        "tags": [
+          "lighting",
+          "motion",
+          "comfort"
+        ],
         "category": "lighting_control",
         "description": "Comfortable lighting when someone enters a dim room"
       }
@@ -54,8 +77,14 @@
       "priority": 1,
       "enabled": true,
       "created_timestamp": "2025-02-05T12:00:00Z",
+      "last_triggered": null,
+      "trigger_count": 0,
       "metadata": {
-        "tags": ["heating", "comfort", "bedroom"],
+        "tags": [
+          "heating",
+          "comfort",
+          "bedroom"
+        ],
         "category": "heating_control",
         "description": "Maintains comfortable sleeping temperature in bedroom"
       }
@@ -66,8 +95,14 @@
       "priority": 1,
       "enabled": true,
       "created_timestamp": "2025-02-05T12:00:00Z",
+      "last_triggered": null,
+      "trigger_count": 0,
       "metadata": {
-        "tags": ["heating", "comfort", "office"],
+        "tags": [
+          "heating",
+          "comfort",
+          "office"
+        ],
         "category": "heating_control",
         "description": "Maintains comfortable working temperature in office"
       }
@@ -78,8 +113,14 @@
       "priority": 1,
       "enabled": true,
       "created_timestamp": "2025-02-05T12:00:00Z",
+      "last_triggered": null,
+      "trigger_count": 0,
       "metadata": {
-        "tags": ["blinds", "lighting", "comfort"],
+        "tags": [
+          "blinds",
+          "lighting",
+          "comfort"
+        ],
         "category": "blind_control",
         "description": "Reduces glare by partially closing blinds when sunlight is intense"
       }
@@ -90,8 +131,14 @@
       "priority": 2,
       "enabled": true,
       "created_timestamp": "2025-02-05T12:00:00Z",
+      "last_triggered": null,
+      "trigger_count": 0,
       "metadata": {
-        "tags": ["blinds", "lighting", "energy"],
+        "tags": [
+          "blinds",
+          "lighting",
+          "energy"
+        ],
         "category": "blind_control",
         "description": "Maximizes natural light when room is unoccupied and dark"
       }
@@ -102,8 +149,14 @@
       "priority": 3,
       "enabled": true,
       "created_timestamp": "2025-02-05T12:00:00Z",
+      "last_triggered": null,
+      "trigger_count": 0,
       "metadata": {
-        "tags": ["energy", "lighting", "automation"],
+        "tags": [
+          "energy",
+          "lighting",
+          "automation"
+        ],
         "category": "energy_saving",
         "description": "Energy saving by turning off lights in unoccupied rooms"
       }
@@ -114,8 +167,13 @@
       "priority": 5,
       "enabled": true,
       "created_timestamp": "2025-02-05T12:00:00Z",
+      "last_triggered": null,
+      "trigger_count": 0,
       "metadata": {
-        "tags": ["comfort", "climate"],
+        "tags": [
+          "comfort",
+          "climate"
+        ],
         "category": "comfort_monitoring",
         "description": "Confirms optimal conditions require no intervention"
       }

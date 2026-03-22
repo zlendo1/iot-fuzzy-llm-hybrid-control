@@ -3,293 +3,278 @@
 isort:skip_file
 """
 
-from collections import abc as _abc
-from google.protobuf import descriptor as _descriptor
-from google.protobuf import message as _message
-from google.protobuf import timestamp_pb2 as _timestamp_pb2
-from google.protobuf.internal import containers as _containers
-import builtins as _builtins
-import common_pb2 as _common_pb2
+import builtins
+import collections.abc
+import common_pb2
+import google.protobuf.descriptor
+import google.protobuf.internal.containers
+import google.protobuf.message
+import google.protobuf.timestamp_pb2
 import sys
-import typing as _typing
+import typing
 
 if sys.version_info >= (3, 10):
-    from typing import TypeAlias as _TypeAlias
+    import typing as typing_extensions
 else:
-    from typing_extensions import TypeAlias as _TypeAlias
+    import typing_extensions
 
-DESCRIPTOR: _descriptor.FileDescriptor
+DESCRIPTOR: google.protobuf.descriptor.FileDescriptor
 
-@_typing.final
-class LogEntry(_message.Message):
+@typing.final
+class LogEntry(google.protobuf.message.Message):
     """LogEntry represents a single log entry"""
 
-    DESCRIPTOR: _descriptor.Descriptor
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    @_typing.final
-    class ExtraEntry(_message.Message):
-        DESCRIPTOR: _descriptor.Descriptor
+    @typing.final
+    class ExtraEntry(google.protobuf.message.Message):
+        DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-        KEY_FIELD_NUMBER: _builtins.int
-        VALUE_FIELD_NUMBER: _builtins.int
-        key: _builtins.str
-        value: _builtins.str
+        KEY_FIELD_NUMBER: builtins.int
+        VALUE_FIELD_NUMBER: builtins.int
+        key: builtins.str
+        value: builtins.str
         def __init__(
             self,
             *,
-            key: _builtins.str = ...,
-            value: _builtins.str = ...,
+            key: builtins.str = ...,
+            value: builtins.str = ...,
         ) -> None: ...
-        _ClearFieldArgType: _TypeAlias = _typing.Literal["key", b"key", "value", b"value"]  # noqa: Y015
-        def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+        def ClearField(self, field_name: typing.Literal["key", b"key", "value", b"value"]) -> None: ...
 
-    TIMESTAMP_FIELD_NUMBER: _builtins.int
-    LEVEL_FIELD_NUMBER: _builtins.int
-    CATEGORY_FIELD_NUMBER: _builtins.int
-    MESSAGE_FIELD_NUMBER: _builtins.int
-    EXTRA_FIELD_NUMBER: _builtins.int
-    level: _builtins.str
+    TIMESTAMP_FIELD_NUMBER: builtins.int
+    LEVEL_FIELD_NUMBER: builtins.int
+    CATEGORY_FIELD_NUMBER: builtins.int
+    MESSAGE_FIELD_NUMBER: builtins.int
+    EXTRA_FIELD_NUMBER: builtins.int
+    level: builtins.str
     """DEBUG, INFO, WARNING, ERROR, CRITICAL"""
-    category: _builtins.str
+    category: builtins.str
     """system, commands, sensors, errors, rules"""
-    message: _builtins.str
-    @_builtins.property
-    def timestamp(self) -> _timestamp_pb2.Timestamp: ...
-    @_builtins.property
-    def extra(self) -> _containers.ScalarMap[_builtins.str, _builtins.str]:
+    message: builtins.str
+    @property
+    def timestamp(self) -> google.protobuf.timestamp_pb2.Timestamp: ...
+    @property
+    def extra(self) -> google.protobuf.internal.containers.ScalarMap[builtins.str, builtins.str]:
         """Additional context fields"""
 
     def __init__(
         self,
         *,
-        timestamp: _timestamp_pb2.Timestamp | None = ...,
-        level: _builtins.str = ...,
-        category: _builtins.str = ...,
-        message: _builtins.str = ...,
-        extra: _abc.Mapping[_builtins.str, _builtins.str] | None = ...,
+        timestamp: google.protobuf.timestamp_pb2.Timestamp | None = ...,
+        level: builtins.str = ...,
+        category: builtins.str = ...,
+        message: builtins.str = ...,
+        extra: collections.abc.Mapping[builtins.str, builtins.str] | None = ...,
     ) -> None: ...
-    _HasFieldArgType: _TypeAlias = _typing.Literal["timestamp", b"timestamp"]  # noqa: Y015
-    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["category", b"category", "extra", b"extra", "level", b"level", "message", b"message", "timestamp", b"timestamp"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def HasField(self, field_name: typing.Literal["timestamp", b"timestamp"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["category", b"category", "extra", b"extra", "level", b"level", "message", b"message", "timestamp", b"timestamp"]) -> None: ...
 
-Global___LogEntry: _TypeAlias = LogEntry  # noqa: Y015
+Global___LogEntry: typing_extensions.TypeAlias = LogEntry
 
-@_typing.final
-class LogStats(_message.Message):
+@typing.final
+class LogStats(google.protobuf.message.Message):
     """LogStats contains aggregated log statistics"""
 
-    DESCRIPTOR: _descriptor.Descriptor
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    @_typing.final
-    class EntriesByLevelEntry(_message.Message):
-        DESCRIPTOR: _descriptor.Descriptor
+    @typing.final
+    class EntriesByLevelEntry(google.protobuf.message.Message):
+        DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-        KEY_FIELD_NUMBER: _builtins.int
-        VALUE_FIELD_NUMBER: _builtins.int
-        key: _builtins.str
-        value: _builtins.int
+        KEY_FIELD_NUMBER: builtins.int
+        VALUE_FIELD_NUMBER: builtins.int
+        key: builtins.str
+        value: builtins.int
         def __init__(
             self,
             *,
-            key: _builtins.str = ...,
-            value: _builtins.int = ...,
+            key: builtins.str = ...,
+            value: builtins.int = ...,
         ) -> None: ...
-        _ClearFieldArgType: _TypeAlias = _typing.Literal["key", b"key", "value", b"value"]  # noqa: Y015
-        def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+        def ClearField(self, field_name: typing.Literal["key", b"key", "value", b"value"]) -> None: ...
 
-    @_typing.final
-    class EntriesByCategoryEntry(_message.Message):
-        DESCRIPTOR: _descriptor.Descriptor
+    @typing.final
+    class EntriesByCategoryEntry(google.protobuf.message.Message):
+        DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-        KEY_FIELD_NUMBER: _builtins.int
-        VALUE_FIELD_NUMBER: _builtins.int
-        key: _builtins.str
-        value: _builtins.int
+        KEY_FIELD_NUMBER: builtins.int
+        VALUE_FIELD_NUMBER: builtins.int
+        key: builtins.str
+        value: builtins.int
         def __init__(
             self,
             *,
-            key: _builtins.str = ...,
-            value: _builtins.int = ...,
+            key: builtins.str = ...,
+            value: builtins.int = ...,
         ) -> None: ...
-        _ClearFieldArgType: _TypeAlias = _typing.Literal["key", b"key", "value", b"value"]  # noqa: Y015
-        def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+        def ClearField(self, field_name: typing.Literal["key", b"key", "value", b"value"]) -> None: ...
 
-    TOTAL_ENTRIES_FIELD_NUMBER: _builtins.int
-    ENTRIES_BY_LEVEL_FIELD_NUMBER: _builtins.int
-    ENTRIES_BY_CATEGORY_FIELD_NUMBER: _builtins.int
-    total_entries: _builtins.int
-    @_builtins.property
-    def entries_by_level(self) -> _containers.ScalarMap[_builtins.str, _builtins.int]:
+    TOTAL_ENTRIES_FIELD_NUMBER: builtins.int
+    ENTRIES_BY_LEVEL_FIELD_NUMBER: builtins.int
+    ENTRIES_BY_CATEGORY_FIELD_NUMBER: builtins.int
+    total_entries: builtins.int
+    @property
+    def entries_by_level(self) -> google.protobuf.internal.containers.ScalarMap[builtins.str, builtins.int]:
         """e.g., {"INFO": 100, "ERROR": 5}"""
 
-    @_builtins.property
-    def entries_by_category(self) -> _containers.ScalarMap[_builtins.str, _builtins.int]:
+    @property
+    def entries_by_category(self) -> google.protobuf.internal.containers.ScalarMap[builtins.str, builtins.int]:
         """e.g., {"system": 80, "sensors": 25}"""
 
     def __init__(
         self,
         *,
-        total_entries: _builtins.int = ...,
-        entries_by_level: _abc.Mapping[_builtins.str, _builtins.int] | None = ...,
-        entries_by_category: _abc.Mapping[_builtins.str, _builtins.int] | None = ...,
+        total_entries: builtins.int = ...,
+        entries_by_level: collections.abc.Mapping[builtins.str, builtins.int] | None = ...,
+        entries_by_category: collections.abc.Mapping[builtins.str, builtins.int] | None = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["entries_by_category", b"entries_by_category", "entries_by_level", b"entries_by_level", "total_entries", b"total_entries"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["entries_by_category", b"entries_by_category", "entries_by_level", b"entries_by_level", "total_entries", b"total_entries"]) -> None: ...
 
-Global___LogStats: _TypeAlias = LogStats  # noqa: Y015
+Global___LogStats: typing_extensions.TypeAlias = LogStats
 
-@_typing.final
-class GetLogEntriesRequest(_message.Message):
+@typing.final
+class GetLogEntriesRequest(google.protobuf.message.Message):
     """GetLogEntriesRequest - retrieve log entries with filtering"""
 
-    DESCRIPTOR: _descriptor.Descriptor
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    PAGINATION_FIELD_NUMBER: _builtins.int
-    LEVEL_FILTER_FIELD_NUMBER: _builtins.int
-    CATEGORY_FILTER_FIELD_NUMBER: _builtins.int
-    FROM_TIME_FIELD_NUMBER: _builtins.int
-    TO_TIME_FIELD_NUMBER: _builtins.int
-    level_filter: _builtins.str
+    PAGINATION_FIELD_NUMBER: builtins.int
+    LEVEL_FILTER_FIELD_NUMBER: builtins.int
+    CATEGORY_FILTER_FIELD_NUMBER: builtins.int
+    FROM_TIME_FIELD_NUMBER: builtins.int
+    TO_TIME_FIELD_NUMBER: builtins.int
+    level_filter: builtins.str
     """Optional: filter by level (DEBUG, INFO, WARNING, ERROR, CRITICAL)"""
-    category_filter: _builtins.str
+    category_filter: builtins.str
     """Optional: filter by category (system, commands, sensors, errors, rules)"""
-    @_builtins.property
-    def pagination(self) -> _common_pb2.PaginationRequest: ...
-    @_builtins.property
-    def from_time(self) -> _timestamp_pb2.Timestamp:
+    @property
+    def pagination(self) -> common_pb2.PaginationRequest: ...
+    @property
+    def from_time(self) -> google.protobuf.timestamp_pb2.Timestamp:
         """Optional: filter entries from this time"""
 
-    @_builtins.property
-    def to_time(self) -> _timestamp_pb2.Timestamp:
+    @property
+    def to_time(self) -> google.protobuf.timestamp_pb2.Timestamp:
         """Optional: filter entries until this time"""
 
     def __init__(
         self,
         *,
-        pagination: _common_pb2.PaginationRequest | None = ...,
-        level_filter: _builtins.str = ...,
-        category_filter: _builtins.str = ...,
-        from_time: _timestamp_pb2.Timestamp | None = ...,
-        to_time: _timestamp_pb2.Timestamp | None = ...,
+        pagination: common_pb2.PaginationRequest | None = ...,
+        level_filter: builtins.str = ...,
+        category_filter: builtins.str = ...,
+        from_time: google.protobuf.timestamp_pb2.Timestamp | None = ...,
+        to_time: google.protobuf.timestamp_pb2.Timestamp | None = ...,
     ) -> None: ...
-    _HasFieldArgType: _TypeAlias = _typing.Literal["from_time", b"from_time", "pagination", b"pagination", "to_time", b"to_time"]  # noqa: Y015
-    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["category_filter", b"category_filter", "from_time", b"from_time", "level_filter", b"level_filter", "pagination", b"pagination", "to_time", b"to_time"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def HasField(self, field_name: typing.Literal["from_time", b"from_time", "pagination", b"pagination", "to_time", b"to_time"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["category_filter", b"category_filter", "from_time", b"from_time", "level_filter", b"level_filter", "pagination", b"pagination", "to_time", b"to_time"]) -> None: ...
 
-Global___GetLogEntriesRequest: _TypeAlias = GetLogEntriesRequest  # noqa: Y015
+Global___GetLogEntriesRequest: typing_extensions.TypeAlias = GetLogEntriesRequest
 
-@_typing.final
-class GetLogEntriesResponse(_message.Message):
+@typing.final
+class GetLogEntriesResponse(google.protobuf.message.Message):
     """GetLogEntriesResponse - paginated log entries"""
 
-    DESCRIPTOR: _descriptor.Descriptor
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    ENTRIES_FIELD_NUMBER: _builtins.int
-    PAGINATION_FIELD_NUMBER: _builtins.int
-    @_builtins.property
-    def entries(self) -> _containers.RepeatedCompositeFieldContainer[Global___LogEntry]: ...
-    @_builtins.property
-    def pagination(self) -> _common_pb2.PaginationResponse: ...
+    ENTRIES_FIELD_NUMBER: builtins.int
+    PAGINATION_FIELD_NUMBER: builtins.int
+    @property
+    def entries(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___LogEntry]: ...
+    @property
+    def pagination(self) -> common_pb2.PaginationResponse: ...
     def __init__(
         self,
         *,
-        entries: _abc.Iterable[Global___LogEntry] | None = ...,
-        pagination: _common_pb2.PaginationResponse | None = ...,
+        entries: collections.abc.Iterable[Global___LogEntry] | None = ...,
+        pagination: common_pb2.PaginationResponse | None = ...,
     ) -> None: ...
-    _HasFieldArgType: _TypeAlias = _typing.Literal["pagination", b"pagination"]  # noqa: Y015
-    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["entries", b"entries", "pagination", b"pagination"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def HasField(self, field_name: typing.Literal["pagination", b"pagination"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["entries", b"entries", "pagination", b"pagination"]) -> None: ...
 
-Global___GetLogEntriesResponse: _TypeAlias = GetLogEntriesResponse  # noqa: Y015
+Global___GetLogEntriesResponse: typing_extensions.TypeAlias = GetLogEntriesResponse
 
-@_typing.final
-class GetLogCategoriesRequest(_message.Message):
+@typing.final
+class GetLogCategoriesRequest(google.protobuf.message.Message):
     """GetLogCategoriesRequest - retrieve available log categories"""
 
-    DESCRIPTOR: _descriptor.Descriptor
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
     def __init__(
         self,
     ) -> None: ...
 
-Global___GetLogCategoriesRequest: _TypeAlias = GetLogCategoriesRequest  # noqa: Y015
+Global___GetLogCategoriesRequest: typing_extensions.TypeAlias = GetLogCategoriesRequest
 
-@_typing.final
-class GetLogCategoriesResponse(_message.Message):
+@typing.final
+class GetLogCategoriesResponse(google.protobuf.message.Message):
     """GetLogCategoriesResponse - list of available log categories"""
 
-    DESCRIPTOR: _descriptor.Descriptor
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    CATEGORIES_FIELD_NUMBER: _builtins.int
-    @_builtins.property
-    def categories(self) -> _containers.RepeatedScalarFieldContainer[_builtins.str]: ...
+    CATEGORIES_FIELD_NUMBER: builtins.int
+    @property
+    def categories(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]: ...
     def __init__(
         self,
         *,
-        categories: _abc.Iterable[_builtins.str] | None = ...,
+        categories: collections.abc.Iterable[builtins.str] | None = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["categories", b"categories"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["categories", b"categories"]) -> None: ...
 
-Global___GetLogCategoriesResponse: _TypeAlias = GetLogCategoriesResponse  # noqa: Y015
+Global___GetLogCategoriesResponse: typing_extensions.TypeAlias = GetLogCategoriesResponse
 
-@_typing.final
-class GetLogStatsRequest(_message.Message):
+@typing.final
+class GetLogStatsRequest(google.protobuf.message.Message):
     """GetLogStatsRequest - retrieve log statistics"""
 
-    DESCRIPTOR: _descriptor.Descriptor
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    LEVEL_FILTER_FIELD_NUMBER: _builtins.int
-    CATEGORY_FILTER_FIELD_NUMBER: _builtins.int
-    FROM_TIME_FIELD_NUMBER: _builtins.int
-    TO_TIME_FIELD_NUMBER: _builtins.int
-    level_filter: _builtins.str
+    LEVEL_FILTER_FIELD_NUMBER: builtins.int
+    CATEGORY_FILTER_FIELD_NUMBER: builtins.int
+    FROM_TIME_FIELD_NUMBER: builtins.int
+    TO_TIME_FIELD_NUMBER: builtins.int
+    level_filter: builtins.str
     """Optional: filter stats by level"""
-    category_filter: _builtins.str
+    category_filter: builtins.str
     """Optional: filter stats by category"""
-    @_builtins.property
-    def from_time(self) -> _timestamp_pb2.Timestamp:
+    @property
+    def from_time(self) -> google.protobuf.timestamp_pb2.Timestamp:
         """Optional: stats from this time"""
 
-    @_builtins.property
-    def to_time(self) -> _timestamp_pb2.Timestamp:
+    @property
+    def to_time(self) -> google.protobuf.timestamp_pb2.Timestamp:
         """Optional: stats until this time"""
 
     def __init__(
         self,
         *,
-        level_filter: _builtins.str = ...,
-        category_filter: _builtins.str = ...,
-        from_time: _timestamp_pb2.Timestamp | None = ...,
-        to_time: _timestamp_pb2.Timestamp | None = ...,
+        level_filter: builtins.str = ...,
+        category_filter: builtins.str = ...,
+        from_time: google.protobuf.timestamp_pb2.Timestamp | None = ...,
+        to_time: google.protobuf.timestamp_pb2.Timestamp | None = ...,
     ) -> None: ...
-    _HasFieldArgType: _TypeAlias = _typing.Literal["from_time", b"from_time", "to_time", b"to_time"]  # noqa: Y015
-    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["category_filter", b"category_filter", "from_time", b"from_time", "level_filter", b"level_filter", "to_time", b"to_time"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def HasField(self, field_name: typing.Literal["from_time", b"from_time", "to_time", b"to_time"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["category_filter", b"category_filter", "from_time", b"from_time", "level_filter", b"level_filter", "to_time", b"to_time"]) -> None: ...
 
-Global___GetLogStatsRequest: _TypeAlias = GetLogStatsRequest  # noqa: Y015
+Global___GetLogStatsRequest: typing_extensions.TypeAlias = GetLogStatsRequest
 
-@_typing.final
-class GetLogStatsResponse(_message.Message):
+@typing.final
+class GetLogStatsResponse(google.protobuf.message.Message):
     """GetLogStatsResponse - log statistics"""
 
-    DESCRIPTOR: _descriptor.Descriptor
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    STATS_FIELD_NUMBER: _builtins.int
-    @_builtins.property
+    STATS_FIELD_NUMBER: builtins.int
+    @property
     def stats(self) -> Global___LogStats: ...
     def __init__(
         self,
         *,
         stats: Global___LogStats | None = ...,
     ) -> None: ...
-    _HasFieldArgType: _TypeAlias = _typing.Literal["stats", b"stats"]  # noqa: Y015
-    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["stats", b"stats"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def HasField(self, field_name: typing.Literal["stats", b"stats"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["stats", b"stats"]) -> None: ...
 
-Global___GetLogStatsResponse: _TypeAlias = GetLogStatsResponse  # noqa: Y015
+Global___GetLogStatsResponse: typing_extensions.TypeAlias = GetLogStatsResponse

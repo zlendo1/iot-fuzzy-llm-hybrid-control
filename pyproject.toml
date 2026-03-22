@@ -117,7 +117,7 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["ARG001", "ARG002", "ARG005", "SIM117", "SIM102"]  # Test fixtures and mocks
 "src/interfaces/rpc/servicers/*" = ["ARG002"]  # gRPC context param required by interface
-"src/interfaces/rpc/generated/*" = ["ARG002", "E402", "I001"]  # Generated protobuf code
+"src/interfaces/rpc/generated/*" = ["ARG002", "E402", "I001", "UP004", "UP009", "F401"]  # Generated protobuf code
 
 # Black configuration (code formatter)
 [tool.black]

@@ -3,147 +3,142 @@
 isort:skip_file
 """
 
-from collections import abc as _abc
-from google.protobuf import descriptor as _descriptor
-from google.protobuf import message as _message
-from google.protobuf.internal import containers as _containers
-import builtins as _builtins
-import common_pb2 as _common_pb2
+import builtins
+import collections.abc
+import common_pb2
+import google.protobuf.descriptor
+import google.protobuf.internal.containers
+import google.protobuf.message
 import sys
-import typing as _typing
+import typing
 
 if sys.version_info >= (3, 10):
-    from typing import TypeAlias as _TypeAlias
+    import typing as typing_extensions
 else:
-    from typing_extensions import TypeAlias as _TypeAlias
+    import typing_extensions
 
-DESCRIPTOR: _descriptor.FileDescriptor
+DESCRIPTOR: google.protobuf.descriptor.FileDescriptor
 
-@_typing.final
-class StartRequest(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
-
-    def __init__(
-        self,
-    ) -> None: ...
-
-Global___StartRequest: _TypeAlias = StartRequest  # noqa: Y015
-
-@_typing.final
-class StartResponse(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
-
-    SUCCESS_FIELD_NUMBER: _builtins.int
-    MESSAGE_FIELD_NUMBER: _builtins.int
-    success: _builtins.bool
-    message: _builtins.str
-    def __init__(
-        self,
-        *,
-        success: _builtins.bool = ...,
-        message: _builtins.str = ...,
-    ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["message", b"message", "success", b"success"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
-
-Global___StartResponse: _TypeAlias = StartResponse  # noqa: Y015
-
-@_typing.final
-class StopRequest(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
+@typing.final
+class StartRequest(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
     def __init__(
         self,
     ) -> None: ...
 
-Global___StopRequest: _TypeAlias = StopRequest  # noqa: Y015
+Global___StartRequest: typing_extensions.TypeAlias = StartRequest
 
-@_typing.final
-class StopResponse(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
+@typing.final
+class StartResponse(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    SUCCESS_FIELD_NUMBER: _builtins.int
-    MESSAGE_FIELD_NUMBER: _builtins.int
-    success: _builtins.bool
-    message: _builtins.str
+    SUCCESS_FIELD_NUMBER: builtins.int
+    MESSAGE_FIELD_NUMBER: builtins.int
+    success: builtins.bool
+    message: builtins.str
     def __init__(
         self,
         *,
-        success: _builtins.bool = ...,
-        message: _builtins.str = ...,
+        success: builtins.bool = ...,
+        message: builtins.str = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["message", b"message", "success", b"success"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["message", b"message", "success", b"success"]) -> None: ...
 
-Global___StopResponse: _TypeAlias = StopResponse  # noqa: Y015
+Global___StartResponse: typing_extensions.TypeAlias = StartResponse
 
-@_typing.final
-class GetStatusRequest(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
+@typing.final
+class StopRequest(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
     def __init__(
         self,
     ) -> None: ...
 
-Global___GetStatusRequest: _TypeAlias = GetStatusRequest  # noqa: Y015
+Global___StopRequest: typing_extensions.TypeAlias = StopRequest
 
-@_typing.final
-class GetStatusResponse(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
+@typing.final
+class StopResponse(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    STATUS_FIELD_NUMBER: _builtins.int
-    MESSAGE_FIELD_NUMBER: _builtins.int
-    message: _builtins.str
-    @_builtins.property
-    def status(self) -> _common_pb2.Status: ...
-    def __init__(
-        self,
-        *,
-        status: _common_pb2.Status | None = ...,
-        message: _builtins.str = ...,
-    ) -> None: ...
-    _HasFieldArgType: _TypeAlias = _typing.Literal["status", b"status"]  # noqa: Y015
-    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["message", b"message", "status", b"status"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
-
-Global___GetStatusResponse: _TypeAlias = GetStatusResponse  # noqa: Y015
-
-@_typing.final
-class GetSystemInfoRequest(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
-
-    def __init__(
-        self,
-    ) -> None: ...
-
-Global___GetSystemInfoRequest: _TypeAlias = GetSystemInfoRequest  # noqa: Y015
-
-@_typing.final
-class GetSystemInfoResponse(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
-
-    NAME_FIELD_NUMBER: _builtins.int
-    VERSION_FIELD_NUMBER: _builtins.int
-    UPTIME_SECONDS_FIELD_NUMBER: _builtins.int
-    PYTHON_VERSION_FIELD_NUMBER: _builtins.int
-    RUNNING_COMPONENTS_FIELD_NUMBER: _builtins.int
-    name: _builtins.str
-    version: _builtins.str
-    uptime_seconds: _builtins.int
-    python_version: _builtins.str
-    @_builtins.property
-    def running_components(self) -> _containers.RepeatedScalarFieldContainer[_builtins.str]: ...
+    SUCCESS_FIELD_NUMBER: builtins.int
+    MESSAGE_FIELD_NUMBER: builtins.int
+    success: builtins.bool
+    message: builtins.str
     def __init__(
         self,
         *,
-        name: _builtins.str = ...,
-        version: _builtins.str = ...,
-        uptime_seconds: _builtins.int = ...,
-        python_version: _builtins.str = ...,
-        running_components: _abc.Iterable[_builtins.str] | None = ...,
+        success: builtins.bool = ...,
+        message: builtins.str = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["name", b"name", "python_version", b"python_version", "running_components", b"running_components", "uptime_seconds", b"uptime_seconds", "version", b"version"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["message", b"message", "success", b"success"]) -> None: ...
 
-Global___GetSystemInfoResponse: _TypeAlias = GetSystemInfoResponse  # noqa: Y015
+Global___StopResponse: typing_extensions.TypeAlias = StopResponse
+
+@typing.final
+class GetStatusRequest(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    def __init__(
+        self,
+    ) -> None: ...
+
+Global___GetStatusRequest: typing_extensions.TypeAlias = GetStatusRequest
+
+@typing.final
+class GetStatusResponse(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    STATUS_FIELD_NUMBER: builtins.int
+    MESSAGE_FIELD_NUMBER: builtins.int
+    message: builtins.str
+    @property
+    def status(self) -> common_pb2.Status: ...
+    def __init__(
+        self,
+        *,
+        status: common_pb2.Status | None = ...,
+        message: builtins.str = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing.Literal["status", b"status"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["message", b"message", "status", b"status"]) -> None: ...
+
+Global___GetStatusResponse: typing_extensions.TypeAlias = GetStatusResponse
+
+@typing.final
+class GetSystemInfoRequest(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    def __init__(
+        self,
+    ) -> None: ...
+
+Global___GetSystemInfoRequest: typing_extensions.TypeAlias = GetSystemInfoRequest
+
+@typing.final
+class GetSystemInfoResponse(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    NAME_FIELD_NUMBER: builtins.int
+    VERSION_FIELD_NUMBER: builtins.int
+    UPTIME_SECONDS_FIELD_NUMBER: builtins.int
+    PYTHON_VERSION_FIELD_NUMBER: builtins.int
+    RUNNING_COMPONENTS_FIELD_NUMBER: builtins.int
+    name: builtins.str
+    version: builtins.str
+    uptime_seconds: builtins.int
+    python_version: builtins.str
+    @property
+    def running_components(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]: ...
+    def __init__(
+        self,
+        *,
+        name: builtins.str = ...,
+        version: builtins.str = ...,
+        uptime_seconds: builtins.int = ...,
+        python_version: builtins.str = ...,
+        running_components: collections.abc.Iterable[builtins.str] | None = ...,
+    ) -> None: ...
+    def ClearField(self, field_name: typing.Literal["name", b"name", "python_version", b"python_version", "running_components", b"running_components", "uptime_seconds", b"uptime_seconds", "version", b"version"]) -> None: ...
+
+Global___GetSystemInfoResponse: typing_extensions.TypeAlias = GetSystemInfoResponse

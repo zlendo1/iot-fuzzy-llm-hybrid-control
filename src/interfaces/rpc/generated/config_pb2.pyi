@@ -3,49 +3,48 @@
 isort:skip_file
 """
 
-from collections import abc as _abc
-from google.protobuf import descriptor as _descriptor
-from google.protobuf import message as _message
-from google.protobuf.internal import containers as _containers
-import builtins as _builtins
+import builtins
+import collections.abc
+import google.protobuf.descriptor
+import google.protobuf.internal.containers
+import google.protobuf.message
 import sys
-import typing as _typing
+import typing
 
 if sys.version_info >= (3, 10):
-    from typing import TypeAlias as _TypeAlias
+    import typing as typing_extensions
 else:
-    from typing_extensions import TypeAlias as _TypeAlias
+    import typing_extensions
 
-DESCRIPTOR: _descriptor.FileDescriptor
+DESCRIPTOR: google.protobuf.descriptor.FileDescriptor
 
-@_typing.final
-class ConfigFile(_message.Message):
+@typing.final
+class ConfigFile(google.protobuf.message.Message):
     """ConfigFile represents a configuration file with versioning for optimistic locking"""
 
-    DESCRIPTOR: _descriptor.Descriptor
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    NAME_FIELD_NUMBER: _builtins.int
-    CONTENT_FIELD_NUMBER: _builtins.int
-    VERSION_FIELD_NUMBER: _builtins.int
-    name: _builtins.str
-    content: _builtins.str
+    NAME_FIELD_NUMBER: builtins.int
+    CONTENT_FIELD_NUMBER: builtins.int
+    VERSION_FIELD_NUMBER: builtins.int
+    name: builtins.str
+    content: builtins.str
     """JSON string containing the actual configuration"""
-    version: _builtins.str
+    version: builtins.str
     """Version/ETag for optimistic locking - used to detect concurrent updates"""
     def __init__(
         self,
         *,
-        name: _builtins.str = ...,
-        content: _builtins.str = ...,
-        version: _builtins.str = ...,
+        name: builtins.str = ...,
+        content: builtins.str = ...,
+        version: builtins.str = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["content", b"content", "name", b"name", "version", b"version"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["content", b"content", "name", b"name", "version", b"version"]) -> None: ...
 
-Global___ConfigFile: _TypeAlias = ConfigFile  # noqa: Y015
+Global___ConfigFile: typing_extensions.TypeAlias = ConfigFile
 
-@_typing.final
-class GetConfigRequest(_message.Message):
+@typing.final
+class GetConfigRequest(google.protobuf.message.Message):
     """GetConfigRequest retrieves a configuration file by name
     Supported config files:
     - mqtt_config: MQTT broker settings
@@ -54,197 +53,186 @@ class GetConfigRequest(_message.Message):
     - membership_functions: Fuzzy membership function definitions per sensor type
     """
 
-    DESCRIPTOR: _descriptor.Descriptor
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    NAME_FIELD_NUMBER: _builtins.int
-    name: _builtins.str
+    NAME_FIELD_NUMBER: builtins.int
+    name: builtins.str
     """Configuration file name (without .json extension)"""
     def __init__(
         self,
         *,
-        name: _builtins.str = ...,
+        name: builtins.str = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["name", b"name"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["name", b"name"]) -> None: ...
 
-Global___GetConfigRequest: _TypeAlias = GetConfigRequest  # noqa: Y015
+Global___GetConfigRequest: typing_extensions.TypeAlias = GetConfigRequest
 
-@_typing.final
-class GetConfigResponse(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
+@typing.final
+class GetConfigResponse(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    CONFIG_FIELD_NUMBER: _builtins.int
-    @_builtins.property
+    CONFIG_FIELD_NUMBER: builtins.int
+    @property
     def config(self) -> Global___ConfigFile: ...
     def __init__(
         self,
         *,
         config: Global___ConfigFile | None = ...,
     ) -> None: ...
-    _HasFieldArgType: _TypeAlias = _typing.Literal["config", b"config"]  # noqa: Y015
-    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["config", b"config"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def HasField(self, field_name: typing.Literal["config", b"config"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["config", b"config"]) -> None: ...
 
-Global___GetConfigResponse: _TypeAlias = GetConfigResponse  # noqa: Y015
+Global___GetConfigResponse: typing_extensions.TypeAlias = GetConfigResponse
 
-@_typing.final
-class UpdateConfigRequest(_message.Message):
+@typing.final
+class UpdateConfigRequest(google.protobuf.message.Message):
     """UpdateConfigRequest updates a configuration file with optimistic locking
     The version field must match the current version on the server;
     if it doesn't, the update is rejected with ABORTED status
     """
 
-    DESCRIPTOR: _descriptor.Descriptor
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    CONFIG_FIELD_NUMBER: _builtins.int
-    @_builtins.property
+    CONFIG_FIELD_NUMBER: builtins.int
+    @property
     def config(self) -> Global___ConfigFile: ...
     def __init__(
         self,
         *,
         config: Global___ConfigFile | None = ...,
     ) -> None: ...
-    _HasFieldArgType: _TypeAlias = _typing.Literal["config", b"config"]  # noqa: Y015
-    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["config", b"config"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def HasField(self, field_name: typing.Literal["config", b"config"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["config", b"config"]) -> None: ...
 
-Global___UpdateConfigRequest: _TypeAlias = UpdateConfigRequest  # noqa: Y015
+Global___UpdateConfigRequest: typing_extensions.TypeAlias = UpdateConfigRequest
 
-@_typing.final
-class UpdateConfigResponse(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
+@typing.final
+class UpdateConfigResponse(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    SUCCESS_FIELD_NUMBER: _builtins.int
-    MESSAGE_FIELD_NUMBER: _builtins.int
-    NEW_VERSION_FIELD_NUMBER: _builtins.int
-    success: _builtins.bool
-    message: _builtins.str
-    new_version: _builtins.str
+    SUCCESS_FIELD_NUMBER: builtins.int
+    MESSAGE_FIELD_NUMBER: builtins.int
+    NEW_VERSION_FIELD_NUMBER: builtins.int
+    success: builtins.bool
+    message: builtins.str
+    new_version: builtins.str
     """The new version/ETag after update"""
     def __init__(
         self,
         *,
-        success: _builtins.bool = ...,
-        message: _builtins.str = ...,
-        new_version: _builtins.str = ...,
+        success: builtins.bool = ...,
+        message: builtins.str = ...,
+        new_version: builtins.str = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["message", b"message", "new_version", b"new_version", "success", b"success"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["message", b"message", "new_version", b"new_version", "success", b"success"]) -> None: ...
 
-Global___UpdateConfigResponse: _TypeAlias = UpdateConfigResponse  # noqa: Y015
+Global___UpdateConfigResponse: typing_extensions.TypeAlias = UpdateConfigResponse
 
-@_typing.final
-class ValidateConfigRequest(_message.Message):
+@typing.final
+class ValidateConfigRequest(google.protobuf.message.Message):
     """ValidateConfigRequest validates a configuration without saving it"""
 
-    DESCRIPTOR: _descriptor.Descriptor
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    NAME_FIELD_NUMBER: _builtins.int
-    CONTENT_FIELD_NUMBER: _builtins.int
-    name: _builtins.str
+    NAME_FIELD_NUMBER: builtins.int
+    CONTENT_FIELD_NUMBER: builtins.int
+    name: builtins.str
     """Configuration file name"""
-    content: _builtins.str
+    content: builtins.str
     """JSON string to validate"""
     def __init__(
         self,
         *,
-        name: _builtins.str = ...,
-        content: _builtins.str = ...,
+        name: builtins.str = ...,
+        content: builtins.str = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["content", b"content", "name", b"name"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["content", b"content", "name", b"name"]) -> None: ...
 
-Global___ValidateConfigRequest: _TypeAlias = ValidateConfigRequest  # noqa: Y015
+Global___ValidateConfigRequest: typing_extensions.TypeAlias = ValidateConfigRequest
 
-@_typing.final
-class ValidateConfigResponse(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
+@typing.final
+class ValidateConfigResponse(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    VALID_FIELD_NUMBER: _builtins.int
-    ERRORS_FIELD_NUMBER: _builtins.int
-    valid: _builtins.bool
-    @_builtins.property
-    def errors(self) -> _containers.RepeatedScalarFieldContainer[_builtins.str]:
+    VALID_FIELD_NUMBER: builtins.int
+    ERRORS_FIELD_NUMBER: builtins.int
+    valid: builtins.bool
+    @property
+    def errors(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]:
         """List of validation errors (empty if valid)"""
 
     def __init__(
         self,
         *,
-        valid: _builtins.bool = ...,
-        errors: _abc.Iterable[_builtins.str] | None = ...,
+        valid: builtins.bool = ...,
+        errors: collections.abc.Iterable[builtins.str] | None = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["errors", b"errors", "valid", b"valid"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["errors", b"errors", "valid", b"valid"]) -> None: ...
 
-Global___ValidateConfigResponse: _TypeAlias = ValidateConfigResponse  # noqa: Y015
+Global___ValidateConfigResponse: typing_extensions.TypeAlias = ValidateConfigResponse
 
-@_typing.final
-class ReloadConfigRequest(_message.Message):
+@typing.final
+class ReloadConfigRequest(google.protobuf.message.Message):
     """ReloadConfigRequest reloads a configuration file from disk"""
 
-    DESCRIPTOR: _descriptor.Descriptor
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    NAME_FIELD_NUMBER: _builtins.int
-    name: _builtins.str
+    NAME_FIELD_NUMBER: builtins.int
+    name: builtins.str
     """Configuration file name to reload"""
     def __init__(
         self,
         *,
-        name: _builtins.str = ...,
+        name: builtins.str = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["name", b"name"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["name", b"name"]) -> None: ...
 
-Global___ReloadConfigRequest: _TypeAlias = ReloadConfigRequest  # noqa: Y015
+Global___ReloadConfigRequest: typing_extensions.TypeAlias = ReloadConfigRequest
 
-@_typing.final
-class ReloadConfigResponse(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
+@typing.final
+class ReloadConfigResponse(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    SUCCESS_FIELD_NUMBER: _builtins.int
-    MESSAGE_FIELD_NUMBER: _builtins.int
-    success: _builtins.bool
-    message: _builtins.str
+    SUCCESS_FIELD_NUMBER: builtins.int
+    MESSAGE_FIELD_NUMBER: builtins.int
+    success: builtins.bool
+    message: builtins.str
     def __init__(
         self,
         *,
-        success: _builtins.bool = ...,
-        message: _builtins.str = ...,
+        success: builtins.bool = ...,
+        message: builtins.str = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["message", b"message", "success", b"success"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["message", b"message", "success", b"success"]) -> None: ...
 
-Global___ReloadConfigResponse: _TypeAlias = ReloadConfigResponse  # noqa: Y015
+Global___ReloadConfigResponse: typing_extensions.TypeAlias = ReloadConfigResponse
 
-@_typing.final
-class ListConfigsRequest(_message.Message):
+@typing.final
+class ListConfigsRequest(google.protobuf.message.Message):
     """ListConfigsRequest lists all available configuration files"""
 
-    DESCRIPTOR: _descriptor.Descriptor
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
     def __init__(
         self,
     ) -> None: ...
 
-Global___ListConfigsRequest: _TypeAlias = ListConfigsRequest  # noqa: Y015
+Global___ListConfigsRequest: typing_extensions.TypeAlias = ListConfigsRequest
 
-@_typing.final
-class ListConfigsResponse(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
+@typing.final
+class ListConfigsResponse(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    NAMES_FIELD_NUMBER: _builtins.int
-    @_builtins.property
-    def names(self) -> _containers.RepeatedScalarFieldContainer[_builtins.str]:
+    NAMES_FIELD_NUMBER: builtins.int
+    @property
+    def names(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]:
         """List of available configuration file names"""
 
     def __init__(
         self,
         *,
-        names: _abc.Iterable[_builtins.str] | None = ...,
+        names: collections.abc.Iterable[builtins.str] | None = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["names", b"names"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["names", b"names"]) -> None: ...
 
-Global___ListConfigsResponse: _TypeAlias = ListConfigsResponse  # noqa: Y015
+Global___ListConfigsResponse: typing_extensions.TypeAlias = ListConfigsResponse

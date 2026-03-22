@@ -3,291 +3,273 @@
 isort:skip_file
 """
 
-from collections import abc as _abc
-from google.protobuf import descriptor as _descriptor
-from google.protobuf import message as _message
-from google.protobuf import timestamp_pb2 as _timestamp_pb2
-from google.protobuf.internal import containers as _containers
-import builtins as _builtins
+import builtins
+import collections.abc
+import google.protobuf.descriptor
+import google.protobuf.internal.containers
+import google.protobuf.message
+import google.protobuf.timestamp_pb2
 import sys
-import typing as _typing
+import typing
 
 if sys.version_info >= (3, 10):
-    from typing import TypeAlias as _TypeAlias
+    import typing as typing_extensions
 else:
-    from typing_extensions import TypeAlias as _TypeAlias
+    import typing_extensions
 
-DESCRIPTOR: _descriptor.FileDescriptor
+DESCRIPTOR: google.protobuf.descriptor.FileDescriptor
 
-@_typing.final
-class Device(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
+@typing.final
+class Device(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    ID_FIELD_NUMBER: _builtins.int
-    NAME_FIELD_NUMBER: _builtins.int
-    TYPE_FIELD_NUMBER: _builtins.int
-    LOCATION_FIELD_NUMBER: _builtins.int
-    CAPABILITIES_FIELD_NUMBER: _builtins.int
-    id: _builtins.str
-    name: _builtins.str
-    type: _builtins.str
-    location: _builtins.str
-    @_builtins.property
-    def capabilities(self) -> _containers.RepeatedScalarFieldContainer[_builtins.str]: ...
+    ID_FIELD_NUMBER: builtins.int
+    NAME_FIELD_NUMBER: builtins.int
+    TYPE_FIELD_NUMBER: builtins.int
+    LOCATION_FIELD_NUMBER: builtins.int
+    CAPABILITIES_FIELD_NUMBER: builtins.int
+    id: builtins.str
+    name: builtins.str
+    type: builtins.str
+    location: builtins.str
+    @property
+    def capabilities(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]: ...
     def __init__(
         self,
         *,
-        id: _builtins.str = ...,
-        name: _builtins.str = ...,
-        type: _builtins.str = ...,
-        location: _builtins.str = ...,
-        capabilities: _abc.Iterable[_builtins.str] | None = ...,
+        id: builtins.str = ...,
+        name: builtins.str = ...,
+        type: builtins.str = ...,
+        location: builtins.str = ...,
+        capabilities: collections.abc.Iterable[builtins.str] | None = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["capabilities", b"capabilities", "id", b"id", "location", b"location", "name", b"name", "type", b"type"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["capabilities", b"capabilities", "id", b"id", "location", b"location", "name", b"name", "type", b"type"]) -> None: ...
 
-Global___Device: _TypeAlias = Device  # noqa: Y015
+Global___Device: typing_extensions.TypeAlias = Device
 
-@_typing.final
-class SensorReading(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
+@typing.final
+class SensorReading(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    DEVICE_ID_FIELD_NUMBER: _builtins.int
-    VALUE_FIELD_NUMBER: _builtins.int
-    UNIT_FIELD_NUMBER: _builtins.int
-    TIMESTAMP_FIELD_NUMBER: _builtins.int
-    device_id: _builtins.str
-    value: _builtins.float
-    unit: _builtins.str
-    @_builtins.property
-    def timestamp(self) -> _timestamp_pb2.Timestamp: ...
+    DEVICE_ID_FIELD_NUMBER: builtins.int
+    VALUE_FIELD_NUMBER: builtins.int
+    UNIT_FIELD_NUMBER: builtins.int
+    TIMESTAMP_FIELD_NUMBER: builtins.int
+    device_id: builtins.str
+    value: builtins.float
+    unit: builtins.str
+    @property
+    def timestamp(self) -> google.protobuf.timestamp_pb2.Timestamp: ...
     def __init__(
         self,
         *,
-        device_id: _builtins.str = ...,
-        value: _builtins.float = ...,
-        unit: _builtins.str = ...,
-        timestamp: _timestamp_pb2.Timestamp | None = ...,
+        device_id: builtins.str = ...,
+        value: builtins.float = ...,
+        unit: builtins.str = ...,
+        timestamp: google.protobuf.timestamp_pb2.Timestamp | None = ...,
     ) -> None: ...
-    _HasFieldArgType: _TypeAlias = _typing.Literal["timestamp", b"timestamp"]  # noqa: Y015
-    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["device_id", b"device_id", "timestamp", b"timestamp", "unit", b"unit", "value", b"value"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def HasField(self, field_name: typing.Literal["timestamp", b"timestamp"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["device_id", b"device_id", "timestamp", b"timestamp", "unit", b"unit", "value", b"value"]) -> None: ...
 
-Global___SensorReading: _TypeAlias = SensorReading  # noqa: Y015
+Global___SensorReading: typing_extensions.TypeAlias = SensorReading
 
-@_typing.final
-class DeviceCommand(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
+@typing.final
+class DeviceCommand(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    @_typing.final
-    class ParametersEntry(_message.Message):
-        DESCRIPTOR: _descriptor.Descriptor
+    @typing.final
+    class ParametersEntry(google.protobuf.message.Message):
+        DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-        KEY_FIELD_NUMBER: _builtins.int
-        VALUE_FIELD_NUMBER: _builtins.int
-        key: _builtins.str
-        value: _builtins.str
+        KEY_FIELD_NUMBER: builtins.int
+        VALUE_FIELD_NUMBER: builtins.int
+        key: builtins.str
+        value: builtins.str
         def __init__(
             self,
             *,
-            key: _builtins.str = ...,
-            value: _builtins.str = ...,
+            key: builtins.str = ...,
+            value: builtins.str = ...,
         ) -> None: ...
-        _ClearFieldArgType: _TypeAlias = _typing.Literal["key", b"key", "value", b"value"]  # noqa: Y015
-        def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+        def ClearField(self, field_name: typing.Literal["key", b"key", "value", b"value"]) -> None: ...
 
-    DEVICE_ID_FIELD_NUMBER: _builtins.int
-    ACTION_FIELD_NUMBER: _builtins.int
-    PARAMETERS_FIELD_NUMBER: _builtins.int
-    device_id: _builtins.str
-    action: _builtins.str
-    @_builtins.property
-    def parameters(self) -> _containers.ScalarMap[_builtins.str, _builtins.str]: ...
+    DEVICE_ID_FIELD_NUMBER: builtins.int
+    ACTION_FIELD_NUMBER: builtins.int
+    PARAMETERS_FIELD_NUMBER: builtins.int
+    device_id: builtins.str
+    action: builtins.str
+    @property
+    def parameters(self) -> google.protobuf.internal.containers.ScalarMap[builtins.str, builtins.str]: ...
     def __init__(
         self,
         *,
-        device_id: _builtins.str = ...,
-        action: _builtins.str = ...,
-        parameters: _abc.Mapping[_builtins.str, _builtins.str] | None = ...,
+        device_id: builtins.str = ...,
+        action: builtins.str = ...,
+        parameters: collections.abc.Mapping[builtins.str, builtins.str] | None = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["action", b"action", "device_id", b"device_id", "parameters", b"parameters"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["action", b"action", "device_id", b"device_id", "parameters", b"parameters"]) -> None: ...
 
-Global___DeviceCommand: _TypeAlias = DeviceCommand  # noqa: Y015
+Global___DeviceCommand: typing_extensions.TypeAlias = DeviceCommand
 
-@_typing.final
-class ListDevicesRequest(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
+@typing.final
+class ListDevicesRequest(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
     def __init__(
         self,
     ) -> None: ...
 
-Global___ListDevicesRequest: _TypeAlias = ListDevicesRequest  # noqa: Y015
+Global___ListDevicesRequest: typing_extensions.TypeAlias = ListDevicesRequest
 
-@_typing.final
-class ListDevicesResponse(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
+@typing.final
+class ListDevicesResponse(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    DEVICES_FIELD_NUMBER: _builtins.int
-    @_builtins.property
-    def devices(self) -> _containers.RepeatedCompositeFieldContainer[Global___Device]: ...
-    def __init__(
-        self,
-        *,
-        devices: _abc.Iterable[Global___Device] | None = ...,
-    ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["devices", b"devices"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
-
-Global___ListDevicesResponse: _TypeAlias = ListDevicesResponse  # noqa: Y015
-
-@_typing.final
-class GetDeviceRequest(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
-
-    DEVICE_ID_FIELD_NUMBER: _builtins.int
-    device_id: _builtins.str
+    DEVICES_FIELD_NUMBER: builtins.int
+    @property
+    def devices(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___Device]: ...
     def __init__(
         self,
         *,
-        device_id: _builtins.str = ...,
+        devices: collections.abc.Iterable[Global___Device] | None = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["device_id", b"device_id"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["devices", b"devices"]) -> None: ...
 
-Global___GetDeviceRequest: _TypeAlias = GetDeviceRequest  # noqa: Y015
+Global___ListDevicesResponse: typing_extensions.TypeAlias = ListDevicesResponse
 
-@_typing.final
-class GetDeviceResponse(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
+@typing.final
+class GetDeviceRequest(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    DEVICE_FIELD_NUMBER: _builtins.int
-    @_builtins.property
+    DEVICE_ID_FIELD_NUMBER: builtins.int
+    device_id: builtins.str
+    def __init__(
+        self,
+        *,
+        device_id: builtins.str = ...,
+    ) -> None: ...
+    def ClearField(self, field_name: typing.Literal["device_id", b"device_id"]) -> None: ...
+
+Global___GetDeviceRequest: typing_extensions.TypeAlias = GetDeviceRequest
+
+@typing.final
+class GetDeviceResponse(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    DEVICE_FIELD_NUMBER: builtins.int
+    @property
     def device(self) -> Global___Device: ...
     def __init__(
         self,
         *,
         device: Global___Device | None = ...,
     ) -> None: ...
-    _HasFieldArgType: _TypeAlias = _typing.Literal["device", b"device"]  # noqa: Y015
-    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["device", b"device"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def HasField(self, field_name: typing.Literal["device", b"device"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["device", b"device"]) -> None: ...
 
-Global___GetDeviceResponse: _TypeAlias = GetDeviceResponse  # noqa: Y015
+Global___GetDeviceResponse: typing_extensions.TypeAlias = GetDeviceResponse
 
-@_typing.final
-class GetDeviceStatusRequest(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
+@typing.final
+class GetDeviceStatusRequest(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    DEVICE_ID_FIELD_NUMBER: _builtins.int
-    device_id: _builtins.str
+    DEVICE_ID_FIELD_NUMBER: builtins.int
+    device_id: builtins.str
     def __init__(
         self,
         *,
-        device_id: _builtins.str = ...,
+        device_id: builtins.str = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["device_id", b"device_id"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["device_id", b"device_id"]) -> None: ...
 
-Global___GetDeviceStatusRequest: _TypeAlias = GetDeviceStatusRequest  # noqa: Y015
+Global___GetDeviceStatusRequest: typing_extensions.TypeAlias = GetDeviceStatusRequest
 
-@_typing.final
-class GetDeviceStatusResponse(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
+@typing.final
+class GetDeviceStatusResponse(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    DEVICE_ID_FIELD_NUMBER: _builtins.int
-    ONLINE_FIELD_NUMBER: _builtins.int
-    LAST_SEEN_FIELD_NUMBER: _builtins.int
-    device_id: _builtins.str
-    online: _builtins.bool
-    @_builtins.property
-    def last_seen(self) -> _timestamp_pb2.Timestamp: ...
+    DEVICE_ID_FIELD_NUMBER: builtins.int
+    ONLINE_FIELD_NUMBER: builtins.int
+    LAST_SEEN_FIELD_NUMBER: builtins.int
+    device_id: builtins.str
+    online: builtins.bool
+    @property
+    def last_seen(self) -> google.protobuf.timestamp_pb2.Timestamp: ...
     def __init__(
         self,
         *,
-        device_id: _builtins.str = ...,
-        online: _builtins.bool = ...,
-        last_seen: _timestamp_pb2.Timestamp | None = ...,
+        device_id: builtins.str = ...,
+        online: builtins.bool = ...,
+        last_seen: google.protobuf.timestamp_pb2.Timestamp | None = ...,
     ) -> None: ...
-    _HasFieldArgType: _TypeAlias = _typing.Literal["last_seen", b"last_seen"]  # noqa: Y015
-    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["device_id", b"device_id", "last_seen", b"last_seen", "online", b"online"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def HasField(self, field_name: typing.Literal["last_seen", b"last_seen"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["device_id", b"device_id", "last_seen", b"last_seen", "online", b"online"]) -> None: ...
 
-Global___GetDeviceStatusResponse: _TypeAlias = GetDeviceStatusResponse  # noqa: Y015
+Global___GetDeviceStatusResponse: typing_extensions.TypeAlias = GetDeviceStatusResponse
 
-@_typing.final
-class GetLatestReadingRequest(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
+@typing.final
+class GetLatestReadingRequest(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    DEVICE_ID_FIELD_NUMBER: _builtins.int
-    device_id: _builtins.str
+    DEVICE_ID_FIELD_NUMBER: builtins.int
+    device_id: builtins.str
     def __init__(
         self,
         *,
-        device_id: _builtins.str = ...,
+        device_id: builtins.str = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["device_id", b"device_id"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["device_id", b"device_id"]) -> None: ...
 
-Global___GetLatestReadingRequest: _TypeAlias = GetLatestReadingRequest  # noqa: Y015
+Global___GetLatestReadingRequest: typing_extensions.TypeAlias = GetLatestReadingRequest
 
-@_typing.final
-class GetLatestReadingResponse(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
+@typing.final
+class GetLatestReadingResponse(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    READING_FIELD_NUMBER: _builtins.int
-    @_builtins.property
+    READING_FIELD_NUMBER: builtins.int
+    @property
     def reading(self) -> Global___SensorReading: ...
     def __init__(
         self,
         *,
         reading: Global___SensorReading | None = ...,
     ) -> None: ...
-    _HasFieldArgType: _TypeAlias = _typing.Literal["reading", b"reading"]  # noqa: Y015
-    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["reading", b"reading"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def HasField(self, field_name: typing.Literal["reading", b"reading"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["reading", b"reading"]) -> None: ...
 
-Global___GetLatestReadingResponse: _TypeAlias = GetLatestReadingResponse  # noqa: Y015
+Global___GetLatestReadingResponse: typing_extensions.TypeAlias = GetLatestReadingResponse
 
-@_typing.final
-class SendCommandRequest(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
+@typing.final
+class SendCommandRequest(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    COMMAND_FIELD_NUMBER: _builtins.int
-    @_builtins.property
+    COMMAND_FIELD_NUMBER: builtins.int
+    @property
     def command(self) -> Global___DeviceCommand: ...
     def __init__(
         self,
         *,
         command: Global___DeviceCommand | None = ...,
     ) -> None: ...
-    _HasFieldArgType: _TypeAlias = _typing.Literal["command", b"command"]  # noqa: Y015
-    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["command", b"command"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def HasField(self, field_name: typing.Literal["command", b"command"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["command", b"command"]) -> None: ...
 
-Global___SendCommandRequest: _TypeAlias = SendCommandRequest  # noqa: Y015
+Global___SendCommandRequest: typing_extensions.TypeAlias = SendCommandRequest
 
-@_typing.final
-class SendCommandResponse(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
+@typing.final
+class SendCommandResponse(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    SUCCESS_FIELD_NUMBER: _builtins.int
-    MESSAGE_FIELD_NUMBER: _builtins.int
-    success: _builtins.bool
-    message: _builtins.str
+    SUCCESS_FIELD_NUMBER: builtins.int
+    MESSAGE_FIELD_NUMBER: builtins.int
+    success: builtins.bool
+    message: builtins.str
     def __init__(
         self,
         *,
-        success: _builtins.bool = ...,
-        message: _builtins.str = ...,
+        success: builtins.bool = ...,
+        message: builtins.str = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["message", b"message", "success", b"success"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["message", b"message", "success", b"success"]) -> None: ...
 
-Global___SendCommandResponse: _TypeAlias = SendCommandResponse  # noqa: Y015
+Global___SendCommandResponse: typing_extensions.TypeAlias = SendCommandResponse

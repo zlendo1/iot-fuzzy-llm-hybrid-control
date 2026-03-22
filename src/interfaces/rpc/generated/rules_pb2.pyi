@@ -3,331 +3,311 @@
 isort:skip_file
 """
 
-from collections import abc as _abc
-from google.protobuf import descriptor as _descriptor
-from google.protobuf import message as _message
-from google.protobuf import timestamp_pb2 as _timestamp_pb2
-from google.protobuf.internal import containers as _containers
-import builtins as _builtins
-import common_pb2 as _common_pb2
+import builtins
+import collections.abc
+import common_pb2
+import google.protobuf.descriptor
+import google.protobuf.internal.containers
+import google.protobuf.message
+import google.protobuf.timestamp_pb2
 import sys
-import typing as _typing
+import typing
 
 if sys.version_info >= (3, 10):
-    from typing import TypeAlias as _TypeAlias
+    import typing as typing_extensions
 else:
-    from typing_extensions import TypeAlias as _TypeAlias
+    import typing_extensions
 
-DESCRIPTOR: _descriptor.FileDescriptor
+DESCRIPTOR: google.protobuf.descriptor.FileDescriptor
 
-@_typing.final
-class Rule(_message.Message):
+@typing.final
+class Rule(google.protobuf.message.Message):
     """Rule represents a natural language rule for IoT device management"""
 
-    DESCRIPTOR: _descriptor.Descriptor
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    ID_FIELD_NUMBER: _builtins.int
-    TEXT_FIELD_NUMBER: _builtins.int
-    ENABLED_FIELD_NUMBER: _builtins.int
-    CREATED_AT_FIELD_NUMBER: _builtins.int
-    UPDATED_AT_FIELD_NUMBER: _builtins.int
-    id: _builtins.str
-    text: _builtins.str
-    enabled: _builtins.bool
-    @_builtins.property
-    def created_at(self) -> _timestamp_pb2.Timestamp: ...
-    @_builtins.property
-    def updated_at(self) -> _timestamp_pb2.Timestamp: ...
+    ID_FIELD_NUMBER: builtins.int
+    TEXT_FIELD_NUMBER: builtins.int
+    ENABLED_FIELD_NUMBER: builtins.int
+    CREATED_AT_FIELD_NUMBER: builtins.int
+    UPDATED_AT_FIELD_NUMBER: builtins.int
+    id: builtins.str
+    text: builtins.str
+    enabled: builtins.bool
+    @property
+    def created_at(self) -> google.protobuf.timestamp_pb2.Timestamp: ...
+    @property
+    def updated_at(self) -> google.protobuf.timestamp_pb2.Timestamp: ...
     def __init__(
         self,
         *,
-        id: _builtins.str = ...,
-        text: _builtins.str = ...,
-        enabled: _builtins.bool = ...,
-        created_at: _timestamp_pb2.Timestamp | None = ...,
-        updated_at: _timestamp_pb2.Timestamp | None = ...,
+        id: builtins.str = ...,
+        text: builtins.str = ...,
+        enabled: builtins.bool = ...,
+        created_at: google.protobuf.timestamp_pb2.Timestamp | None = ...,
+        updated_at: google.protobuf.timestamp_pb2.Timestamp | None = ...,
     ) -> None: ...
-    _HasFieldArgType: _TypeAlias = _typing.Literal["created_at", b"created_at", "updated_at", b"updated_at"]  # noqa: Y015
-    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["created_at", b"created_at", "enabled", b"enabled", "id", b"id", "text", b"text", "updated_at", b"updated_at"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def HasField(self, field_name: typing.Literal["created_at", b"created_at", "updated_at", b"updated_at"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["created_at", b"created_at", "enabled", b"enabled", "id", b"id", "text", b"text", "updated_at", b"updated_at"]) -> None: ...
 
-Global___Rule: _TypeAlias = Rule  # noqa: Y015
+Global___Rule: typing_extensions.TypeAlias = Rule
 
-@_typing.final
-class AddRuleRequest(_message.Message):
+@typing.final
+class AddRuleRequest(google.protobuf.message.Message):
     """AddRuleRequest contains the rule text and optional metadata"""
 
-    DESCRIPTOR: _descriptor.Descriptor
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    TEXT_FIELD_NUMBER: _builtins.int
-    ENABLED_FIELD_NUMBER: _builtins.int
-    text: _builtins.str
-    enabled: _builtins.bool
+    TEXT_FIELD_NUMBER: builtins.int
+    ENABLED_FIELD_NUMBER: builtins.int
+    text: builtins.str
+    enabled: builtins.bool
     def __init__(
         self,
         *,
-        text: _builtins.str = ...,
-        enabled: _builtins.bool = ...,
+        text: builtins.str = ...,
+        enabled: builtins.bool = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["enabled", b"enabled", "text", b"text"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["enabled", b"enabled", "text", b"text"]) -> None: ...
 
-Global___AddRuleRequest: _TypeAlias = AddRuleRequest  # noqa: Y015
+Global___AddRuleRequest: typing_extensions.TypeAlias = AddRuleRequest
 
-@_typing.final
-class AddRuleResponse(_message.Message):
+@typing.final
+class AddRuleResponse(google.protobuf.message.Message):
     """AddRuleResponse returns the created rule"""
 
-    DESCRIPTOR: _descriptor.Descriptor
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    RULE_FIELD_NUMBER: _builtins.int
-    @_builtins.property
+    RULE_FIELD_NUMBER: builtins.int
+    @property
     def rule(self) -> Global___Rule: ...
     def __init__(
         self,
         *,
         rule: Global___Rule | None = ...,
     ) -> None: ...
-    _HasFieldArgType: _TypeAlias = _typing.Literal["rule", b"rule"]  # noqa: Y015
-    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["rule", b"rule"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def HasField(self, field_name: typing.Literal["rule", b"rule"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["rule", b"rule"]) -> None: ...
 
-Global___AddRuleResponse: _TypeAlias = AddRuleResponse  # noqa: Y015
+Global___AddRuleResponse: typing_extensions.TypeAlias = AddRuleResponse
 
-@_typing.final
-class RemoveRuleRequest(_message.Message):
+@typing.final
+class RemoveRuleRequest(google.protobuf.message.Message):
     """RemoveRuleRequest identifies the rule to remove"""
 
-    DESCRIPTOR: _descriptor.Descriptor
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    ID_FIELD_NUMBER: _builtins.int
-    id: _builtins.str
+    ID_FIELD_NUMBER: builtins.int
+    id: builtins.str
     def __init__(
         self,
         *,
-        id: _builtins.str = ...,
+        id: builtins.str = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["id", b"id"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["id", b"id"]) -> None: ...
 
-Global___RemoveRuleRequest: _TypeAlias = RemoveRuleRequest  # noqa: Y015
+Global___RemoveRuleRequest: typing_extensions.TypeAlias = RemoveRuleRequest
 
-@_typing.final
-class RemoveRuleResponse(_message.Message):
+@typing.final
+class RemoveRuleResponse(google.protobuf.message.Message):
     """RemoveRuleResponse confirms the removal"""
 
-    DESCRIPTOR: _descriptor.Descriptor
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    SUCCESS_FIELD_NUMBER: _builtins.int
-    success: _builtins.bool
+    SUCCESS_FIELD_NUMBER: builtins.int
+    success: builtins.bool
     def __init__(
         self,
         *,
-        success: _builtins.bool = ...,
+        success: builtins.bool = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["success", b"success"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["success", b"success"]) -> None: ...
 
-Global___RemoveRuleResponse: _TypeAlias = RemoveRuleResponse  # noqa: Y015
+Global___RemoveRuleResponse: typing_extensions.TypeAlias = RemoveRuleResponse
 
-@_typing.final
-class ListRulesRequest(_message.Message):
+@typing.final
+class ListRulesRequest(google.protobuf.message.Message):
     """ListRulesRequest with pagination support"""
 
-    DESCRIPTOR: _descriptor.Descriptor
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    PAGINATION_FIELD_NUMBER: _builtins.int
-    @_builtins.property
-    def pagination(self) -> _common_pb2.PaginationRequest: ...
+    PAGINATION_FIELD_NUMBER: builtins.int
+    @property
+    def pagination(self) -> common_pb2.PaginationRequest: ...
     def __init__(
         self,
         *,
-        pagination: _common_pb2.PaginationRequest | None = ...,
+        pagination: common_pb2.PaginationRequest | None = ...,
     ) -> None: ...
-    _HasFieldArgType: _TypeAlias = _typing.Literal["pagination", b"pagination"]  # noqa: Y015
-    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["pagination", b"pagination"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def HasField(self, field_name: typing.Literal["pagination", b"pagination"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["pagination", b"pagination"]) -> None: ...
 
-Global___ListRulesRequest: _TypeAlias = ListRulesRequest  # noqa: Y015
+Global___ListRulesRequest: typing_extensions.TypeAlias = ListRulesRequest
 
-@_typing.final
-class ListRulesResponse(_message.Message):
+@typing.final
+class ListRulesResponse(google.protobuf.message.Message):
     """ListRulesResponse returns paginated rules"""
 
-    DESCRIPTOR: _descriptor.Descriptor
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    RULES_FIELD_NUMBER: _builtins.int
-    PAGINATION_FIELD_NUMBER: _builtins.int
-    @_builtins.property
-    def rules(self) -> _containers.RepeatedCompositeFieldContainer[Global___Rule]: ...
-    @_builtins.property
-    def pagination(self) -> _common_pb2.PaginationResponse: ...
+    RULES_FIELD_NUMBER: builtins.int
+    PAGINATION_FIELD_NUMBER: builtins.int
+    @property
+    def rules(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___Rule]: ...
+    @property
+    def pagination(self) -> common_pb2.PaginationResponse: ...
     def __init__(
         self,
         *,
-        rules: _abc.Iterable[Global___Rule] | None = ...,
-        pagination: _common_pb2.PaginationResponse | None = ...,
+        rules: collections.abc.Iterable[Global___Rule] | None = ...,
+        pagination: common_pb2.PaginationResponse | None = ...,
     ) -> None: ...
-    _HasFieldArgType: _TypeAlias = _typing.Literal["pagination", b"pagination"]  # noqa: Y015
-    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["pagination", b"pagination", "rules", b"rules"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def HasField(self, field_name: typing.Literal["pagination", b"pagination"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["pagination", b"pagination", "rules", b"rules"]) -> None: ...
 
-Global___ListRulesResponse: _TypeAlias = ListRulesResponse  # noqa: Y015
+Global___ListRulesResponse: typing_extensions.TypeAlias = ListRulesResponse
 
-@_typing.final
-class GetRuleRequest(_message.Message):
+@typing.final
+class GetRuleRequest(google.protobuf.message.Message):
     """GetRuleRequest identifies which rule to retrieve"""
 
-    DESCRIPTOR: _descriptor.Descriptor
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    ID_FIELD_NUMBER: _builtins.int
-    id: _builtins.str
+    ID_FIELD_NUMBER: builtins.int
+    id: builtins.str
     def __init__(
         self,
         *,
-        id: _builtins.str = ...,
+        id: builtins.str = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["id", b"id"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["id", b"id"]) -> None: ...
 
-Global___GetRuleRequest: _TypeAlias = GetRuleRequest  # noqa: Y015
+Global___GetRuleRequest: typing_extensions.TypeAlias = GetRuleRequest
 
-@_typing.final
-class GetRuleResponse(_message.Message):
+@typing.final
+class GetRuleResponse(google.protobuf.message.Message):
     """GetRuleResponse returns a single rule"""
 
-    DESCRIPTOR: _descriptor.Descriptor
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    RULE_FIELD_NUMBER: _builtins.int
-    @_builtins.property
+    RULE_FIELD_NUMBER: builtins.int
+    @property
     def rule(self) -> Global___Rule: ...
     def __init__(
         self,
         *,
         rule: Global___Rule | None = ...,
     ) -> None: ...
-    _HasFieldArgType: _TypeAlias = _typing.Literal["rule", b"rule"]  # noqa: Y015
-    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["rule", b"rule"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def HasField(self, field_name: typing.Literal["rule", b"rule"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["rule", b"rule"]) -> None: ...
 
-Global___GetRuleResponse: _TypeAlias = GetRuleResponse  # noqa: Y015
+Global___GetRuleResponse: typing_extensions.TypeAlias = GetRuleResponse
 
-@_typing.final
-class EnableRuleRequest(_message.Message):
+@typing.final
+class EnableRuleRequest(google.protobuf.message.Message):
     """EnableRuleRequest identifies the rule to enable"""
 
-    DESCRIPTOR: _descriptor.Descriptor
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    ID_FIELD_NUMBER: _builtins.int
-    id: _builtins.str
+    ID_FIELD_NUMBER: builtins.int
+    id: builtins.str
     def __init__(
         self,
         *,
-        id: _builtins.str = ...,
+        id: builtins.str = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["id", b"id"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["id", b"id"]) -> None: ...
 
-Global___EnableRuleRequest: _TypeAlias = EnableRuleRequest  # noqa: Y015
+Global___EnableRuleRequest: typing_extensions.TypeAlias = EnableRuleRequest
 
-@_typing.final
-class EnableRuleResponse(_message.Message):
+@typing.final
+class EnableRuleResponse(google.protobuf.message.Message):
     """EnableRuleResponse confirms the rule was enabled"""
 
-    DESCRIPTOR: _descriptor.Descriptor
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    SUCCESS_FIELD_NUMBER: _builtins.int
-    success: _builtins.bool
+    SUCCESS_FIELD_NUMBER: builtins.int
+    success: builtins.bool
     def __init__(
         self,
         *,
-        success: _builtins.bool = ...,
+        success: builtins.bool = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["success", b"success"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["success", b"success"]) -> None: ...
 
-Global___EnableRuleResponse: _TypeAlias = EnableRuleResponse  # noqa: Y015
+Global___EnableRuleResponse: typing_extensions.TypeAlias = EnableRuleResponse
 
-@_typing.final
-class DisableRuleRequest(_message.Message):
+@typing.final
+class DisableRuleRequest(google.protobuf.message.Message):
     """DisableRuleRequest identifies the rule to disable"""
 
-    DESCRIPTOR: _descriptor.Descriptor
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    ID_FIELD_NUMBER: _builtins.int
-    id: _builtins.str
+    ID_FIELD_NUMBER: builtins.int
+    id: builtins.str
     def __init__(
         self,
         *,
-        id: _builtins.str = ...,
+        id: builtins.str = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["id", b"id"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["id", b"id"]) -> None: ...
 
-Global___DisableRuleRequest: _TypeAlias = DisableRuleRequest  # noqa: Y015
+Global___DisableRuleRequest: typing_extensions.TypeAlias = DisableRuleRequest
 
-@_typing.final
-class DisableRuleResponse(_message.Message):
+@typing.final
+class DisableRuleResponse(google.protobuf.message.Message):
     """DisableRuleResponse confirms the rule was disabled"""
 
-    DESCRIPTOR: _descriptor.Descriptor
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    SUCCESS_FIELD_NUMBER: _builtins.int
-    success: _builtins.bool
+    SUCCESS_FIELD_NUMBER: builtins.int
+    success: builtins.bool
     def __init__(
         self,
         *,
-        success: _builtins.bool = ...,
+        success: builtins.bool = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["success", b"success"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["success", b"success"]) -> None: ...
 
-Global___DisableRuleResponse: _TypeAlias = DisableRuleResponse  # noqa: Y015
+Global___DisableRuleResponse: typing_extensions.TypeAlias = DisableRuleResponse
 
-@_typing.final
-class EvaluateRulesRequest(_message.Message):
+@typing.final
+class EvaluateRulesRequest(google.protobuf.message.Message):
     """EvaluateRulesRequest triggers rule evaluation"""
 
-    DESCRIPTOR: _descriptor.Descriptor
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    RULE_IDS_FIELD_NUMBER: _builtins.int
-    @_builtins.property
-    def rule_ids(self) -> _containers.RepeatedScalarFieldContainer[_builtins.str]:
+    RULE_IDS_FIELD_NUMBER: builtins.int
+    @property
+    def rule_ids(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]:
         """Optional: evaluate only specific rules by ID"""
 
     def __init__(
         self,
         *,
-        rule_ids: _abc.Iterable[_builtins.str] | None = ...,
+        rule_ids: collections.abc.Iterable[builtins.str] | None = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["rule_ids", b"rule_ids"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["rule_ids", b"rule_ids"]) -> None: ...
 
-Global___EvaluateRulesRequest: _TypeAlias = EvaluateRulesRequest  # noqa: Y015
+Global___EvaluateRulesRequest: typing_extensions.TypeAlias = EvaluateRulesRequest
 
-@_typing.final
-class EvaluateRulesResponse(_message.Message):
+@typing.final
+class EvaluateRulesResponse(google.protobuf.message.Message):
     """EvaluateRulesResponse returns evaluation results"""
 
-    DESCRIPTOR: _descriptor.Descriptor
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    COMMANDS_GENERATED_FIELD_NUMBER: _builtins.int
-    RULES_EVALUATED_FIELD_NUMBER: _builtins.int
-    rules_evaluated: _builtins.int
-    @_builtins.property
-    def commands_generated(self) -> _containers.RepeatedScalarFieldContainer[_builtins.str]: ...
+    COMMANDS_GENERATED_FIELD_NUMBER: builtins.int
+    RULES_EVALUATED_FIELD_NUMBER: builtins.int
+    rules_evaluated: builtins.int
+    @property
+    def commands_generated(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]: ...
     def __init__(
         self,
         *,
-        commands_generated: _abc.Iterable[_builtins.str] | None = ...,
-        rules_evaluated: _builtins.int = ...,
+        commands_generated: collections.abc.Iterable[builtins.str] | None = ...,
+        rules_evaluated: builtins.int = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["commands_generated", b"commands_generated", "rules_evaluated", b"rules_evaluated"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["commands_generated", b"commands_generated", "rules_evaluated", b"rules_evaluated"]) -> None: ...
 
-Global___EvaluateRulesResponse: _TypeAlias = EvaluateRulesResponse  # noqa: Y015
+Global___EvaluateRulesResponse: typing_extensions.TypeAlias = EvaluateRulesResponse

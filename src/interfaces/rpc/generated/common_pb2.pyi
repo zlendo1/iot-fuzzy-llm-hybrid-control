@@ -3,28 +3,28 @@
 isort:skip_file
 """
 
-from collections import abc as _abc
-from google.protobuf import descriptor as _descriptor
-from google.protobuf import message as _message
-from google.protobuf.internal import containers as _containers
-from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
-import builtins as _builtins
+import builtins
+import collections.abc
+import google.protobuf.descriptor
+import google.protobuf.internal.containers
+import google.protobuf.internal.enum_type_wrapper
+import google.protobuf.message
 import sys
-import typing as _typing
+import typing
 
 if sys.version_info >= (3, 10):
-    from typing import TypeAlias as _TypeAlias
+    import typing as typing_extensions
 else:
-    from typing_extensions import TypeAlias as _TypeAlias
+    import typing_extensions
 
-DESCRIPTOR: _descriptor.FileDescriptor
+DESCRIPTOR: google.protobuf.descriptor.FileDescriptor
 
 class _SystemState:
-    ValueType = _typing.NewType("ValueType", _builtins.int)
-    V: _TypeAlias = ValueType  # noqa: Y015
+    ValueType = typing.NewType("ValueType", builtins.int)
+    V: typing_extensions.TypeAlias = ValueType
 
-class _SystemStateEnumTypeWrapper(_enum_type_wrapper._EnumTypeWrapper[_SystemState.ValueType], _builtins.type):
-    DESCRIPTOR: _descriptor.EnumDescriptor
+class _SystemStateEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_SystemState.ValueType], builtins.type):
+    DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
     UNKNOWN: _SystemState.ValueType  # 0
     STARTING: _SystemState.ValueType  # 1
     RUNNING: _SystemState.ValueType  # 2
@@ -40,87 +40,83 @@ RUNNING: SystemState.ValueType  # 2
 STOPPING: SystemState.ValueType  # 3
 STOPPED: SystemState.ValueType  # 4
 ERROR: SystemState.ValueType  # 5
-Global___SystemState: _TypeAlias = SystemState  # noqa: Y015
+Global___SystemState: typing_extensions.TypeAlias = SystemState
 
-@_typing.final
-class Status(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
+@typing.final
+class Status(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    STATE_FIELD_NUMBER: _builtins.int
-    UPTIME_SECONDS_FIELD_NUMBER: _builtins.int
-    VERSION_FIELD_NUMBER: _builtins.int
+    STATE_FIELD_NUMBER: builtins.int
+    UPTIME_SECONDS_FIELD_NUMBER: builtins.int
+    VERSION_FIELD_NUMBER: builtins.int
     state: Global___SystemState.ValueType
-    uptime_seconds: _builtins.int
-    version: _builtins.str
+    uptime_seconds: builtins.int
+    version: builtins.str
     def __init__(
         self,
         *,
         state: Global___SystemState.ValueType = ...,
-        uptime_seconds: _builtins.int = ...,
-        version: _builtins.str = ...,
+        uptime_seconds: builtins.int = ...,
+        version: builtins.str = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["state", b"state", "uptime_seconds", b"uptime_seconds", "version", b"version"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["state", b"state", "uptime_seconds", b"uptime_seconds", "version", b"version"]) -> None: ...
 
-Global___Status: _TypeAlias = Status  # noqa: Y015
+Global___Status: typing_extensions.TypeAlias = Status
 
-@_typing.final
-class Error(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
+@typing.final
+class Error(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    CODE_FIELD_NUMBER: _builtins.int
-    MESSAGE_FIELD_NUMBER: _builtins.int
-    DETAILS_FIELD_NUMBER: _builtins.int
-    code: _builtins.int
-    message: _builtins.str
-    @_builtins.property
-    def details(self) -> _containers.RepeatedScalarFieldContainer[_builtins.str]: ...
+    CODE_FIELD_NUMBER: builtins.int
+    MESSAGE_FIELD_NUMBER: builtins.int
+    DETAILS_FIELD_NUMBER: builtins.int
+    code: builtins.int
+    message: builtins.str
+    @property
+    def details(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]: ...
     def __init__(
         self,
         *,
-        code: _builtins.int = ...,
-        message: _builtins.str = ...,
-        details: _abc.Iterable[_builtins.str] | None = ...,
+        code: builtins.int = ...,
+        message: builtins.str = ...,
+        details: collections.abc.Iterable[builtins.str] | None = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["code", b"code", "details", b"details", "message", b"message"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["code", b"code", "details", b"details", "message", b"message"]) -> None: ...
 
-Global___Error: _TypeAlias = Error  # noqa: Y015
+Global___Error: typing_extensions.TypeAlias = Error
 
-@_typing.final
-class PaginationRequest(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
+@typing.final
+class PaginationRequest(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    LIMIT_FIELD_NUMBER: _builtins.int
-    OFFSET_FIELD_NUMBER: _builtins.int
-    limit: _builtins.int
-    offset: _builtins.int
+    LIMIT_FIELD_NUMBER: builtins.int
+    OFFSET_FIELD_NUMBER: builtins.int
+    limit: builtins.int
+    offset: builtins.int
     def __init__(
         self,
         *,
-        limit: _builtins.int = ...,
-        offset: _builtins.int = ...,
+        limit: builtins.int = ...,
+        offset: builtins.int = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["limit", b"limit", "offset", b"offset"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["limit", b"limit", "offset", b"offset"]) -> None: ...
 
-Global___PaginationRequest: _TypeAlias = PaginationRequest  # noqa: Y015
+Global___PaginationRequest: typing_extensions.TypeAlias = PaginationRequest
 
-@_typing.final
-class PaginationResponse(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
+@typing.final
+class PaginationResponse(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    TOTAL_FIELD_NUMBER: _builtins.int
-    HAS_MORE_FIELD_NUMBER: _builtins.int
-    total: _builtins.int
-    has_more: _builtins.bool
+    TOTAL_FIELD_NUMBER: builtins.int
+    HAS_MORE_FIELD_NUMBER: builtins.int
+    total: builtins.int
+    has_more: builtins.bool
     def __init__(
         self,
         *,
-        total: _builtins.int = ...,
-        has_more: _builtins.bool = ...,
+        total: builtins.int = ...,
+        has_more: builtins.bool = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["has_more", b"has_more", "total", b"total"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["has_more", b"has_more", "total", b"total"]) -> None: ...
 
-Global___PaginationResponse: _TypeAlias = PaginationResponse  # noqa: Y015
+Global___PaginationResponse: typing_extensions.TypeAlias = PaginationResponse

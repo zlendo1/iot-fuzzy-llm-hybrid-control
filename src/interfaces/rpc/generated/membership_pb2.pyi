@@ -3,203 +3,192 @@
 isort:skip_file
 """
 
-from collections import abc as _abc
-from google.protobuf import descriptor as _descriptor
-from google.protobuf import message as _message
-from google.protobuf.internal import containers as _containers
-import builtins as _builtins
+import builtins
+import collections.abc
+import google.protobuf.descriptor
+import google.protobuf.internal.containers
+import google.protobuf.message
 import sys
-import typing as _typing
+import typing
 
 if sys.version_info >= (3, 10):
-    from typing import TypeAlias as _TypeAlias
+    import typing as typing_extensions
 else:
-    from typing_extensions import TypeAlias as _TypeAlias
+    import typing_extensions
 
-DESCRIPTOR: _descriptor.FileDescriptor
+DESCRIPTOR: google.protobuf.descriptor.FileDescriptor
 
-@_typing.final
-class MembershipFunction(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
+@typing.final
+class MembershipFunction(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    @_typing.final
-    class ParametersEntry(_message.Message):
-        DESCRIPTOR: _descriptor.Descriptor
+    @typing.final
+    class ParametersEntry(google.protobuf.message.Message):
+        DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-        KEY_FIELD_NUMBER: _builtins.int
-        VALUE_FIELD_NUMBER: _builtins.int
-        key: _builtins.str
-        value: _builtins.float
+        KEY_FIELD_NUMBER: builtins.int
+        VALUE_FIELD_NUMBER: builtins.int
+        key: builtins.str
+        value: builtins.float
         def __init__(
             self,
             *,
-            key: _builtins.str = ...,
-            value: _builtins.float = ...,
+            key: builtins.str = ...,
+            value: builtins.float = ...,
         ) -> None: ...
-        _ClearFieldArgType: _TypeAlias = _typing.Literal["key", b"key", "value", b"value"]  # noqa: Y015
-        def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+        def ClearField(self, field_name: typing.Literal["key", b"key", "value", b"value"]) -> None: ...
 
-    NAME_FIELD_NUMBER: _builtins.int
-    FUNCTION_TYPE_FIELD_NUMBER: _builtins.int
-    PARAMETERS_FIELD_NUMBER: _builtins.int
-    name: _builtins.str
-    function_type: _builtins.str
-    @_builtins.property
-    def parameters(self) -> _containers.ScalarMap[_builtins.str, _builtins.float]: ...
+    NAME_FIELD_NUMBER: builtins.int
+    FUNCTION_TYPE_FIELD_NUMBER: builtins.int
+    PARAMETERS_FIELD_NUMBER: builtins.int
+    name: builtins.str
+    function_type: builtins.str
+    @property
+    def parameters(self) -> google.protobuf.internal.containers.ScalarMap[builtins.str, builtins.float]: ...
     def __init__(
         self,
         *,
-        name: _builtins.str = ...,
-        function_type: _builtins.str = ...,
-        parameters: _abc.Mapping[_builtins.str, _builtins.float] | None = ...,
+        name: builtins.str = ...,
+        function_type: builtins.str = ...,
+        parameters: collections.abc.Mapping[builtins.str, builtins.float] | None = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["function_type", b"function_type", "name", b"name", "parameters", b"parameters"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["function_type", b"function_type", "name", b"name", "parameters", b"parameters"]) -> None: ...
 
-Global___MembershipFunction: _TypeAlias = MembershipFunction  # noqa: Y015
+Global___MembershipFunction: typing_extensions.TypeAlias = MembershipFunction
 
-@_typing.final
-class LinguisticVariable(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
+@typing.final
+class LinguisticVariable(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    NAME_FIELD_NUMBER: _builtins.int
-    MEMBERSHIP_FUNCTIONS_FIELD_NUMBER: _builtins.int
-    name: _builtins.str
-    @_builtins.property
-    def membership_functions(self) -> _containers.RepeatedCompositeFieldContainer[Global___MembershipFunction]: ...
+    NAME_FIELD_NUMBER: builtins.int
+    MEMBERSHIP_FUNCTIONS_FIELD_NUMBER: builtins.int
+    name: builtins.str
+    @property
+    def membership_functions(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___MembershipFunction]: ...
     def __init__(
         self,
         *,
-        name: _builtins.str = ...,
-        membership_functions: _abc.Iterable[Global___MembershipFunction] | None = ...,
+        name: builtins.str = ...,
+        membership_functions: collections.abc.Iterable[Global___MembershipFunction] | None = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["membership_functions", b"membership_functions", "name", b"name"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["membership_functions", b"membership_functions", "name", b"name"]) -> None: ...
 
-Global___LinguisticVariable: _TypeAlias = LinguisticVariable  # noqa: Y015
+Global___LinguisticVariable: typing_extensions.TypeAlias = LinguisticVariable
 
-@_typing.final
-class SensorTypeMembership(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
+@typing.final
+class SensorTypeMembership(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    SENSOR_TYPE_FIELD_NUMBER: _builtins.int
-    LINGUISTIC_VARIABLES_FIELD_NUMBER: _builtins.int
-    sensor_type: _builtins.str
-    @_builtins.property
-    def linguistic_variables(self) -> _containers.RepeatedCompositeFieldContainer[Global___LinguisticVariable]: ...
+    SENSOR_TYPE_FIELD_NUMBER: builtins.int
+    LINGUISTIC_VARIABLES_FIELD_NUMBER: builtins.int
+    sensor_type: builtins.str
+    @property
+    def linguistic_variables(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___LinguisticVariable]: ...
     def __init__(
         self,
         *,
-        sensor_type: _builtins.str = ...,
-        linguistic_variables: _abc.Iterable[Global___LinguisticVariable] | None = ...,
+        sensor_type: builtins.str = ...,
+        linguistic_variables: collections.abc.Iterable[Global___LinguisticVariable] | None = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["linguistic_variables", b"linguistic_variables", "sensor_type", b"sensor_type"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["linguistic_variables", b"linguistic_variables", "sensor_type", b"sensor_type"]) -> None: ...
 
-Global___SensorTypeMembership: _TypeAlias = SensorTypeMembership  # noqa: Y015
+Global___SensorTypeMembership: typing_extensions.TypeAlias = SensorTypeMembership
 
-@_typing.final
-class GetMembershipFunctionsRequest(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
+@typing.final
+class GetMembershipFunctionsRequest(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    SENSOR_TYPE_FIELD_NUMBER: _builtins.int
-    sensor_type: _builtins.str
+    SENSOR_TYPE_FIELD_NUMBER: builtins.int
+    sensor_type: builtins.str
     def __init__(
         self,
         *,
-        sensor_type: _builtins.str = ...,
+        sensor_type: builtins.str = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["sensor_type", b"sensor_type"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["sensor_type", b"sensor_type"]) -> None: ...
 
-Global___GetMembershipFunctionsRequest: _TypeAlias = GetMembershipFunctionsRequest  # noqa: Y015
+Global___GetMembershipFunctionsRequest: typing_extensions.TypeAlias = GetMembershipFunctionsRequest
 
-@_typing.final
-class GetMembershipFunctionsResponse(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
+@typing.final
+class GetMembershipFunctionsResponse(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    MEMBERSHIP_FIELD_NUMBER: _builtins.int
-    @_builtins.property
+    MEMBERSHIP_FIELD_NUMBER: builtins.int
+    @property
     def membership(self) -> Global___SensorTypeMembership: ...
     def __init__(
         self,
         *,
         membership: Global___SensorTypeMembership | None = ...,
     ) -> None: ...
-    _HasFieldArgType: _TypeAlias = _typing.Literal["membership", b"membership"]  # noqa: Y015
-    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["membership", b"membership"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def HasField(self, field_name: typing.Literal["membership", b"membership"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["membership", b"membership"]) -> None: ...
 
-Global___GetMembershipFunctionsResponse: _TypeAlias = GetMembershipFunctionsResponse  # noqa: Y015
+Global___GetMembershipFunctionsResponse: typing_extensions.TypeAlias = GetMembershipFunctionsResponse
 
-@_typing.final
-class UpdateMembershipFunctionRequest(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
+@typing.final
+class UpdateMembershipFunctionRequest(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    SENSOR_TYPE_FIELD_NUMBER: _builtins.int
-    VARIABLE_NAME_FIELD_NUMBER: _builtins.int
-    FUNCTION_FIELD_NUMBER: _builtins.int
-    sensor_type: _builtins.str
-    variable_name: _builtins.str
-    @_builtins.property
+    SENSOR_TYPE_FIELD_NUMBER: builtins.int
+    VARIABLE_NAME_FIELD_NUMBER: builtins.int
+    FUNCTION_FIELD_NUMBER: builtins.int
+    sensor_type: builtins.str
+    variable_name: builtins.str
+    @property
     def function(self) -> Global___MembershipFunction: ...
     def __init__(
         self,
         *,
-        sensor_type: _builtins.str = ...,
-        variable_name: _builtins.str = ...,
+        sensor_type: builtins.str = ...,
+        variable_name: builtins.str = ...,
         function: Global___MembershipFunction | None = ...,
     ) -> None: ...
-    _HasFieldArgType: _TypeAlias = _typing.Literal["function", b"function"]  # noqa: Y015
-    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["function", b"function", "sensor_type", b"sensor_type", "variable_name", b"variable_name"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def HasField(self, field_name: typing.Literal["function", b"function"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["function", b"function", "sensor_type", b"sensor_type", "variable_name", b"variable_name"]) -> None: ...
 
-Global___UpdateMembershipFunctionRequest: _TypeAlias = UpdateMembershipFunctionRequest  # noqa: Y015
+Global___UpdateMembershipFunctionRequest: typing_extensions.TypeAlias = UpdateMembershipFunctionRequest
 
-@_typing.final
-class UpdateMembershipFunctionResponse(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
+@typing.final
+class UpdateMembershipFunctionResponse(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    SUCCESS_FIELD_NUMBER: _builtins.int
-    MESSAGE_FIELD_NUMBER: _builtins.int
-    success: _builtins.bool
-    message: _builtins.str
+    SUCCESS_FIELD_NUMBER: builtins.int
+    MESSAGE_FIELD_NUMBER: builtins.int
+    success: builtins.bool
+    message: builtins.str
     def __init__(
         self,
         *,
-        success: _builtins.bool = ...,
-        message: _builtins.str = ...,
+        success: builtins.bool = ...,
+        message: builtins.str = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["message", b"message", "success", b"success"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["message", b"message", "success", b"success"]) -> None: ...
 
-Global___UpdateMembershipFunctionResponse: _TypeAlias = UpdateMembershipFunctionResponse  # noqa: Y015
+Global___UpdateMembershipFunctionResponse: typing_extensions.TypeAlias = UpdateMembershipFunctionResponse
 
-@_typing.final
-class ListSensorTypesRequest(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
+@typing.final
+class ListSensorTypesRequest(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
     def __init__(
         self,
     ) -> None: ...
 
-Global___ListSensorTypesRequest: _TypeAlias = ListSensorTypesRequest  # noqa: Y015
+Global___ListSensorTypesRequest: typing_extensions.TypeAlias = ListSensorTypesRequest
 
-@_typing.final
-class ListSensorTypesResponse(_message.Message):
-    DESCRIPTOR: _descriptor.Descriptor
+@typing.final
+class ListSensorTypesResponse(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    SENSOR_TYPES_FIELD_NUMBER: _builtins.int
-    @_builtins.property
-    def sensor_types(self) -> _containers.RepeatedScalarFieldContainer[_builtins.str]: ...
+    SENSOR_TYPES_FIELD_NUMBER: builtins.int
+    @property
+    def sensor_types(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]: ...
     def __init__(
         self,
         *,
-        sensor_types: _abc.Iterable[_builtins.str] | None = ...,
+        sensor_types: collections.abc.Iterable[builtins.str] | None = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["sensor_types", b"sensor_types"]  # noqa: Y015
-    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def ClearField(self, field_name: typing.Literal["sensor_types", b"sensor_types"]) -> None: ...
 
-Global___ListSensorTypesResponse: _TypeAlias = ListSensorTypesResponse  # noqa: Y015
+Global___ListSensorTypesResponse: typing_extensions.TypeAlias = ListSensorTypesResponse

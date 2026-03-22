@@ -758,3 +758,244 @@ def test_cli_evaluate_rules_via_grpc(
     finally:
         app.stop()
         assert _wait_for_state(app, ApplicationState.STOPPED)
+
+
+@pytest.mark.integration
+def test_device_status_via_grpc(
+    config_directory: Path,
+    rules_directory: Path,
+    logs_directory: Path,
+    grpc_port: int,
+) -> None:
+    """Test device status command for a specific device via gRPC."""
+    app = Application(
+        ApplicationConfig(
+            config_dir=config_directory,
+            rules_dir=rules_directory,
+            logs_dir=logs_directory,
+            grpc_port=grpc_port,
+            skip_mqtt=True,
+            skip_ollama=True,
+        )
+    )
+
+    assert app.start() is True
+    assert _wait_for_state(app, ApplicationState.RUNNING)
+    time.sleep(0.2)
+
+    try:
+        runner = CliRunner()
+        # Test device status for a specific device (temp_living_room from fixtures)
+        result = runner.invoke(
+            cli,
+            [
+                "--grpc-host",
+                "localhost",
+                "--grpc-port",
+                str(grpc_port),
+                "device",
+                "status",
+                "temp_living_room",
+            ],
+        )
+
+        assert result.exit_code == 0
+        # Verify device info is displayed
+        assert "temp_living_room" in result.output
+        assert "Living Room Temperature Sensor" in result.output
+        assert "Status: registered" in result.output
+
+    finally:
+        app.stop()
+        assert _wait_for_state(app, ApplicationState.STOPPED)
+
+
+@pytest.mark.integration
+def test_device_show_via_grpc(
+    config_directory: Path,
+    rules_directory: Path,
+    logs_directory: Path,
+    grpc_port: int,
+) -> None:
+    """Test device status command shows device details via gRPC (show functionality)."""
+    app = Application(
+        ApplicationConfig(
+            config_dir=config_directory,
+            rules_dir=rules_directory,
+            logs_dir=logs_directory,
+            grpc_port=grpc_port,
+            skip_mqtt=True,
+            skip_ollama=True,
+        )
+    )
+
+    assert app.start() is True
+    assert _wait_for_state(app, ApplicationState.RUNNING)
+    time.sleep(0.2)
+
+    try:
+        runner = CliRunner()
+        # Test device status for an actuator with capabilities (ac_living_room)
+        result = runner.invoke(
+            cli,
+            [
+                "--grpc-host",
+                "localhost",
+                "--grpc-port",
+                str(grpc_port),
+                "device",
+                "status",
+                "ac_living_room",
+            ],
+        )
+
+        assert result.exit_code == 0
+        # Verify actuator details are displayed
+        assert "ac_living_room" in result.output
+        assert "Living Room AC" in result.output
+        assert "actuator" in result.output.lower()
+        # Actuators should show capabilities
+        assert "Capabilities:" in result.output
+
+    finally:
+        app.stop()
+        assert _wait_for_state(app, ApplicationState.STOPPED)
+
+
+@pytest.mark.integration
+def test_sensor_list_via_grpc(
+    config_directory: Path,
+    rules_directory: Path,
+    logs_directory: Path,
+    grpc_port: int,
+) -> None:
+    """Test sensor list command via gRPC filters to sensors only."""
+    app = Application(
+        ApplicationConfig(
+            config_dir=config_directory,
+            rules_dir=rules_directory,
+            logs_dir=logs_directory,
+            grpc_port=grpc_port,
+            skip_mqtt=True,
+            skip_ollama=True,
+        )
+    )
+
+    assert app.start() is True
+    assert _wait_for_state(app, ApplicationState.RUNNING)
+    time.sleep(0.2)
+
+    try:
+        runner = CliRunner()
+        result = runner.invoke(
+            cli,
+            [
+                "--grpc-host",
+                "localhost",
+                "--grpc-port",
+                str(grpc_port),
+                "sensor",
+                "list",
+            ],
+        )
+
+        assert result.exit_code == 0
+        # Should list sensors from config fixtures
+        assert "temp_living_room" in result.output
+        assert "humidity_living_room" in result.output
+        assert "sensor" in result.output.lower()
+        # Should show total count
+        assert "Total:" in result.output
+
+    finally:
+        app.stop()
+        assert _wait_for_state(app, ApplicationState.STOPPED)
+
+
+@pytest.mark.integration
+def test_sensor_status_via_grpc(
+    config_directory: Path,
+    rules_directory: Path,
+    logs_directory: Path,
+    grpc_port: int,
+) -> None:
+    """Test sensor status command for a specific sensor via gRPC."""
+    app = Application(
+        ApplicationConfig(
+            config_dir=config_directory,
+            rules_dir=rules_directory,
+            logs_dir=logs_directory,
+            grpc_port=grpc_port,
+            skip_mqtt=True,
+            skip_ollama=True,
+        )
+    )
+
+    assert app.start() is True
+    assert _wait_for_state(app, ApplicationState.RUNNING)
+    time.sleep(0.2)
+
+    try:
+        runner = CliRunner()
+        result = runner.invoke(
+            cli,
+            [
+                "--grpc-host",
+                "localhost",
+                "--grpc-port",
+                str(grpc_port),
+                "sensor",
+                "status",
+                "temp_living_room",
+            ],
+        )
+
+        assert result.exit_code == 0
+        # Verify sensor info is displayed
+        assert "temp_living_room" in result.output
+        assert "Living Room Temperature Sensor" in result.output
+        assert "Status: registered" in result.output
+
+    finally:
+        app.stop()
+        assert _wait_for_state(app, ApplicationState.STOPPED)
+
+
+@pytest.mark.integration
+def test_device_send_command_via_grpc(
+    config_directory: Path,
+    rules_directory: Path,
+    logs_directory: Path,
+    grpc_port: int,
+) -> None:
+    """Test send command gRPC call reports MQTT unavailable when skipped."""
+    from src.common.exceptions import IoTFuzzyLLMError
+    from src.interfaces.rpc.client import GrpcClient
+
+    app = Application(
+        ApplicationConfig(
+            config_dir=config_directory,
+            rules_dir=rules_directory,
+            logs_dir=logs_directory,
+            grpc_port=grpc_port,
+            skip_mqtt=True,
+            skip_ollama=True,
+        )
+    )
+
+    assert app.start() is True
+    assert _wait_for_state(app, ApplicationState.RUNNING)
+    time.sleep(0.2)
+
+    try:
+        with GrpcClient("localhost", grpc_port) as client:
+            with pytest.raises(IoTFuzzyLLMError, match="MQTT communication manager"):
+                client.send_command(
+                    device_id="ac_living_room",
+                    action="turn_on",
+                    parameters={},
+                )
+
+    finally:
+        app.stop()
+        assert _wait_for_state(app, ApplicationState.STOPPED)

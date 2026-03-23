@@ -619,19 +619,23 @@ def sensor_status(ctx: CLIContext, sensor_id: str | None) -> None:
                 sensors = [d for d in all_devices if d.get("type") == "sensor"]
 
             if ctx.output_format == "json":
-                data = [
-                    {
-                        "id": s["id"],
-                        "name": s["name"],
-                        "device_class": s.get("capabilities", [""])[0]
-                        if s.get("capabilities")
-                        else "",
-                        "location": s.get("location", ""),
-                        "unit": "",
-                        "status": "registered",
-                    }
-                    for s in sensors
-                ]
+                data = []
+                for s in sensors:
+                    try:
+                        status_info = client.get_device_status(s["id"])
+                        status = "online" if status_info.get("online") else "offline"
+                    except Exception:
+                        status = "unknown"
+                    data.append(
+                        {
+                            "id": s["id"],
+                            "name": s["name"],
+                            "device_class": s.get("device_class", ""),
+                            "location": s.get("location", ""),
+                            "unit": s.get("unit", ""),
+                            "status": status,
+                        }
+                    )
                 click.echo(ctx.formatter.format_json(data))
                 return
 
@@ -640,13 +644,16 @@ def sensor_status(ctx: CLIContext, sensor_id: str | None) -> None:
                 return
 
             for s in sensors:
+                try:
+                    status_info = client.get_device_status(s["id"])
+                    status = "online" if status_info.get("online") else "offline"
+                except Exception:
+                    status = "unknown"
                 click.echo(f"\n{s['name']} ({s['id']})")
-                click.echo(
-                    f"  Class: {s.get('capabilities', [''])[0] if s.get('capabilities') else 'N/A'}"
-                )
+                click.echo(f"  Class: {s.get('device_class') or 'N/A'}")
                 click.echo(f"  Location: {s.get('location') or 'N/A'}")
-                click.echo("  Unit: N/A")
-                click.echo("  Status: registered")
+                click.echo(f"  Unit: {s.get('unit') or 'N/A'}")
+                click.echo(f"  Status: {status}")
 
         except Exception as e:
             click.echo(

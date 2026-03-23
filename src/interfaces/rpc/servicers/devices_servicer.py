@@ -9,7 +9,7 @@ from src.common.logging import get_logger
 from src.configuration.system_orchestrator import SystemOrchestrator
 from src.device_interface.device_monitor import DeviceStatus
 from src.device_interface.messages import CommandType, DeviceCommand, SensorReading
-from src.device_interface.models import Actuator, Device
+from src.device_interface.models import Actuator, Device, Sensor
 from src.interfaces.rpc.error_mapping import handle_grpc_errors
 from src.interfaces.rpc.generated import devices_pb2, devices_pb2_grpc
 
@@ -132,8 +132,11 @@ class DevicesServicer(devices_pb2_grpc.DevicesServiceServicer):
     @staticmethod
     def _to_proto_device(device: Device) -> devices_pb2.Device:
         capabilities: list[str] = []
+        unit = ""
         if isinstance(device, Actuator):
             capabilities = list(device.capabilities)
+        if isinstance(device, Sensor):
+            unit = device.unit or ""
 
         return devices_pb2.Device(
             id=device.id,
@@ -141,6 +144,8 @@ class DevicesServicer(devices_pb2_grpc.DevicesServiceServicer):
             type=device.device_type.value,
             location=device.location or "",
             capabilities=capabilities,
+            device_class=device.device_class,
+            unit=unit,
         )
 
     @staticmethod

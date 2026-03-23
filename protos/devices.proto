@@ -11,6 +11,8 @@ message Device {
   string type = 3;
   string location = 4;
   repeated string capabilities = 5;
+  string device_class = 6;
+  string unit = 7;
 }
 
 message SensorReading {

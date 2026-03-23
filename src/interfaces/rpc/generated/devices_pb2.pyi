@@ -28,10 +28,14 @@ class Device(google.protobuf.message.Message):
     TYPE_FIELD_NUMBER: builtins.int
     LOCATION_FIELD_NUMBER: builtins.int
     CAPABILITIES_FIELD_NUMBER: builtins.int
+    DEVICE_CLASS_FIELD_NUMBER: builtins.int
+    UNIT_FIELD_NUMBER: builtins.int
     id: builtins.str
     name: builtins.str
     type: builtins.str
     location: builtins.str
+    device_class: builtins.str
+    unit: builtins.str
     @property
     def capabilities(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]: ...
     def __init__(
@@ -42,8 +46,10 @@ class Device(google.protobuf.message.Message):
         type: builtins.str = ...,
         location: builtins.str = ...,
         capabilities: collections.abc.Iterable[builtins.str] | None = ...,
+        device_class: builtins.str = ...,
+        unit: builtins.str = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["capabilities", b"capabilities", "id", b"id", "location", b"location", "name", b"name", "type", b"type"]) -> None: ...
+    def ClearField(self, field_name: typing.Literal["capabilities", b"capabilities", "device_class", b"device_class", "id", b"id", "location", b"location", "name", b"name", "type", b"type", "unit", b"unit"]) -> None: ...
 
 Global___Device: typing_extensions.TypeAlias = Device
 

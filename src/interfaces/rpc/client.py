@@ -280,6 +280,8 @@ class GrpcClient:
                     "type": device.type,
                     "location": device.location,
                     "capabilities": list(device.capabilities),
+                    "device_class": device.device_class,
+                    "unit": device.unit,
                 }
                 for device in response.devices
             ]
@@ -301,6 +303,8 @@ class GrpcClient:
                 "type": response.device.type,
                 "location": response.device.location,
                 "capabilities": list(response.device.capabilities),
+                "device_class": response.device.device_class,
+                "unit": response.device.unit,
             }
         except grpc.RpcError as e:
             self._handle_grpc_error(e, "get_device")

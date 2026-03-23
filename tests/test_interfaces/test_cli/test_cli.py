@@ -909,10 +909,13 @@ class TestSensorCommands:
                     "id": "sensor_temp_1",
                     "name": "Living Room Temperature",
                     "type": "sensor",
-                    "capabilities": ["temperature"],
+                    "capabilities": [],
                     "location": "living_room",
+                    "device_class": "temperature",
+                    "unit": "°C",
                 }
             ]
+            mock_client.get_device_status.return_value = {"online": True}
             mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
             mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
 
@@ -940,9 +943,12 @@ class TestSensorCommands:
                 "id": "sensor_temp_1",
                 "name": "Living Room Temperature",
                 "type": "sensor",
-                "capabilities": ["temperature"],
+                "capabilities": [],
                 "location": "living_room",
+                "device_class": "temperature",
+                "unit": "°C",
             }
+            mock_client.get_device_status.return_value = {"online": True}
             mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
             mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
 

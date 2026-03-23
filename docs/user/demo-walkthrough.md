@@ -316,74 +316,56 @@ Are you sure you want to delete rule 'climate_002'? [y/N]: y
 iot-fuzzy-llm sensor status
 ```
 
-**Verification**: Confirm sensors are displayed with their registration status:
-
-```
-Living Room Temperature Sensor (temp_living_room)
-  Class: N/A
-  Location: living_room
-  Unit: N/A
-  Status: registered
-
-Living Room Humidity Sensor (humidity_living_room)
-  Class: N/A
-  Location: living_room
-  Unit: N/A
-  Status: registered
-
-Bedroom Temperature Sensor (temp_bedroom)
-  Class: N/A
-  Location: bedroom
-  Unit: N/A
-  Status: registered
-
-Hallway Motion Sensor (motion_hallway)
-  Class: N/A
-  Location: hallway
-  Unit: N/A
-  Status: registered
-
-Living Room Motion Sensor (motion_living_room)
-  Class: N/A
-  Location: living_room
-  Unit: N/A
-  Status: registered
-
-Living Room Light Level Sensor (light_level_living_room)
-  Class: N/A
-  Location: living_room
-  Unit: N/A
-  Status: registered
-
-Office Temperature Sensor (temp_office)
-  Class: N/A
-  Location: office
-  Unit: N/A
-  Status: registered
-```
-
-**Verification**: Confirm sensors are displayed with their configuration:
+**Verification**: Confirm sensors are displayed with their configuration and
+status:
 
 ```
 Living Room Temperature Sensor (temp_living_room)
   Class: temperature
   Location: living_room
-  Unit: N/A
-  Status: registered
+  Unit: °C
+  Status: offline
 
 Living Room Humidity Sensor (humidity_living_room)
   Class: humidity
   Location: living_room
-  Unit: N/A
-  Status: registered
+  Unit: %
+  Status: offline
 
 Bedroom Temperature Sensor (temp_bedroom)
   Class: temperature
   Location: bedroom
+  Unit: °C
+  Status: offline
+
+Hallway Motion Sensor (motion_hallway)
+  Class: motion
+  Location: hallway
   Unit: N/A
-  Status: registered
-...
+  Status: offline
+
+Living Room Motion Sensor (motion_living_room)
+  Class: motion
+  Location: living_room
+  Unit: N/A
+  Status: offline
+
+Living Room Light Level Sensor (light_level_living_room)
+  Class: light_level
+  Location: living_room
+  Unit: lux
+  Status: offline
+
+Office Temperature Sensor (temp_office)
+  Class: temperature
+  Location: office
+  Unit: °C
+  Status: offline
 ```
+
+**Note**: Status shows `offline` when no sensor readings have been received via
+MQTT. After publishing MQTT messages (Steps 4-7), sensors that have reported
+data will show `online`.
 
 ### Step 10: Configuration Validation
 

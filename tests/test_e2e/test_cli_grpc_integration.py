@@ -368,9 +368,11 @@ def test_cli_default_grpc_host_port(
     config_directory: Path,
     rules_directory: Path,
     logs_directory: Path,
+    grpc_port: int,
 ) -> None:
-    """Test CLI uses default gRPC port 50051."""
-    # Use default port
+    """Test ApplicationConfig defaults to port 50051 and CLI connects correctly."""
+    assert ApplicationConfig().grpc_port == 50051
+
     app = Application(
         ApplicationConfig(
             config_dir=config_directory,
@@ -378,6 +380,7 @@ def test_cli_default_grpc_host_port(
             logs_dir=logs_directory,
             skip_mqtt=True,
             skip_ollama=True,
+            grpc_port=grpc_port,
         )
     )
 
@@ -390,11 +393,12 @@ def test_cli_default_grpc_host_port(
         result = runner.invoke(
             cli,
             [
+                "--grpc-port",
+                str(grpc_port),
                 "status",
             ],
         )
 
-        # Should connect to default port 50051
         assert result.exit_code == 0
 
     finally:

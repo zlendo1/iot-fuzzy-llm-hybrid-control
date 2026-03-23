@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import pytest
 
-from tests.conftest import create_sensor_reading
+from tests.conftest import create_sensor_reading, find_free_port
 
 
 def test_fuzzy_pipeline_importable() -> None:
@@ -77,6 +77,7 @@ def test_application_startup_smoke(
         logs_dir=logs_directory,
         skip_mqtt=True,
         skip_ollama=True,
+        grpc_port=find_free_port(),
     )
 
     with (

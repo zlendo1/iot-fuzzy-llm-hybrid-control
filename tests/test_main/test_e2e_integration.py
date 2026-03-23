@@ -6,6 +6,8 @@ from unittest.mock import patch
 
 import pytest
 
+from tests.conftest import find_free_port
+
 
 @pytest.fixture
 def e2e_config_dir(
@@ -157,6 +159,7 @@ class TestApplicationLifecycleE2E:
             logs_dir=e2e_logs_dir,
             skip_mqtt=True,
             skip_ollama=True,
+            grpc_port=find_free_port(),
             evaluation_interval=0.1,
         )
         app = Application(config)
@@ -186,6 +189,7 @@ class TestApplicationLifecycleE2E:
             logs_dir=e2e_logs_dir,
             skip_mqtt=True,
             skip_ollama=True,
+            grpc_port=find_free_port(),
         )
         app = Application(config)
         app.start()
@@ -221,6 +225,7 @@ class TestSensorToDescriptionFlowE2E:
             logs_dir=e2e_logs_dir,
             skip_mqtt=True,
             skip_ollama=True,
+            grpc_port=find_free_port(),
         )
         app = Application(config)
         app.start()
@@ -264,6 +269,7 @@ class TestSensorToDescriptionFlowE2E:
             logs_dir=e2e_logs_dir,
             skip_mqtt=True,
             skip_ollama=True,
+            grpc_port=find_free_port(),
         )
         app = Application(config)
         app.start()
@@ -307,6 +313,7 @@ class TestRuleEvaluationFlowE2E:
             logs_dir=e2e_logs_dir,
             skip_mqtt=True,
             skip_ollama=True,
+            grpc_port=find_free_port(),
         )
         app = Application(config)
         app.start()
@@ -333,6 +340,7 @@ class TestRuleEvaluationFlowE2E:
             logs_dir=e2e_logs_dir,
             skip_mqtt=True,
             skip_ollama=True,
+            grpc_port=find_free_port(),
             evaluation_interval=0.05,
         )
         app = Application(config)
@@ -363,6 +371,7 @@ class TestCommandGenerationFlowE2E:
             logs_dir=e2e_logs_dir,
             skip_mqtt=True,
             skip_ollama=True,
+            grpc_port=find_free_port(),
         )
         app = Application(config)
 
@@ -423,6 +432,7 @@ class TestShutdownFlowE2E:
             logs_dir=e2e_logs_dir,
             skip_mqtt=True,
             skip_ollama=True,
+            grpc_port=find_free_port(),
             evaluation_interval=0.1,
         )
         app = Application(config)
@@ -455,6 +465,7 @@ class TestErrorHandlingE2E:
             logs_dir=e2e_logs_dir,
             skip_mqtt=True,
             skip_ollama=True,
+            grpc_port=find_free_port(),
         )
         app = Application(config)
         app.start()
@@ -506,6 +517,7 @@ class TestFuzzyProcessingE2E:
             logs_dir=e2e_logs_dir,
             skip_mqtt=True,
             skip_ollama=True,
+            grpc_port=find_free_port(),
         )
         app = Application(config)
         app.start()

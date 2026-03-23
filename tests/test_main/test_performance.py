@@ -5,6 +5,8 @@ from typing import Any
 
 import pytest
 
+from tests.conftest import find_free_port
+
 
 @pytest.fixture
 def perf_config_dir(
@@ -141,6 +143,7 @@ class TestSensorToDescriptionPerformance:
             logs_dir=perf_logs_dir,
             skip_mqtt=True,
             skip_ollama=True,
+            grpc_port=find_free_port(),
         )
         app = Application(config)
         app.start()
@@ -269,6 +272,7 @@ class TestSystemStartupPerformance:
             logs_dir=perf_logs_dir,
             skip_mqtt=True,
             skip_ollama=True,
+            grpc_port=find_free_port(),
         )
         app = Application(config)
 
@@ -303,6 +307,7 @@ class TestEndToEndPerformance:
             logs_dir=perf_logs_dir,
             skip_mqtt=True,
             skip_ollama=True,
+            grpc_port=find_free_port(),
         )
         app = Application(config)
         app.start()

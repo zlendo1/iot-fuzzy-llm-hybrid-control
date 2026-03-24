@@ -547,8 +547,8 @@ def sensor_list(ctx: CLIContext) -> None:
     with GrpcClient(ctx.grpc_host, ctx.grpc_port) as client:
         try:
             all_devices = client.list_devices()
-            # Filter to sensors only (type == "sensor")
-            sensors = [d for d in all_devices if d.get("type") == "sensor"]
+            # Filter to sensors only (device_type == "sensor")
+            sensors = [d for d in all_devices if d.get("device_type") == "sensor"]
 
             if ctx.output_format == "json":
                 data = [
@@ -608,7 +608,7 @@ def sensor_status(ctx: CLIContext, sensor_id: str | None) -> None:
         try:
             if sensor_id:
                 device = client.get_device(sensor_id)
-                if device.get("type") != "sensor":
+                if device.get("device_type") != "sensor":
                     click.echo(
                         ctx.formatter.error(f"Device {sensor_id} is not a sensor")
                     )
@@ -616,7 +616,7 @@ def sensor_status(ctx: CLIContext, sensor_id: str | None) -> None:
                 sensors = [device]
             else:
                 all_devices = client.list_devices()
-                sensors = [d for d in all_devices if d.get("type") == "sensor"]
+                sensors = [d for d in all_devices if d.get("device_type") == "sensor"]
 
             if ctx.output_format == "json":
                 data = []
@@ -684,7 +684,7 @@ def device_list(ctx: CLIContext) -> None:
                     {
                         "id": d["id"],
                         "name": d["name"],
-                        "type": d.get("type", ""),
+                        "type": d.get("device_type", ""),
                         "device_class": d.get("capabilities", [""])[0]
                         if d.get("capabilities")
                         else "",
@@ -706,7 +706,7 @@ def device_list(ctx: CLIContext) -> None:
                     [
                         d["id"],
                         d["name"],
-                        d.get("type", "-"),
+                        d.get("device_type", "-"),
                         d.get("capabilities", [""])[0]
                         if d.get("capabilities")
                         else "-",
@@ -747,14 +747,14 @@ def device_status(ctx: CLIContext, device_id: str | None) -> None:
                     item: dict[str, Any] = {
                         "id": d["id"],
                         "name": d["name"],
-                        "type": d.get("type", ""),
+                        "type": d.get("device_type", ""),
                         "device_class": d.get("capabilities", [""])[0]
                         if d.get("capabilities")
                         else "",
                         "location": d.get("location", ""),
                         "status": "registered",
                     }
-                    if d.get("type") == "actuator" and d.get("capabilities"):
+                    if d.get("device_type") == "actuator" and d.get("capabilities"):
                         item["capabilities"] = d["capabilities"]
                     data.append(item)
                 click.echo(ctx.formatter.format_json(data))
@@ -766,13 +766,13 @@ def device_status(ctx: CLIContext, device_id: str | None) -> None:
 
             for d in devices:
                 click.echo(f"\n{d['name']} ({d['id']})")
-                click.echo(f"  Type: {d.get('type', 'N/A')}")
+                click.echo(f"  Type: {d.get('device_type', 'N/A')}")
                 click.echo(
                     f"  Class: {d.get('capabilities', [''])[0] if d.get('capabilities') else 'N/A'}"
                 )
                 click.echo(f"  Location: {d.get('location') or 'N/A'}")
                 click.echo("  Status: registered")
-                if d.get("type") == "actuator" and d.get("capabilities"):
+                if d.get("device_type") == "actuator" and d.get("capabilities"):
                     click.echo(f"  Capabilities: {', '.join(d['capabilities'])}")
 
         except Exception as e:

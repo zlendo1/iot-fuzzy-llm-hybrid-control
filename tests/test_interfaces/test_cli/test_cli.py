@@ -800,14 +800,14 @@ class TestSensorCommands:
                 {
                     "id": "sensor_temp_1",
                     "name": "Living Room Temperature",
-                    "type": "sensor",
+                    "device_type": "sensor",
                     "capabilities": ["temperature"],
                     "location": "living_room",
                 },
                 {
                     "id": "actuator_ac_1",
                     "name": "AC Unit",
-                    "type": "actuator",
+                    "device_type": "actuator",
                     "capabilities": ["turn_on", "turn_off", "set_temperature"],
                     "location": "living_room",
                 },
@@ -861,14 +861,14 @@ class TestSensorCommands:
                 {
                     "id": "sensor_temp_1",
                     "name": "Living Room Temperature",
-                    "type": "sensor",
+                    "device_type": "sensor",
                     "capabilities": ["temperature"],
                     "location": "living_room",
                 },
                 {
                     "id": "actuator_ac_1",
                     "name": "AC Unit",
-                    "type": "actuator",
+                    "device_type": "actuator",
                     "capabilities": ["climate"],
                     "location": "living_room",
                 },
@@ -908,7 +908,7 @@ class TestSensorCommands:
                 {
                     "id": "sensor_temp_1",
                     "name": "Living Room Temperature",
-                    "type": "sensor",
+                    "device_type": "sensor",
                     "capabilities": [],
                     "location": "living_room",
                     "device_class": "temperature",
@@ -942,7 +942,7 @@ class TestSensorCommands:
             mock_client.get_device.return_value = {
                 "id": "sensor_temp_1",
                 "name": "Living Room Temperature",
-                "type": "sensor",
+                "device_type": "sensor",
                 "capabilities": [],
                 "location": "living_room",
                 "device_class": "temperature",
@@ -1013,14 +1013,14 @@ class TestDeviceCommands:
                 {
                     "id": "sensor_temp_1",
                     "name": "Living Room Temperature",
-                    "type": "sensor",
+                    "device_type": "sensor",
                     "capabilities": ["temperature"],
                     "location": "living_room",
                 },
                 {
                     "id": "actuator_ac_1",
                     "name": "AC Unit",
-                    "type": "actuator",
+                    "device_type": "actuator",
                     "capabilities": ["turn_on", "turn_off", "set_temperature"],
                     "location": "living_room",
                 },
@@ -1053,14 +1053,14 @@ class TestDeviceCommands:
                 {
                     "id": "sensor_temp_1",
                     "name": "Living Room Temperature",
-                    "type": "sensor",
+                    "device_type": "sensor",
                     "capabilities": ["temperature"],
                     "location": "living_room",
                 },
                 {
                     "id": "actuator_ac_1",
                     "name": "AC Unit",
-                    "type": "actuator",
+                    "device_type": "actuator",
                     "capabilities": ["turn_on", "turn_off", "set_temperature"],
                     "location": "living_room",
                 },
@@ -1099,14 +1099,14 @@ class TestDeviceCommands:
                 {
                     "id": "sensor_temp_1",
                     "name": "Living Room Temperature",
-                    "type": "sensor",
+                    "device_type": "sensor",
                     "capabilities": ["temperature"],
                     "location": "living_room",
                 },
                 {
                     "id": "actuator_ac_1",
                     "name": "AC Unit",
-                    "type": "actuator",
+                    "device_type": "actuator",
                     "capabilities": ["turn_on", "turn_off", "set_temperature"],
                     "location": "living_room",
                 },
@@ -1137,7 +1137,7 @@ class TestDeviceCommands:
             mock_client.get_device.return_value = {
                 "id": "actuator_ac_1",
                 "name": "AC Unit",
-                "type": "actuator",
+                "device_type": "actuator",
                 "capabilities": ["turn_on", "turn_off", "set_temperature"],
                 "location": "living_room",
             }

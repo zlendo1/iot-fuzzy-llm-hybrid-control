@@ -69,8 +69,8 @@ def test_device_list_returns_real_devices_e2e(grpc_client: GrpcClient) -> None:
     assert len(devices) > 0
     device_ids = {str(device["id"]) for device in devices}
     assert any("living_room" in device_id for device_id in device_ids)
-    assert any(str(device.get("type")) == "sensor" for device in devices)
-    assert any(str(device.get("type")) == "actuator" for device in devices)
+    assert any(str(device.get("device_type")) == "sensor" for device in devices)
+    assert any(str(device.get("device_type")) == "actuator" for device in devices)
 
 
 @pytest.mark.docker
@@ -130,10 +130,12 @@ def test_log_tail_returns_real_entries_e2e(grpc_client: GrpcClient) -> None:
 @pytest.mark.docker
 def test_sensor_list_returns_only_sensors_e2e(grpc_client: GrpcClient) -> None:
     devices = grpc_client.list_devices()
-    sensors = [device for device in devices if str(device.get("type")) == "sensor"]
+    sensors = [
+        device for device in devices if str(device.get("device_type")) == "sensor"
+    ]
 
     assert len(sensors) > 0
-    assert all(str(sensor.get("type")) == "sensor" for sensor in sensors)
+    assert all(str(sensor.get("device_type")) == "sensor" for sensor in sensors)
 
     sensor_ids = {str(sensor["id"]) for sensor in sensors}
     expected_fixture_sensors = {

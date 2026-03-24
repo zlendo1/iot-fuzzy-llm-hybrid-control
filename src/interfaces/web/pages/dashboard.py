@@ -7,6 +7,8 @@ from src.interfaces.web.components.common import (
     render_error_message,
     render_header,
 )
+from src.common.utils import format_timestamp
+from src.device_interface.messages import SensorReading
 from src.interfaces.web.data_queue import SensorDataQueue
 from src.interfaces.web.session import (
     clear_shutdown_initiated,
@@ -119,6 +121,24 @@ def render() -> None:
 
     @st.fragment(run_every="1s" if auto_refresh else None)
     def _show_sensors() -> None:
+        sensor_devices = [
+            dev for dev in device_map.values() if dev.get("device_type") == "sensor"
+        ]
+        for dev in sensor_devices:
+            device_id = dev.get("id", "")
+            if not device_id:
+                continue
+            data = bridge.get_latest_reading(device_id)
+            if data is not None and data.get("value") is not None:
+                ts = data.get("timestamp")
+                reading = SensorReading(
+                    sensor_id=data["device_id"],
+                    value=data["value"],
+                    unit=data.get("unit"),
+                    timestamp=ts.isoformat() if ts is not None else format_timestamp(),
+                )
+                queue.push_reading(reading)
+
         readings = queue.get_latest_readings()
         if not readings:
             st.info("No sensor readings yet. Start the system to begin receiving data.")
@@ -133,7 +153,7 @@ def render() -> None:
 
             if (
                 type_filter_str != "All"
-                and device.get("device_type") != type_filter_str
+                and device.get("device_class") != type_filter_str
             ):
                 continue
 

@@ -72,6 +72,16 @@ class _GrpcClientProtocol(Protocol):
 
     def get_log_stats(self) -> dict[str, Any]: ...
 
+    def get_device(self, device_id: str) -> dict[str, Any]: ...
+
+    def get_device_status(self, device_id: str) -> dict[str, Any]: ...
+
+    def get_latest_reading(self, device_id: str) -> dict[str, Any]: ...
+
+    def send_command(
+        self, device_id: str, action: str, parameters: dict[str, str]
+    ) -> dict[str, Any]: ...
+
 
 def _build_grpc_client(host: str, port: int) -> _GrpcClientProtocol:
     from src.interfaces.rpc.client import GrpcClient
@@ -471,6 +481,71 @@ class OrchestratorBridge:
 
         try:
             return self._client.get_log_stats()
+        except IoTFuzzyLLMError:
+            return None
+
+    def get_device(self, device_id: str) -> dict[str, Any] | None:
+        if not self._client:
+            try:
+                self.connect()
+            except IoTFuzzyLLMError:
+                return None
+
+        if not self._client:
+            return None
+
+        try:
+            return self._client.get_device(device_id)
+        except IoTFuzzyLLMError:
+            return None
+
+    def get_device_status(self, device_id: str) -> dict[str, Any] | None:
+        if not self._client:
+            try:
+                self.connect()
+            except IoTFuzzyLLMError:
+                return None
+
+        if not self._client:
+            return None
+
+        try:
+            return self._client.get_device_status(device_id)
+        except IoTFuzzyLLMError:
+            return None
+
+    def get_latest_reading(self, device_id: str) -> dict[str, Any] | None:
+        if not self._client:
+            try:
+                self.connect()
+            except IoTFuzzyLLMError:
+                return None
+
+        if not self._client:
+            return None
+
+        try:
+            return self._client.get_latest_reading(device_id)
+        except IoTFuzzyLLMError:
+            return None
+
+    def send_command(
+        self,
+        device_id: str,
+        action: str,
+        parameters: dict[str, str] | None = None,
+    ) -> dict[str, Any] | None:
+        if not self._client:
+            try:
+                self.connect()
+            except IoTFuzzyLLMError:
+                return None
+
+        if not self._client:
+            return None
+
+        try:
+            return self._client.send_command(device_id, action, parameters or {})
         except IoTFuzzyLLMError:
             return None
 

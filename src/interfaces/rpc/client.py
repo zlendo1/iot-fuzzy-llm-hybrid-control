@@ -277,7 +277,7 @@ class GrpcClient:
                 {
                     "id": device.id,
                     "name": device.name,
-                    "type": device.type,
+                    "device_type": device.type,
                     "location": device.location,
                     "capabilities": list(device.capabilities),
                     "device_class": device.device_class,
@@ -300,7 +300,7 @@ class GrpcClient:
             return {
                 "id": response.device.id,
                 "name": response.device.name,
-                "type": response.device.type,
+                "device_type": response.device.type,
                 "location": response.device.location,
                 "capabilities": list(response.device.capabilities),
                 "device_class": response.device.device_class,

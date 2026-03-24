@@ -19,12 +19,14 @@ from src.interfaces.web.session import (
 def _get_sensor_queue() -> SensorDataQueue:
     if "sensor_queue" not in st.session_state:
         st.session_state["sensor_queue"] = SensorDataQueue()
-    return st.session_state["sensor_queue"]  # type: ignore[return-value]
+    queue = st.session_state["sensor_queue"]
+    assert isinstance(queue, SensorDataQueue)
+    return queue
 
 
 def render() -> None:
     init_session_state()
-    render_header("Dashboard")
+    render_header("Dashboard", "System overview and live sensor monitoring")
 
     try:
         bridge = get_bridge()
@@ -92,15 +94,26 @@ def render() -> None:
         st.info("Start the system to see live sensor data.")
         st.stop()
 
+    devices = bridge.get_devices()
+    device_map = {dev["id"]: dev for dev in devices}
+    locations = sorted(
+        {dev.get("location", "Unknown") for dev in devices if dev.get("location")}
+    )
+    zones = ["All"] + list(locations)
+
     auto_refresh = st.toggle("Auto-refresh (1s)", value=False)
     col1, col2 = st.columns(2)
     with col1:
-        st.selectbox("Filter by zone", ["All"])
+        zone_filter = st.selectbox("Filter by zone", zones)
     with col2:
-        st.selectbox(
+        type_filter = st.selectbox(
             "Filter by type",
             ["All", "temperature", "humidity", "light_level", "motion"],
         )
+
+    # Ensure zone_filter and type_filter are strings
+    zone_filter_str = str(zone_filter) if zone_filter is not None else "All"
+    type_filter_str = str(type_filter) if type_filter is not None else "All"
 
     queue = _get_sensor_queue()
 
@@ -110,14 +123,63 @@ def render() -> None:
         if not readings:
             st.info("No sensor readings yet. Start the system to begin receiving data.")
             return
-        cols = st.columns(3)
-        for i, (sensor_id, reading) in enumerate(readings.items()):
-            with cols[i % 3]:
+
+        filtered_readings = {}
+        for sensor_id, reading in readings.items():
+            device = device_map.get(sensor_id, {})
+
+            if zone_filter_str != "All" and device.get("location") != zone_filter_str:
+                continue
+
+            if (
+                type_filter_str != "All"
+                and device.get("device_type") != type_filter_str
+            ):
+                continue
+
+            filtered_readings[sensor_id] = reading
+
+        if not filtered_readings:
+            st.info(
+                f"No sensors match the selected filters ({zone_filter_str}, {type_filter_str})."
+            )
+            return
+
+        cols = st.columns(2)
+        for i, (sensor_id, reading) in enumerate(filtered_readings.items()):
+            device = device_map.get(sensor_id, {})
+            name = device.get("name", sensor_id)
+            location = device.get("location", "Unknown")
+
+            with cols[i % 2], st.container(border=True):
+                st.subheader(f"{name}")
+                st.caption(f"📍 {location} | 🏷️ {sensor_id}")
+
+                if isinstance(reading.value, float):
+                    val_str = f"{reading.value:.2f}"
+                elif isinstance(reading.value, bool):
+                    val_str = "Detected" if reading.value else "Clear"
+                else:
+                    val_str = str(reading.value)
+
                 st.metric(
-                    label=sensor_id,
-                    value=f"{reading.value:.2f} {reading.unit or ''}".strip(),
+                    label="Current Value",
+                    value=f"{val_str} {reading.unit or ''}".strip(),
                 )
-                st.caption(f"Updated: {reading.timestamp}")
+
+                history = queue.get_reading_history(sensor_id, limit=20)
+                if history:
+                    chart_data = {"time": [], "value": []}
+                    for h in reversed(history):
+                        chart_data["time"].append(h.timestamp)
+                        try:
+                            chart_data["value"].append(float(h.value))
+                        except (ValueError, TypeError):
+                            chart_data["value"].append(0.0)
+
+                    st.line_chart(chart_data, x="time", y="value", height=150)
+
+                st.caption(f"Last updated: {reading.timestamp}")
 
     _show_sensors()
 

@@ -1,14 +1,12 @@
-"""Main Streamlit application entry point with multi-page navigation.
-
-This module provides the Streamlit app configuration and navigation structure
-for the Fuzzy-LLM IoT Management System web interface.
-"""
+"""Main Streamlit application entry point with multi-page navigation."""
 
 from __future__ import annotations
 
 from pathlib import Path
 
 import streamlit as st
+
+from src.interfaces.web.components.theme import inject_global_css
 
 SCRIPT_DIR = Path(__file__).parent
 
@@ -40,6 +38,12 @@ PAGES = [
 
 def main() -> None:
     """Initialize and run the Streamlit multi-page application."""
+    st.set_page_config(
+        page_title="IoT Fuzzy-LLM System",
+        page_icon=":material/sensors:",
+        layout="wide",
+    )
+    inject_global_css()
     nav = st.navigation(PAGES)
     nav.run()
 

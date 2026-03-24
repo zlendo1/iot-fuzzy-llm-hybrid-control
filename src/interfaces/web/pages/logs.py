@@ -47,7 +47,7 @@ def _entries_for_display(entries: list[dict[str, str]]) -> list[dict[str, str]]:
 
 def render() -> None:
     init_session_state()
-    render_header("Logs")
+    render_header("Logs", "View and filter system logs")
 
     bridge = get_bridge()
 
@@ -57,14 +57,16 @@ def render() -> None:
         st.info("No log categories available from backend.")
         return
 
-    col1, col2 = st.columns(2)
+    col1, col2, col3, col4 = st.columns([2, 2, 3, 1])
     with col1:
         category = st.selectbox("Log category", categories)
     with col2:
         level = st.selectbox("Minimum level", LOG_LEVELS)
-
-    search_term = st.text_input("Search", "")
-    st.button("Refresh")
+    with col3:
+        search_term = st.text_input("Search", "", placeholder="Search logs...")
+    with col4:
+        st.markdown("<div style='margin-top: 28px'></div>", unsafe_allow_html=True)
+        st.button("Refresh", use_container_width=True)
 
     # Fetch log entries through bridge (no direct file reads)
     result = bridge.get_log_entries(
@@ -96,7 +98,18 @@ def render() -> None:
         return
 
     display_entries = _entries_for_display(filtered)
-    st.dataframe(display_entries, width="stretch")
+
+    st.dataframe(
+        display_entries,
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "timestamp": st.column_config.TextColumn("Time", width="medium"),
+            "level": st.column_config.TextColumn("Level", width="small"),
+            "logger": st.column_config.TextColumn("Logger", width="medium"),
+            "message": st.column_config.TextColumn("Message", width="large"),
+        },
+    )
 
 
 if __name__ == "__main__":

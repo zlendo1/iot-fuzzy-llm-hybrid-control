@@ -12,7 +12,7 @@ from src.interfaces.web.session import init_session_state
 
 def render() -> None:
     init_session_state()
-    render_header("Devices")
+    render_header("Devices", "Manage and monitor connected IoT devices")
 
     bridge = get_bridge()
 
@@ -40,7 +40,10 @@ def render() -> None:
     if location_filter != "All":
         filtered = [d for d in filtered if d.get("location") == location_filter]
 
-    st.write(f"Showing {len(filtered)} of {len(devices)} devices")
+    st.divider()
+    st.markdown(
+        f"**Device Summary:** Showing {len(filtered)} of {len(devices)} devices"
+    )
 
     if not filtered:
         st.info("No devices match the current filter.")
@@ -52,12 +55,15 @@ def render() -> None:
         with st.expander(f"{device_name} ({device_id})", expanded=False):
             col_a, col_b, col_c = st.columns(3)
             with col_a:
-                st.write(f"**Type:** {device.get('device_type', 'unknown')}")
-                st.write(f"**Class:** {device.get('device_class', 'unknown')}")
+                st.metric(
+                    "Type",
+                    str(device.get("device_type", "unknown")).replace("_", " ").title(),
+                )
             with col_b:
-                st.write(f"**Zone:** {device.get('location', 'unknown')}")
+                st.metric("Zone", str(device.get("location", "unknown")).title())
             with col_c:
-                render_status_badge("unknown")
+                st.caption("Class")
+                render_status_badge(device.get("device_class", "unknown"))
 
 
 if __name__ == "__main__":

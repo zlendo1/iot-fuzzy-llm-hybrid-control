@@ -18,7 +18,7 @@ def _render_config_editor(
     save_label: str,
     bridge: Any,
 ) -> None:
-    st.subheader(title)
+    st.markdown(f"### {title} Configuration")
     config_data = bridge.get_config(config_name)
 
     if config_data is None:
@@ -35,11 +35,15 @@ def _render_config_editor(
     edited_text = st.text_area(
         label="Edit JSON",
         value=json.dumps(content, indent=2),
-        height=400,
+        height=600,
         key=f"config_editor_{config_name}",
+        label_visibility="collapsed",
     )
 
-    if st.button(save_label, key=f"save_{config_name}"):
+    st.markdown("<br>", unsafe_allow_html=True)
+    if st.button(
+        save_label, key=f"save_{config_name}", type="primary", use_container_width=True
+    ):
         try:
             parsed = json.loads(edited_text)
         except json.JSONDecodeError as exc:
@@ -47,7 +51,12 @@ def _render_config_editor(
             return
 
         result = bridge.update_config(config_name, parsed, version)
-        if result is not None and result.get("success") or result is not None and "new_version" in result:
+        if (
+            result is not None
+            and result.get("success")
+            or result is not None
+            and "new_version" in result
+        ):
             st.success(f"Saved {config_name} configuration.")
         else:
             error_msg = (
@@ -60,7 +69,7 @@ def _render_config_editor(
 
 def render() -> None:
     init_session_state()
-    render_header("Configuration")
+    render_header("Configuration", "Edit system configuration files")
 
     try:
         bridge = get_bridge()
@@ -70,11 +79,13 @@ def render() -> None:
 
     devices_tab, mqtt_tab, llm_tab = st.tabs(["Devices", "MQTT", "LLM"])
     with devices_tab:
-        _render_config_editor("Devices", "devices", "Save devices", bridge)
+        _render_config_editor(
+            "Devices", "devices", "Save Devices Configuration", bridge
+        )
     with mqtt_tab:
-        _render_config_editor("MQTT", "mqtt_config", "Save mqtt", bridge)
+        _render_config_editor("MQTT", "mqtt_config", "Save MQTT Configuration", bridge)
     with llm_tab:
-        _render_config_editor("LLM", "llm_config", "Save llm", bridge)
+        _render_config_editor("LLM", "llm_config", "Save LLM Configuration", bridge)
 
 
 if __name__ == "__main__":

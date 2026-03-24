@@ -18,8 +18,8 @@ COLORS = {
     "info": "#63b3ed",
     "info_bg": "rgba(99,179,237,0.12)",
     "muted": "#a0aec0",
-    "border": "#e2e8f0",
-    "card_bg": "#ffffff",
+    "border": "rgba(172, 177, 195, 0.15)",
+    "card_bg": "rgba(172, 177, 195, 0.15)",
     "card_shadow": "rgba(0,0,0,0.04)",
 }
 

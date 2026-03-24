@@ -23,12 +23,12 @@ PAGES = [
     ),
     st.Page(SCRIPT_DIR / "pages" / "rules.py", title="Rules", icon=":material/rule:"),
     st.Page(
-        SCRIPT_DIR / "pages" / "config.py", title="Config", icon=":material/settings:"
+        SCRIPT_DIR / "pages" / "membership_editor.py",
+        title="Membership",
+        icon=":material/show_chart:",
     ),
     st.Page(
-        SCRIPT_DIR / "pages" / "membership_editor.py",
-        title="Membership Editor",
-        icon=":material/functions:",
+        SCRIPT_DIR / "pages" / "config.py", title="Config", icon=":material/settings:"
     ),
     st.Page(
         SCRIPT_DIR / "pages" / "logs.py", title="Logs", icon=":material/description:"

@@ -165,41 +165,46 @@ def render() -> None:
             )
             return
 
-        cols = st.columns(2)
-        for i, (sensor_id, reading) in enumerate(filtered_readings.items()):
+        table_rows = []
+        for sensor_id, reading in filtered_readings.items():
             device = device_map.get(sensor_id, {})
             name = device.get("name", sensor_id)
             location = device.get("location", "Unknown")
+            device_class = device.get("device_class", "unknown")
 
-            with cols[i % 2], st.container(border=True):
-                st.subheader(f"{name}")
-                st.caption(f"📍 {location} | 🏷️ {sensor_id}")
+            if isinstance(reading.value, float):
+                val_str = f"{reading.value:.2f}"
+            elif isinstance(reading.value, bool):
+                val_str = "Detected" if reading.value else "Clear"
+            else:
+                val_str = str(reading.value)
 
-                if isinstance(reading.value, float):
-                    val_str = f"{reading.value:.2f}"
-                elif isinstance(reading.value, bool):
-                    val_str = "Detected" if reading.value else "Clear"
-                else:
-                    val_str = str(reading.value)
+            table_rows.append(
+                {
+                    "Name": name,
+                    "Location": location,
+                    "Type": device_class,
+                    "Value": val_str,
+                    "Unit": reading.unit or "",
+                    "Last Updated": reading.timestamp,
+                }
+            )
 
-                st.metric(
-                    label="Current Value",
-                    value=f"{val_str} {reading.unit or ''}".strip(),
-                )
-
-                history = queue.get_reading_history(sensor_id, limit=20)
-                if history:
-                    chart_data = {"time": [], "value": []}
-                    for h in reversed(history):
-                        chart_data["time"].append(h.timestamp)
-                        try:
-                            chart_data["value"].append(float(h.value))
-                        except (ValueError, TypeError):
-                            chart_data["value"].append(0.0)
-
-                    st.line_chart(chart_data, x="time", y="value", height=150)
-
-                st.caption(f"Last updated: {reading.timestamp}")
+        st.dataframe(
+            table_rows,
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "Name": st.column_config.TextColumn("Sensor Name", width="medium"),
+                "Location": st.column_config.TextColumn("Location", width="small"),
+                "Type": st.column_config.TextColumn("Type", width="small"),
+                "Value": st.column_config.TextColumn("Value", width="small"),
+                "Unit": st.column_config.TextColumn("Unit", width="small"),
+                "Last Updated": st.column_config.TextColumn(
+                    "Last Updated", width="medium"
+                ),
+            },
+        )
 
     _show_sensors()
 

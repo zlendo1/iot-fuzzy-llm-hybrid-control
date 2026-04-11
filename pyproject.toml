@@ -10,7 +10,7 @@ readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.9"
 authors = [
-    { name = "Zijad", email = "zijad@example.com" }
+    { name = "Zijad Lendo", email = "zlendo1@etf.unsa.ba" }
 ]
 keywords = [
     "iot",

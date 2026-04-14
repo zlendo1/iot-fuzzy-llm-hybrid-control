@@ -2,7 +2,7 @@
 	install dev dev-deps dev-web \
 	test test-unit test-int docker-test coverage coverage-html \
 	lint format check typecheck \
-	proto proto-clean \
+	proto clean-proto \
 	clean clean-docker clean-all reset \
 	pull-model list-models
 
@@ -41,6 +41,7 @@ help:
 	@echo "  make dev            Run app locally (outside Docker)"
 	@echo "  make dev-deps       Start only mosquitto and ollama in Docker"
 	@echo "  make dev-web        Run Streamlit web UI locally"
+	@echo "  make proto          Generate from Protobuf files"
 	@echo ""
 	@echo "Testing Commands:"
 	@echo "  make test           Run all tests"
@@ -59,6 +60,7 @@ help:
 	@echo "Utility Commands:"
 	@echo "  make clean          Remove build artifacts, __pycache__, etc."
 	@echo "  make clean-docker   Remove Docker volumes and images"
+	@echo "  make clean-proto    Remove Protobuf artifacts"
 	@echo "  make clean-all      Full cleanup (clean + clean-docker)"
 	@echo "  make reset          Stop services and full cleanup"
 	@echo ""
@@ -132,7 +134,7 @@ proto: $(VENV)
 	touch $(GEN_DIR)/__init__.py
 	$(VENV_PYTHON) scripts/fix_protobuf_imports.py
 
-proto-clean:
+clean-proto:
 	rm -rf $(GEN_DIR)
 	@echo "Cleaned generated gRPC files"
 

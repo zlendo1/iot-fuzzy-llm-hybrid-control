@@ -72,3 +72,28 @@ def is_shutdown_initiated() -> bool:
 def clear_shutdown_initiated() -> None:
     """Clear the shutdown initiated flag."""
     st.session_state["shutdown_initiated"] = False
+
+
+def get_actuator_state(device_id: str) -> dict[str, object] | None:
+    """Get the last known state for an actuator.
+
+    Args:
+        device_id: The actuator device ID.
+
+    Returns:
+        Dictionary with state info or None if no state recorded.
+    """
+    states = st.session_state.get("actuator_states", {})
+    return states.get(device_id)
+
+
+def set_actuator_state(device_id: str, state: dict[str, object]) -> None:
+    """Set the state for an actuator.
+
+    Args:
+        device_id: The actuator device ID.
+        state: State dictionary to store.
+    """
+    if "actuator_states" not in st.session_state:
+        st.session_state["actuator_states"] = {}
+    st.session_state["actuator_states"][device_id] = state

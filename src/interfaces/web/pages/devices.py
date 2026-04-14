@@ -7,7 +7,11 @@ from src.interfaces.web.components.common import (
     render_header,
     render_status_badge,
 )
-from src.interfaces.web.session import init_session_state
+from src.interfaces.web.session import (
+    get_actuator_state,
+    init_session_state,
+    set_actuator_state,
+)
 
 
 def render() -> None:
@@ -120,28 +124,43 @@ def render() -> None:
                 else:
                     st.info("No reading available")
 
-            if device_type == "actuator" and capabilities:
+            if device_type == "actuator":
                 st.divider()
-                st.markdown("**Send Command**")
-                cmd_col1, cmd_col2 = st.columns([2, 1])
-                with cmd_col1:
-                    action = st.selectbox(
-                        "Action",
-                        options=capabilities,
-                        key=f"cmd_action_{device_id}",
-                    )
-                with cmd_col2:
-                    if st.button("Send", key=f"cmd_send_{device_id}", type="primary"):
-                        result = bridge.send_command(device_id, str(action))
-                        if result and result.get("success"):
-                            st.success(f"Command sent: {action}")
-                        else:
-                            msg = (
-                                result.get("message", "Unknown error")
-                                if result
-                                else "Failed to send"
-                            )
-                            st.error(f"Failed: {msg}")
+                actuator_state = get_actuator_state(device_id)
+                if actuator_state:
+                    last_cmd = actuator_state.get("last_command", "Unknown")
+                    last_time = actuator_state.get("timestamp", "Unknown")
+                    st.markdown(f"**Last Command:** `{last_cmd}`")
+                    st.caption(f"Sent at: {last_time}")
+                else:
+                    st.info("No commands sent yet")
+
+                if capabilities:
+                    st.markdown("**Send Command**")
+                    cmd_col1, cmd_col2 = st.columns([2, 1])
+                    with cmd_col1:
+                        action = st.selectbox(
+                            "Action",
+                            options=capabilities,
+                            key=f"cmd_action_{device_id}",
+                        )
+                    with cmd_col2:
+                        if st.button("Send", key=f"cmd_send_{device_id}", type="primary"):
+                            result = bridge.send_command(device_id, str(action))
+                            if result and result.get("success"):
+                                from datetime import datetime
+                                set_actuator_state(device_id, {
+                                    "last_command": action,
+                                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                })
+                                st.success(f"Command sent: {action}")
+                            else:
+                                msg = (
+                                    result.get("message", "Unknown error")
+                                    if result
+                                    else "Failed to send"
+                                )
+                                st.error(f"Failed: {msg}")
 
 
 if __name__ == "__main__":

@@ -222,6 +222,11 @@ class MQTTCommunicationManager(DeviceInterfaceProtocol):
                 command.device_id,
                 command.command_type.value,
             )
+            # Mark actuator as online when command is successfully sent
+            if self._device_monitor:
+                self._device_monitor.record_activity(
+                    command.device_id, device.mqtt.command_topic
+                )
             return True
         except MQTTError:
             logger.exception("Failed to send command to %s", command.device_id)

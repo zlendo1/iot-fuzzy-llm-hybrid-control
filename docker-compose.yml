@@ -72,7 +72,7 @@ services:
       - IOT_STATUS_PORT=${IOT_STATUS_PORT:-8080}
       - IOT_AUTO_START=true
     healthcheck:
-      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      test: ["CMD", "python", "docker/app/healthcheck.py"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -110,6 +110,29 @@ services:
       retries: 3
       start_period: 15s
     command: ["streamlit", "run", "src/interfaces/web/streamlit_app.py", "--server.port=8501", "--server.address=0.0.0.0", "--server.headless=true"]
+
+  simulator:
+    build:
+      context: .
+      dockerfile: docker/simulator/Dockerfile
+    container_name: iot-simulator
+    restart: unless-stopped
+    profiles:
+      - simulator
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+    networks:
+      - iot-network
+    environment:
+      - MQTT_HOST=mosquitto
+      - MQTT_PORT=1883
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
 networks:
   iot-network:

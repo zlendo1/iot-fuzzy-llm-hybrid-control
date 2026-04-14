@@ -9,6 +9,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir --user -r requirements.txt
 
+# Install grpcio-tools for protobuf generation
+RUN pip install --no-cache-dir --user grpcio-tools==1.70.0
+
+# Copy proto files and generate Python code
+COPY protos/ ./protos/
+COPY scripts/fix_protobuf_imports.py ./scripts/
+
+RUN mkdir -p src/interfaces/rpc/generated && \
+    python -m grpc_tools.protoc \
+    --proto_path=./protos \
+    --python_out=./src/interfaces/rpc/generated \
+    --grpc_python_out=./src/interfaces/rpc/generated \
+    ./protos/*.proto && \
+    python scripts/fix_protobuf_imports.py
+
 
 FROM python:3.12-slim
 
@@ -22,6 +37,7 @@ COPY src/ ./src/
 COPY config/ ./config/
 COPY rules/ ./rules/
 COPY docker/app/entrypoint.sh /entrypoint.sh
+COPY docker/app/healthcheck.py /app/docker/app/healthcheck.py
 
 RUN mkdir -p /app/logs && \
     chown -R appuser:appuser /app && \

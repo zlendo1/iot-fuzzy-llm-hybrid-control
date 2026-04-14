@@ -499,7 +499,7 @@ class TestRuleProcessingPipelineProcess:
             prompt_eval_count=10,
             eval_count=5,
         )
-        mock_client.generate.return_value = mock_response
+        mock_client.generate_with_retry.return_value = mock_response
         pipeline.set_ollama_client(mock_client)
 
         rule = _create_rule(rule_text="If temperature is hot, turn on AC")
@@ -529,7 +529,7 @@ class TestRuleProcessingPipelineProcess:
             prompt_eval_count=10,
             eval_count=5,
         )
-        mock_client.generate.return_value = mock_response
+        mock_client.generate_with_retry.return_value = mock_response
         pipeline.set_ollama_client(mock_client)
 
         rule = _create_rule(rule_text="If temperature is hot, turn on AC")
@@ -644,7 +644,7 @@ class TestRuleProcessingPipelineConflictResolution:
 
         call_count = 0
 
-        def mock_generate(prompt: str) -> OllamaResponse:
+        def mock_generate(prompt: str, **kwargs) -> OllamaResponse:
             nonlocal call_count
             call_count += 1
             return OllamaResponse(
@@ -656,7 +656,7 @@ class TestRuleProcessingPipelineConflictResolution:
             )
 
         mock_client = MagicMock()
-        mock_client.generate.side_effect = mock_generate
+        mock_client.generate_with_retry.side_effect = mock_generate
         pipeline.set_ollama_client(mock_client)
 
         rule1 = _create_rule(
@@ -689,7 +689,7 @@ class TestRuleProcessingPipelineErrorHandling:
         pipeline.initialize()
 
         mock_client = MagicMock()
-        mock_client.generate.side_effect = Exception("LLM error")
+        mock_client.generate_with_retry.side_effect = Exception("LLM error")
         pipeline.set_ollama_client(mock_client)
 
         rule = _create_rule(rule_text="If temperature is hot, turn on AC")
@@ -734,7 +734,7 @@ class TestRuleProcessingPipelineErrorHandling:
             prompt_eval_count=10,
             eval_count=5,
         )
-        mock_client.generate.return_value = mock_response
+        mock_client.generate_with_retry.return_value = mock_response
         pipeline.set_ollama_client(mock_client)
 
         cmd = _create_command()

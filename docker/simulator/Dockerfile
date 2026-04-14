@@ -10,4 +10,5 @@ ENV MQTT_HOST=mosquitto
 ENV MQTT_PORT=1883
 ENV PYTHONUNBUFFERED=1
 
-CMD ["python", "simulate_devices.py", "--host", "${MQTT_HOST}", "--port", "${MQTT_PORT}"]
+# Use shell form to allow environment variable expansion
+CMD python simulate_devices.py --host "$MQTT_HOST" --port "$MQTT_PORT"

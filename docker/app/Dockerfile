@@ -9,6 +9,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir --user -r requirements.txt
 
+# Upgrade protobuf to fix version compatibility with grpcio-reflection
+RUN pip install --no-cache-dir --user protobuf==6.31.1
+
 # Install grpcio-tools for protobuf generation
 RUN pip install --no-cache-dir --user grpcio-tools==1.70.0
 
@@ -23,6 +26,9 @@ RUN mkdir -p src/interfaces/rpc/generated && \
     --grpc_python_out=./src/interfaces/rpc/generated \
     ./protos/*.proto && \
     python scripts/fix_protobuf_imports.py
+
+# Reinstall protobuf after grpcio-tools to fix version conflict
+RUN pip install --no-cache-dir --user protobuf==6.31.1
 
 
 FROM python:3.12-slim

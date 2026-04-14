@@ -257,8 +257,46 @@ class RuleProcessingPipeline(ControlReasoningLayerInterface):
                 parsed_response=parsed,
             )
 
-        response = self._ollama_client.generate(prompt.prompt_text)
+        response = self._ollama_client.generate_with_retry(
+            prompt.prompt_text, max_retries=2
+        )
+
+        # Log raw response at DEBUG level for troubleshooting
+        logger.debug(
+            "Raw LLM response",
+            extra={
+                "rule_id": rule.rule_id,
+                "response_preview": response.text[:200] if response.text else "",
+            },
+        )
+
         parsed = self._response_parser.parse(response.text)
+
+        # Retry on MALFORMED response
+        retry_count = 0
+        max_malformed_retries = 2
+        while parsed.is_malformed and retry_count < max_malformed_retries:
+            retry_count += 1
+            logger.warning(
+                "Malformed LLM response, retrying",
+                extra={
+                    "rule_id": rule.rule_id,
+                    "attempt": retry_count,
+                    "reason": parsed.reason,
+                },
+            )
+            response = self._ollama_client.generate_with_retry(
+                prompt.prompt_text, max_retries=1
+            )
+            logger.debug(
+                "Raw LLM response (retry)",
+                extra={
+                    "rule_id": rule.rule_id,
+                    "attempt": retry_count,
+                    "response_preview": response.text[:200] if response.text else "",
+                },
+            )
+            parsed = self._response_parser.parse(response.text)
 
         generation_result: GenerationResult | None = None
         if parsed.is_action:
@@ -273,6 +311,7 @@ class RuleProcessingPipeline(ControlReasoningLayerInterface):
                 "rule_id": rule.rule_id,
                 "response_type": parsed.response_type.value,
                 "action": parsed.action.to_dict() if parsed.action else None,
+                "retry_count": retry_count,
             },
         )
 

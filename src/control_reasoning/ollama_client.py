@@ -273,6 +273,7 @@ class OllamaClient:
             "prompt": prompt,
             "stream": False,
             "options": self._config.inference.to_ollama_options(),
+            "think": False,
         }
 
         if system_prompt:
@@ -309,6 +310,61 @@ class OllamaClient:
             ) from e
         except requests.RequestException as e:
             raise OllamaConnectionError(f"Connection error: {e}") from e
+
+    def generate_with_retry(
+        self,
+        prompt: str,
+        model: str | None = None,
+        system_prompt: str | None = None,
+        max_retries: int = 2,
+    ) -> OllamaResponse:
+        """Generate a text completion with automatic retry on failure.
+
+        Args:
+            prompt: The prompt text
+            model: Model to use (defaults to active_model or config.model.name)
+            system_prompt: Optional system prompt for context
+            max_retries: Maximum number of retry attempts (default: 2)
+
+        Returns:
+            OllamaResponse with generated text
+
+        Raises:
+            OllamaTimeoutError: If request times out on all retries
+            OllamaConnectionError: If cannot connect to service
+            OllamaGenerationError: If generation fails on all retries
+        """
+        last_error: Exception | None = None
+
+        for attempt in range(max_retries + 1):
+            try:
+                response = self.generate(prompt, model, system_prompt)
+                if attempt > 0:
+                    logger.info(
+                        "LLM generation succeeded after retry",
+                        extra={"attempt": attempt + 1, "max_retries": max_retries},
+                    )
+                return response
+            except (OllamaTimeoutError, OllamaConnectionError) as e:
+                last_error = e
+                if attempt < max_retries:
+                    logger.warning(
+                        "LLM generation failed, retrying",
+                        extra={
+                            "attempt": attempt + 1,
+                            "max_retries": max_retries,
+                            "error": str(e),
+                        },
+                    )
+                else:
+                    logger.error(
+                        "LLM generation failed after all retries",
+                        extra={"attempts": max_retries + 1, "error": str(e)},
+                    )
+
+        if last_error:
+            raise last_error
+        raise OllamaGenerationError("Unexpected error in generate_with_retry")
 
     def close(self) -> None:
         """Close the HTTP session."""

@@ -66,12 +66,17 @@ class ResponseParser:
         re.IGNORECASE | re.DOTALL,
     )
     PARAM_PATTERN = re.compile(r"(\w+)\s*=\s*([^,]+)")
+    THINK_PATTERN = re.compile(r"<think>.*?</think>", re.DOTALL)
+
+    def _strip_thinking(self, text: str) -> str:
+        """Remove Qwen3 thinking blocks from response."""
+        return self.THINK_PATTERN.sub("", text).strip()
 
     def parse(self, llm_response: str) -> ParsedResponse:
         if not llm_response or not llm_response.strip():
             return self._malformed("Empty response", llm_response)
 
-        text = llm_response.strip()
+        text = self._strip_thinking(llm_response).strip()
 
         action_match = self.ACTION_PATTERN.search(text)
         if action_match:

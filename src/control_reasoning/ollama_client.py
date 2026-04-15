@@ -273,7 +273,7 @@ class OllamaClient:
             "prompt": prompt,
             "stream": False,
             "options": self._config.inference.to_ollama_options(),
-            "think": False,
+            "think": True,
         }
 
         if system_prompt:

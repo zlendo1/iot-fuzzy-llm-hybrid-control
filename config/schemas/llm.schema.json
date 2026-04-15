@@ -113,6 +113,11 @@
           "maximum": 2,
           "default": 1.1,
           "description": "Repetition penalty"
+        },
+        "enable_thinking": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable thinking mode for supported models (e.g. qwen3)"
         }
       },
       "additionalProperties": false

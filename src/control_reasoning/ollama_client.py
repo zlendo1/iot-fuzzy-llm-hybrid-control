@@ -68,6 +68,7 @@ class OllamaInferenceConfig:
     top_p: float = 0.9
     top_k: int = 40
     repeat_penalty: float = 1.1
+    enable_thinking: bool = False
 
     @classmethod
     def from_dict(cls, data: dict[str, Any] | None) -> OllamaInferenceConfig:
@@ -79,6 +80,7 @@ class OllamaInferenceConfig:
             top_p=data.get("top_p", 0.9),
             top_k=data.get("top_k", 40),
             repeat_penalty=data.get("repeat_penalty", 1.1),
+            enable_thinking=data.get("enable_thinking", False),
         )
 
     def to_ollama_options(self) -> dict[str, Any]:
@@ -273,8 +275,10 @@ class OllamaClient:
             "prompt": prompt,
             "stream": False,
             "options": self._config.inference.to_ollama_options(),
-            "think": True,
         }
+
+        if self._config.inference.enable_thinking:
+            payload["think"] = True
 
         if system_prompt:
             payload["system"] = system_prompt
@@ -305,8 +309,10 @@ class OllamaClient:
                 f"Generation timed out after {self.timeout}s"
             ) from e
         except requests.HTTPError as e:
+            status_code = e.response.status_code if e.response is not None else None
             raise OllamaGenerationError(
-                f"Generation failed: {e.response.status_code} - {e.response.text}"
+                f"Generation failed: {e.response.status_code} - {e.response.text}",
+                status_code=status_code,
             ) from e
         except requests.RequestException as e:
             raise OllamaConnectionError(f"Connection error: {e}") from e
@@ -361,6 +367,37 @@ class OllamaClient:
                         "LLM generation failed after all retries",
                         extra={"attempts": max_retries + 1, "error": str(e)},
                     )
+            except OllamaGenerationError as e:
+                if e.is_retryable:
+                    last_error = e
+                    if attempt < max_retries:
+                        logger.warning(
+                            "LLM generation error (retryable), retrying",
+                            extra={
+                                "attempt": attempt + 1,
+                                "max_retries": max_retries,
+                                "status_code": e.status_code,
+                                "error": str(e),
+                            },
+                        )
+                    else:
+                        logger.error(
+                            "LLM generation error after all retries",
+                            extra={
+                                "attempts": max_retries + 1,
+                                "status_code": e.status_code,
+                                "error": str(e),
+                            },
+                        )
+                else:
+                    logger.error(
+                        "LLM generation failed (non-retryable)",
+                        extra={
+                            "status_code": e.status_code,
+                            "error": str(e),
+                        },
+                    )
+                    raise
 
         if last_error:
             raise last_error
@@ -404,4 +441,15 @@ class OllamaModelNotFoundError(OllamaError):
 class OllamaGenerationError(OllamaError):
     """Raised when text generation fails."""
 
-    pass
+    _RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
+
+    def __init__(self, message: str, status_code: int | None = None) -> None:
+        super().__init__(message)
+        self.status_code = status_code
+
+    @property
+    def is_retryable(self) -> bool:
+        """Whether this error is transient and worth retrying."""
+        if self.status_code is None:
+            return False
+        return self.status_code in self._RETRYABLE_STATUS_CODES

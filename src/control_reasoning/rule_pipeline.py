@@ -261,12 +261,15 @@ class RuleProcessingPipeline(ControlReasoningLayerInterface):
             prompt.prompt_text, max_retries=2
         )
 
-        # Log raw response at DEBUG level for troubleshooting
         logger.debug(
             "Raw LLM response",
             extra={
                 "rule_id": rule.rule_id,
-                "response_preview": response.text[:200] if response.text else "",
+                "raw_response": response.text,
+                "model": response.model,
+                "duration_s": response.total_duration_seconds,
+                "prompt_tokens": response.prompt_eval_count,
+                "generated_tokens": response.eval_count,
             },
         )
 
@@ -293,7 +296,9 @@ class RuleProcessingPipeline(ControlReasoningLayerInterface):
                 extra={
                     "rule_id": rule.rule_id,
                     "attempt": retry_count,
-                    "response_preview": response.text[:200] if response.text else "",
+                    "raw_response": response.text,
+                    "model": response.model,
+                    "duration_s": response.total_duration_seconds,
                 },
             )
             parsed = self._response_parser.parse(response.text)
@@ -306,14 +311,30 @@ class RuleProcessingPipeline(ControlReasoningLayerInterface):
             )
 
         logger.debug(
-            "Rule evaluated",
+            "Processed LLM response",
             extra={
                 "rule_id": rule.rule_id,
                 "response_type": parsed.response_type.value,
                 "action": parsed.action.to_dict() if parsed.action else None,
+                "reason": parsed.reason,
                 "retry_count": retry_count,
+                "command_generated": (
+                    generation_result.success
+                    if generation_result
+                    else False
+                ),
             },
         )
+
+        if parsed.is_malformed:
+            logger.warning(
+                "LLM response remained malformed after retries",
+                extra={
+                    "rule_id": rule.rule_id,
+                    "reason": parsed.reason,
+                    "raw_text_preview": parsed.raw_text[:200],
+                },
+            )
 
         return EvaluationResult(
             rule_id=rule.rule_id,

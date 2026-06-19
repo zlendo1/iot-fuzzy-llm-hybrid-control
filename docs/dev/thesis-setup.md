@@ -8,7 +8,7 @@ Sarajevo, January 6, 2026
 
 ______________________________________________________________________
 
-# **Fuzzy-LLM Hybrid Approach for Rule-Based Management of IoT Systems**
+# **Fuzzy-LLM Hybrid Approach for Rule-Based IoT System Management**
 
 ## Assignment Description
 
